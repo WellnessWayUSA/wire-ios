@@ -65,24 +65,6 @@
     return self.image.size.width > 192 && self.image.size.height > 96;
 }
 
-- (BOOL)showEditingOptions
-{
-    return self.videoURL == nil;
-}
-
-- (UIStatusBarStyle)preferredStatusBarStyle
-{
-    switch ([ColorScheme defaultColorScheme].variant) {
-        case ColorSchemeVariantLight:
-            return UIStatusBarStyleDefault;
-            break;
-            
-        case ColorSchemeVariantDark:
-            return UIStatusBarStyleLightContent;
-            break;
-    }
-}
-
 #pragma mark - View Creation
 
 - (void)createPreviewPanel

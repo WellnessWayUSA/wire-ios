@@ -1,6 +1,5 @@
-//
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2019 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,18 +17,20 @@
 
 import Foundation
 
-extension UINavigationController {
-    
-    //TODO to be merged with the one used by Jacob in GroupDetailsViewController.swift
-    @objc func legalHoldItem() -> UIBarButtonItem {
-        let item = UIBarButtonItem(icon: .legalholdactive, target: self, action: #selector(presentLegalholdDetails))
-        item.setLegalHoldAccessibility()
-        item.tintColor = .vividRed
-        return item
+extension UIViewController {
+
+    /// present self from the top most view controller
+    ///
+    /// - Parameters:
+    ///   - flag: true if animated
+    ///   - completion: the completion closure
+    func presentTopmost(animated flag: Bool = true,
+                        completion: (() -> Void)? = nil) {
+        UIApplication.shared.topmostViewController(onlyFullScreen: false)?.present(self, animated: flag, completion: completion)
     }
-    
-    @objc func presentLegalholdDetails() {
-        //let viewController = LegalholdDetailsViewController(conversation: conversation)
-        //navigationController?.pushViewController(viewController, animated: true)
+
+    @objc
+    func presentInNotificationsWindow() {
+        AppDelegate.shared().notificationsWindow?.rootViewController?.present(self, animated: true)
     }
 }
