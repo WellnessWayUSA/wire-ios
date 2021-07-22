@@ -17,13 +17,17 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
-final class SearchUserViewConroller: UIViewController {
+final class SearchUserViewConroller: UIViewController, SpinnerCapable {
+    var dismissSpinner: SpinnerCompletion?
 
     private var searchDirectory: SearchDirectory!
     private weak var profileViewControllerDelegate: ProfileViewControllerDelegate?
     private let userId: UUID
-    private var pendingSearchTask: SearchTask? = nil
+    private var pendingSearchTask: SearchTask?
 
     /// flag for handleSearchResult. Only allow to display the result once
     private var resultHandled = false
@@ -57,7 +61,7 @@ final class SearchUserViewConroller: UIViewController {
         cancelItem.accessibilityLabel = "general.cancel".localized
         navigationItem.rightBarButtonItem = cancelItem
 
-        showLoadingView = true
+        isLoadingViewVisible = true
 
         if let task = searchDirectory?.lookup(userId: userId) {
             task.onResult({ [weak self] in
@@ -84,9 +88,8 @@ final class SearchUserViewConroller: UIViewController {
             profileUser = nil
         }
 
-
         if let profileUser = profileUser {
-            let profileViewController = ProfileViewController(user: profileUser, viewer: ZMUser.selfUser(), context: .profileViewer) ///TODO: context
+            let profileViewController = ProfileViewController(user: profileUser, viewer: ZMUser.selfUser(), context: .profileViewer)
             profileViewController.delegate = profileViewControllerDelegate
 
             navigationController?.setViewControllers([profileViewController], animated: true)
@@ -107,4 +110,3 @@ final class SearchUserViewConroller: UIViewController {
         dismiss(animated: true)
     }
 }
-

@@ -16,15 +16,17 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
-
+import UIKit
+import WireSystem
+import WireDataModel
+import WireCommonComponents
 
 private let zmLog = ZMSLog(tag: "UI")
 
-final public class CollectionImageCell: CollectionCell {
-    
+final class CollectionImageCell: CollectionCell {
+
     static let maxCellSize: CGFloat = 100
 
     override var message: ZMConversationMessage? {
@@ -32,9 +34,9 @@ final public class CollectionImageCell: CollectionCell {
             loadImage()
         }
     }
-        
+
     private let imageView = ImageResourceView()
-    
+
     /// This token is changes everytime the cell is re-used. Useful when performing
     /// asynchronous tasks where the cell might have been re-used in the mean time.
     private var reuseToken = UUID()
@@ -43,14 +45,14 @@ final public class CollectionImageCell: CollectionCell {
         super.init(coder: aDecoder)
         self.loadView()
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.loadView()
     }
-    
+
     var isHeightCalculated: Bool = false
-    
+
     func loadView() {
         self.imageView.contentMode = .scaleAspectFill
         self.imageView.clipsToBounds = true
@@ -64,7 +66,7 @@ final public class CollectionImageCell: CollectionCell {
             imageView.bottom == selfView.bottom
         }
     }
-    
+
     public override func prepareForReuse() {
         super.prepareForReuse()
         self.message = .none
@@ -75,20 +77,20 @@ final public class CollectionImageCell: CollectionCell {
     override var obfuscationIcon: StyleKitIcon {
         return .photo
     }
-    
+
     override func updateForMessage(changeInfo: MessageChangeInfo?) {
         super.updateForMessage(changeInfo: changeInfo)
-        
+
         guard let changeInfo = changeInfo, changeInfo.imageChanged else { return }
-        
+
         loadImage()
     }
 
-    var saveableImage : SavableImage?
-    
+    var saveableImage: SavableImage?
+
     @objc func save(_ sender: AnyObject!) {
         guard let imageMessageData = self.message?.imageMessageData, let imageData = imageMessageData.imageData else { return }
-        
+
         saveableImage = SavableImage(data: imageData, isGIF: imageMessageData.isAnimatedGIF)
         saveableImage?.saveToLibrary { [weak self] _ in
             self?.saveableImage = nil
@@ -99,4 +101,3 @@ final public class CollectionImageCell: CollectionCell {
         imageView.imageResource = message?.imageMessageData?.image
     }
 }
-

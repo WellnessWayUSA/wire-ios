@@ -17,17 +17,18 @@
 //
 
 import XCTest
+import SnapshotTesting
 @testable import Wire
 
-final class LandingViewControllerSnapshotTests: ZMSnapshotTestCase {
-    
+final class LandingViewControllerSnapshotTests: XCTestCase {
+
     var sut: LandingViewController!
-    
+
     override func setUp() {
         super.setUp()
         sut = LandingViewController()
     }
-    
+
     override func tearDown() {
         sut = nil
         super.tearDown()
@@ -35,7 +36,8 @@ final class LandingViewControllerSnapshotTests: ZMSnapshotTestCase {
 
     func testForInitState() {
         let navigationController = UINavigationController(navigationBarClass: AuthenticationNavigationBar.self, toolbarClass: nil)
+        navigationController.setOverrideTraitCollection(UITraitCollection(horizontalSizeClass: .compact), forChild: sut)
         navigationController.viewControllers = [sut]
-        verify(view: navigationController.view)
+        verifyInAllDeviceSizes(matching: navigationController)
     }
 }

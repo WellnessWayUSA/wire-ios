@@ -22,13 +22,13 @@ import UIKit
  * A view that displays the avatar of a user, either as text initials or as an image.
  */
 
-open class AvatarImageView: UIControl {
+class AvatarImageView: UIControl {
 
     /**
      * The different, mutually-exclusive forms of avatars
      */
 
-    public enum Avatar: Equatable {
+    enum Avatar: Equatable {
         case image(UIImage)
         case text(String)
     }
@@ -37,14 +37,14 @@ open class AvatarImageView: UIControl {
      * The different shapes of avatars.
      */
 
-    public enum Shape {
+    enum Shape {
         case rectangle, circle, relative
     }
 
     // MARK: - Properties
 
     /// The avatar to display.
-    public var avatar: Avatar? {
+    var avatar: Avatar? {
         didSet {
             if avatar != oldValue {
                 updateAvatar()
@@ -53,7 +53,7 @@ open class AvatarImageView: UIControl {
     }
 
     /// The shape of the avatar
-    public var shape: Shape = .circle {
+    var shape: Shape = .circle {
         didSet {
             if shape != oldValue {
                 updateShape()
@@ -62,7 +62,7 @@ open class AvatarImageView: UIControl {
     }
 
     /// Whether to allow initials.
-    public var allowsInitials: Bool = true {
+    var allowsInitials: Bool = true {
         didSet {
             if allowsInitials != oldValue {
                 updateAvatar()
@@ -71,24 +71,26 @@ open class AvatarImageView: UIControl {
     }
 
     /// The background color for the image.
-    @objc public var imageBackgroundColor: UIColor? {
+    var imageBackgroundColor: UIColor? {
         get { return container.backgroundColor }
-        set { container.backgroundColor = newValue }
+        set {
+            container.backgroundColor = newValue
+        }
     }
 
     /// The font to use of the initials label.
-    @objc public var initialsFont: UIFont {
+    var initialsFont: UIFont {
         get { return initialsLabel.font }
         set { initialsLabel.font = newValue }
     }
 
     /// The color to use for the initials label.
-    @objc public var initialsColor: UIColor {
+    var initialsColor: UIColor {
         get { return initialsLabel.textColor }
         set { initialsLabel.textColor = newValue }
     }
 
-    open override var contentMode: UIView.ContentMode {
+    override var contentMode: UIView.ContentMode {
         didSet {
             if contentMode != oldValue {
                 imageView.contentMode = contentMode
@@ -97,20 +99,20 @@ open class AvatarImageView: UIControl {
     }
 
     /// The view that contains the avatar.
-    @objc public let container = RoundedView()
+    var container = RoundedView()
 
     private let imageView = UIImageView()
     private let initialsLabel = UILabel()
 
     // MARK: - Initialization
 
-    public override init(frame: CGRect) {
+    override init(frame: CGRect) {
         super.init(frame: frame)
         configureSubviews()
         configureConstraints()
     }
 
-    public required init?(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         configureSubviews()
         configureConstraints()
@@ -118,7 +120,7 @@ open class AvatarImageView: UIControl {
 
     private func configureSubviews() {
         contentMode = .scaleAspectFill
-        
+
         isOpaque = false
         imageView.isOpaque = false
         container.backgroundColor = .yellow
@@ -161,7 +163,7 @@ open class AvatarImageView: UIControl {
 
             // initials
             initialsLabel.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            initialsLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            initialsLabel.centerYAnchor.constraint(equalTo: container.centerYAnchor)
         ])
     }
 
@@ -171,7 +173,7 @@ open class AvatarImageView: UIControl {
      * - parameter hugging: The content hugging priority.
      */
 
-    public func setImageConstraint(resistance: Float, hugging: Float) {
+    func setImageConstraint(resistance: Float, hugging: Float) {
         imageView.setContentHuggingPriority(UILayoutPriority(rawValue: hugging), for: .vertical)
         imageView.setContentHuggingPriority(UILayoutPriority(rawValue: hugging), for: .horizontal)
         imageView.setContentCompressionResistancePriority(UILayoutPriority(rawValue: resistance), for: .vertical)

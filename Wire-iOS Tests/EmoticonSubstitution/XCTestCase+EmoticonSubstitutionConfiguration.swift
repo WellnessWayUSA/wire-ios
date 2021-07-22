@@ -20,11 +20,9 @@ import XCTest
 @testable import Wire
 
 extension XCTestCase {
-    @objc
     func createEmoticonSubstitutionConfiguration(fileName: String) -> EmoticonSubstitutionConfiguration {
         let path = urlForResource(inTestBundleNamed: fileName).path
 
-        return EmoticonSubstitutionConfiguration(configurationFile:path)!
+        return EmoticonSubstitutionConfiguration(configurationFile: path)
     }
 }
-

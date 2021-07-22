@@ -17,25 +17,30 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension ConversationInputBarViewController {
 
-    @objc func setupInputLanguageObserver() {
+    func setupInputLanguageObserver() {
         NotificationCenter.default.addObserver(self, selector: #selector(inputModeDidChange(_:)), name: UITextInputMode.currentInputModeDidChangeNotification, object: nil)
 
     }
 
-    @objc func inputModeDidChange(_ notification: Notification?) {
+    @objc
+    func inputModeDidChange(_ notification: Notification?) {
+        guard let conversation = conversation as? ZMConversation else { return }
 
         guard let keyboardLanguage =  self.inputBar.textView.originalTextInputMode?.primaryLanguage else { return }
 
-        ZMUserSession.shared()?.enqueueChanges {
-            self.conversation.language = keyboardLanguage
+        ZMUserSession.shared()?.enqueue {
+            conversation.language = keyboardLanguage
             self.setInputLanguage()
         }
     }
 
-    @objc func setInputLanguage() {
+    func setInputLanguage() {
+        guard let conversation = conversation as? ZMConversation else { return }
+
         inputBar.textView.language = conversation.language
     }
 }

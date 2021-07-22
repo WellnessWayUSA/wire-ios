@@ -17,9 +17,12 @@
 //
 
 import Foundation
+import WireCommonComponents
+import UIKit
+import WireSystem
 
-@objcMembers final class ObfuscationView: UIImageView {
-    @objc init(icon: StyleKitIcon) {
+final class ObfuscationView: UIImageView {
+    init(icon: StyleKitIcon) {
         super.init(frame: .zero)
         backgroundColor = .accentDimmedFlat
         isOpaque = true
@@ -43,7 +46,7 @@ import Foundation
             accessibilityLabel = "Obfuscated view"
         }
     }
-    
+
     required init(coder: NSCoder) {
         fatal("initWithCoder: not implemented")
     }

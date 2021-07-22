@@ -16,8 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
+import UIKit
 
 extension Float {
     func clamp(_ lower: Float, upper: Float) -> Float {
@@ -34,7 +34,7 @@ extension CGFloat {
 // MARK: Decibel Normalization
 
 extension Float {
-    
+
     /**
       Calculates a nomrlaized value between 0 and 1 
       when called on  a `decibel` value, see:

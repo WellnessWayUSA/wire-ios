@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireDataModel
 
 extension String {
     var wholeRange: NSRange {
@@ -24,7 +25,7 @@ extension String {
     }
 }
 
-@objc public class MentionsHandler: NSObject {
+final class MentionsHandler: NSObject {
 
     fileprivate var mentionRegex: NSRegularExpression = {
         try! NSRegularExpression(pattern: "([\\s]|^)(@(\\S*))", options: [.anchorsMatchLines])
@@ -35,7 +36,7 @@ extension String {
 
     init?(text: String?, cursorPosition: Int) {
         guard let text = text, !text.isEmpty else { return nil }
-        
+
         let matches = mentionRegex.matches(in: text, range: text.wholeRange)
         // Cursor is a separator between characters, we are interested in the character before the cursor
         let characterPosition = max(0, cursorPosition - 1)
@@ -70,4 +71,3 @@ extension String {
     }
 
 }
-

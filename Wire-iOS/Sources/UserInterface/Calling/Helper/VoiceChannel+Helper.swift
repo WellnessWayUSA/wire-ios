@@ -16,10 +16,13 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import WireSyncEngine
+
 extension VoiceChannel {
 
     func toggleMuteState(userSession: ZMUserSession) {
-        mute(!AVSMediaManager.sharedInstance().isMicrophoneMuted, userSession: userSession)
+        let toggled = !muted
+        mute(toggled, userSession: userSession)
     }
 
 }

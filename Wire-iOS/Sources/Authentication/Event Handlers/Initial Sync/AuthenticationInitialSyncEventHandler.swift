@@ -17,12 +17,14 @@
 //
 
 import Foundation
+import WireCommonComponents
+import WireUtilities
 
 /**
  * Handles the initial sync event.
  */
 
-class AuthenticationInitialSyncEventHandler: NSObject, AuthenticationEventHandler {
+final class AuthenticationInitialSyncEventHandler: NSObject, AuthenticationEventHandler {
 
     weak var statusProvider: AuthenticationStatusProvider?
 
@@ -37,9 +39,6 @@ class AuthenticationInitialSyncEventHandler: NSObject, AuthenticationEventHandle
             return [.hideLoadingView]
         }
 
-        // Check the registration status
-        let isRegistered = statusProvider?.authenticatedUserWasRegisteredOnThisDevice == true
-
         // Build the list of actions
         var actions: [AuthenticationCoordinatorAction] = [.hideLoadingView]
 
@@ -50,7 +49,7 @@ class AuthenticationInitialSyncEventHandler: NSObject, AuthenticationEventHandle
         if let nextStep = nextRegistrationStep {
             actions.append(.transition(nextStep, mode: .reset))
         } else {
-            actions.append(isRegistered ? .completeRegistrationFlow : .completeLoginFlow)
+            actions.append(postAction)
         }
 
         return actions

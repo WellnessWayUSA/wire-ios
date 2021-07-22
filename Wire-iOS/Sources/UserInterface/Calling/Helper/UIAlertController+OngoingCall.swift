@@ -29,38 +29,28 @@ extension UIAlertController {
             completion: completion
         )
     }
-    
-    static func ongoingCallStartCallConfirmation(completion: @escaping (Bool) -> Void) -> UIAlertController {
-        return ongoingCallConfirmation(
-            titleKey: "call.alert.ongoing.alert_title",
-            messageKey: "call.alert.ongoing.start.message",
-            buttonTitleKey: "call.alert.ongoing.start.button",
-            forceAlertModal: false,
-            completion: completion
-        )
-    }
-    
+
     static func confirmGroupCall(participants: Int, completion: @escaping (Bool) -> Void) -> UIAlertController {
         let controller = UIAlertController(
             title: "conversation.call.many_participants_confirmation.title".localized,
             message: "conversation.call.many_participants_confirmation.message".localized(args: participants),
             preferredStyle: .alert
         )
-        
+
         controller.addAction(.cancel { completion(false) })
-        
+
         let sendAction = UIAlertAction(
             title: "conversation.call.many_participants_confirmation.call".localized,
             style: .default,
             handler: { _ in completion(true) }
         )
-        
+
         controller.addAction(sendAction)
         return controller
     }
-    
+
     // MARK: - Helper
-    
+
     private static func ongoingCallConfirmation(
         titleKey: String,
         messageKey: String,

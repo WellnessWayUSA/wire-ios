@@ -16,21 +16,26 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
+import UIKit
+import WireSyncEngine
 
-
-@objcMembers class ConversationPreviewViewController: TintColorCorrectedViewController {
+final class ConversationPreviewViewController: TintColorCorrectedViewController {
 
     let conversation: ZMConversation
-    fileprivate let actionController: ConversationActionController
+    let actionController: ConversationActionController
     fileprivate var contentViewController: ConversationContentViewController
 
-    init(conversation: ZMConversation, presentingViewController: UIViewController) {
+    init(conversation: ZMConversation,
+         presentingViewController: UIViewController,
+         sourceView: UIView?) {
         self.conversation = conversation
-        self.actionController = ConversationActionController(conversation: conversation, target: presentingViewController)
-        contentViewController = ConversationContentViewController(conversation: conversation, mediaPlaybackManager: nil, session: ZMUserSession.shared())
+        actionController = ConversationActionController(conversation: conversation,
+                                                        target: presentingViewController,
+                                                        sourceView: sourceView)
+
+        contentViewController = ConversationContentViewController(conversation: conversation, mediaPlaybackManager: nil, session: ZMUserSession.shared()!)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -56,17 +61,19 @@ import Cartography
             conversationView.edges == view.edges
         }
     }
-    
+
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
 
     // MARK: Preview Actions
 
+    @available(iOS, introduced: 9.0, deprecated: 13.0, message: "UIViewControllerPreviewing is deprecated. Please use UIContextMenuInteraction.")
     override var previewActionItems: [UIPreviewActionItem] {
-        return conversation.actions.map(makePreviewAction)
+        return conversation.listActions.map(makePreviewAction)
     }
 
+    @available(iOS, introduced: 9.0, deprecated: 13.0, message: "UIViewControllerPreviewing is deprecated. Please use UIContextMenuInteraction.")
     private func makePreviewAction(for action: ZMConversation.Action) -> UIPreviewAction {
         return action.previewAction { [weak self] in
             guard let `self` = self else { return }

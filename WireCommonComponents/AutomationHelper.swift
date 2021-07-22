@@ -20,7 +20,7 @@
 import Foundation
 import WireSystem
 
-@objcMembers public class AutomationEmailCredentials: NSObject {
+final public class AutomationEmailCredentials: NSObject {
     public var email: String
     public var password: String
     
@@ -31,67 +31,89 @@ import WireSystem
     }
 }
 
-
 /// This class is used to retrieve specific arguments passed on the 
 /// command line when running automation tests. 
 /// These values typically do not need to be stored in `Settings`.
-@objcMembers public final class AutomationHelper: NSObject {
+public final class AutomationHelper: NSObject {
     
-    @objc static public let sharedHelper = AutomationHelper()
+    static public let sharedHelper = AutomationHelper()
     
-    /// Whether Hockeyapp should be used
-    @objc public var useHockey: Bool {
-        return UserDefaults.standard.bool(forKey: "UseHockey")
+    private var useAppCenterLaunchOption: Bool?
+    
+    /// Whether AppCenter should be used
+    /// Launch option `--use-app-center` overrides user defaults setting.
+    public var useAppCenter: Bool {
+        // useAppCenterLaunchOption has higher priority
+        if let useAppCenterLaunchOption = useAppCenterLaunchOption {
+            return useAppCenterLaunchOption
+        }
+        
+        if UserDefaults.standard.object(forKey: "UseAppCenter") != nil {
+            return UserDefaults.standard.bool(forKey: "UseAppCenter")
+        }
+
+        //when UserDefaults's useAppCenter is not set, default is true to allow app center start
+        return true
     }
     
     /// Whether analytics should be used
-    @objc public var useAnalytics: Bool {
-        return UserDefaults.standard.bool(forKey: "UseAnalytics")
+    public var useAnalytics: Bool {
+        //TODO: get it from xcconfig?
+//        return UserDefaults.standard.bool(forKey: "UseAnalytics")
+        return true
     }
     
     /// Whether to skip the first login alert
-    @objc public var skipFirstLoginAlerts : Bool {
+    public var skipFirstLoginAlerts : Bool {
         return self.automationEmailCredentials != nil
     }
     
     /// The login credentials provides by command line
-    @objc public let automationEmailCredentials: AutomationEmailCredentials?
+    public let automationEmailCredentials: AutomationEmailCredentials?
     
     /// Whether we push notification permissions alert is disabled
-    @objc public let disablePushNotificationAlert : Bool
+    public let disablePushNotificationAlert : Bool
     
     /// Whether autocorrection is disabled
-    @objc public let disableAutocorrection : Bool
+    public let disableAutocorrection : Bool
     
     /// Whether address book upload is enabled on simulator
-    @objc public let uploadAddressbookOnSimulator : Bool
+    public let uploadAddressbookOnSimulator : Bool
 
     /// Whether we should disable the call quality survey.
     public let disableCallQualitySurvey: Bool
+    
+    /// Whether we should disable dismissing the conversation input bar keyboard by dragging it downwards.
+    public let disableInteractiveKeyboardDismissal: Bool
     
     /// Delay in address book remote search override
     public let delayInAddressBookRemoteSearch : TimeInterval?
     
     /// Debug data to install in the share container
-    @objc public let debugDataToInstall: URL?
+    public let debugDataToInstall: URL?
 
     /// The name of the arguments file in the /tmp directory
     private let fileArgumentsName = "wire_arguments.txt"
 
     /// Whether the backend environment type should be persisted as a setting.
-    @objc public let shouldPersistBackendType: Bool
+    public let shouldPersistBackendType: Bool
 
     override init() {
         let url = URL(string: NSTemporaryDirectory())?.appendingPathComponent(fileArgumentsName)
         let arguments: ArgumentsType = url.flatMap(FileArguments.init) ?? CommandLineArguments()
 
-        self.disablePushNotificationAlert = arguments.hasFlag(AutomationKey.disablePushNotificationAlert)
-        self.disableAutocorrection = arguments.hasFlag(AutomationKey.disableAutocorrection)
-        self.uploadAddressbookOnSimulator = arguments.hasFlag(AutomationKey.enableAddressBookOnSimulator)
-        self.disableCallQualitySurvey = arguments.hasFlag(AutomationKey.disableCallQualitySurvey)
-        self.shouldPersistBackendType = arguments.hasFlag(AutomationKey.persistBackendType)
+        disablePushNotificationAlert = arguments.hasFlag(AutomationKey.disablePushNotificationAlert)
+        disableAutocorrection = arguments.hasFlag(AutomationKey.disableAutocorrection)
+        uploadAddressbookOnSimulator = arguments.hasFlag(AutomationKey.enableAddressBookOnSimulator)
+        disableCallQualitySurvey = arguments.hasFlag(AutomationKey.disableCallQualitySurvey)
+        shouldPersistBackendType = arguments.hasFlag(AutomationKey.persistBackendType)
+        disableInteractiveKeyboardDismissal = arguments.hasFlag(AutomationKey.disableInteractiveKeyboardDismissal)
+        
+        if let value = arguments.flagValueIfPresent(AutomationKey.useAppCenter.rawValue) {
+            useAppCenterLaunchOption = (value != "0")
+        }
 
-        self.automationEmailCredentials = AutomationHelper.credentials(arguments)
+        automationEmailCredentials = AutomationHelper.credentials(arguments)
         if arguments.hasFlag(AutomationKey.logNetwork) {
             ZMSLog.set(level: .debug, tag: "Network")
         }
@@ -124,6 +146,8 @@ import WireSystem
         case debugDataToInstall = "debug-data-to-install"
         case disableCallQualitySurvey = "disable-call-quality-survey"
         case persistBackendType = "persist-backend-type"
+        case disableInteractiveKeyboardDismissal = "disable-interactive-keyboard-dismissal"
+        case useAppCenter = "use-app-center"
     }
     
     /// Returns the login email and password credentials if set in the given arguments
@@ -168,6 +192,7 @@ protocol ArgumentsType {
     func flagValueIfPresent(_ commandLineArgument: String) -> String?
 }
 
+//MARK: - default implementation
 extension ArgumentsType {
 
     var flagPrefix: String { return "--" }
@@ -181,8 +206,8 @@ extension ArgumentsType {
     }
 
     func flagValueIfPresent(_ commandLineArgument: String) -> String? {
-        for argument in self.arguments {
-            let searchString = "--" + commandLineArgument + "="
+        for argument in arguments {
+            let searchString = flagPrefix + commandLineArgument + "="
             if argument.hasPrefix(searchString) {
                 return String(argument[searchString.index(searchString.startIndex, offsetBy: searchString.count)...])
             }
@@ -218,7 +243,7 @@ extension AutomationHelper {
     
     /// Takes all files in the folder pointed at by `debugDataToInstall` and installs them
     /// in the shared folder, erasing any other file in that folder.
-    @objc public func installDebugDataIfNeeded() {
+   public func installDebugDataIfNeeded() {
         
         guard let packageURL = self.debugDataToInstall,
             let appGroupIdentifier = Bundle.main.applicationGroupIdentifier else { return }

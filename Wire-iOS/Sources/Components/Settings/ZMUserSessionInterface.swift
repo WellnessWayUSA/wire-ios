@@ -16,14 +16,26 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
+import WireSyncEngine
 
-@objc
-public protocol ZMUserSessionInterface: NSObjectProtocol {
-    func performChanges(_ block: @escaping () -> ())
-    func enqueueChanges(_ block: @escaping () -> ())
+typealias UserSessionInterface = UserSessionSwiftInterface & UserSessionAppLockInterface
 
-    var isNotificationContentHidden : Bool { get set }
+protocol ZMUserSessionInterface: class {
+
+    func perform(_ changes: @escaping () -> Void)
+
+    func enqueue(_ changes: @escaping () -> Void)
+
+    func enqueue(_ changes: @escaping () -> Void, completionHandler: (() -> Void)?)
+
+    var isNotificationContentHidden: Bool { get set }
+
+    var encryptMessagesAtRest: Bool { get }
 }
 
-extension ZMUserSession: ZMUserSessionInterface {}
+// an interface for ZMUserSession's Swift-only functions
+protocol UserSessionSwiftInterface: ZMUserSessionInterface {
+    var conversationDirectory: ConversationDirectoryType { get }
+}
+
+extension ZMUserSession: UserSessionSwiftInterface {}

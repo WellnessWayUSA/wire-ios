@@ -19,28 +19,26 @@
 import Foundation
 import WireUtilities
 
-private enum ExtensionSettingsKey: String {
+private enum ExtensionSettingsKey: String, CaseIterable {
 
-    case disableCrashAndAnalyticsSharing = "disableCrashAndAnalyticsSharing"
-    case disableLinkPreviews = "disableLinkPreviews"
-
-    static var all: [ExtensionSettingsKey] {
-        return [
-            .disableLinkPreviews,
-            .disableCrashAndAnalyticsSharing
-        ]
-    }
+    case disableCrashSharing
+    case disableAnalyticsSharing
+    case disableLinkPreviews
 
     private var defaultValue: Any? {
         switch self {
         // Always disable analytics by default.
-        case .disableCrashAndAnalyticsSharing: return true
-        case .disableLinkPreviews: return false
+        case .disableCrashSharing:
+            return true
+        case .disableAnalyticsSharing:
+            return false
+        case .disableLinkPreviews:
+            return false
         }
     }
 
     static var defaultValueDictionary: [String: Any] {
-        return all.reduce([:]) { result, current in
+        return allCases.reduce([:]) { result, current in
             var mutableResult = result
             mutableResult[current.rawValue] = current.defaultValue
             return mutableResult
@@ -49,13 +47,13 @@ private enum ExtensionSettingsKey: String {
 
 }
 
-@objc public class ExtensionSettings: NSObject {
+public class ExtensionSettings: NSObject {
 
-    @objc public static let shared = ExtensionSettings(defaults: .shared()!)
+    public static let shared = ExtensionSettings(defaults: .shared()!)
 
     private let defaults: UserDefaults
 
-    @objc public init(defaults: UserDefaults) {
+    public init(defaults: UserDefaults) {
         self.defaults = defaults
         super.init()
         setupDefaultValues()
@@ -65,8 +63,8 @@ private enum ExtensionSettingsKey: String {
         defaults.register(defaults: ExtensionSettingsKey.defaultValueDictionary)
     }
 
-    @objc public func reset() {
-        ExtensionSettingsKey.all.forEach {
+    public func reset() {
+        ExtensionSettingsKey.allCases.forEach {
             defaults.removeObject(forKey: $0.rawValue)
         }
 
@@ -74,16 +72,25 @@ private enum ExtensionSettingsKey: String {
         defaults.synchronize()
     }
 
-    @objc public var disableCrashAndAnalyticsSharing: Bool {
+    public var disableAnalyticsSharing: Bool {
         get {
-            return defaults.bool(forKey: ExtensionSettingsKey.disableCrashAndAnalyticsSharing.rawValue)
+            return defaults.bool(forKey: ExtensionSettingsKey.disableAnalyticsSharing.rawValue)
         }
         set {
-            defaults.set(newValue, forKey: ExtensionSettingsKey.disableCrashAndAnalyticsSharing.rawValue)
+            defaults.set(newValue, forKey: ExtensionSettingsKey.disableAnalyticsSharing.rawValue)
         }
     }
     
-    @objc public var disableLinkPreviews: Bool {
+    public var disableCrashSharing: Bool {
+        get {
+            return defaults.bool(forKey: ExtensionSettingsKey.disableCrashSharing.rawValue)
+        }
+        set {
+            defaults.set(newValue, forKey: ExtensionSettingsKey.disableCrashSharing.rawValue)
+        }
+    }
+    
+    public var disableLinkPreviews: Bool {
         get {
             return defaults.bool(forKey: ExtensionSettingsKey.disableLinkPreviews.rawValue)
         }

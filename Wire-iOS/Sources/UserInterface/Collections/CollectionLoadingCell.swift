@@ -18,28 +18,30 @@
 
 import Foundation
 import Cartography
+import UIKit
+import WireDataModel
 
-@objcMembers final public class CollectionLoadingCell: UICollectionViewCell {
+final class CollectionLoadingCell: UICollectionViewCell {
     let loadingView = UIActivityIndicatorView(style: .gray)
-    
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         self.contentView.addSubview(self.loadingView)
         self.contentView.clipsToBounds = true
-        
+
         self.loadingView.startAnimating()
         self.loadingView.hidesWhenStopped = false
-        
+
         constrain(self.contentView, self.loadingView) { contentView, loadingView in
             loadingView.center == contentView.center
         }
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     var containerWidth: CGFloat = 320
     var collapsed: Bool = false {
         didSet {

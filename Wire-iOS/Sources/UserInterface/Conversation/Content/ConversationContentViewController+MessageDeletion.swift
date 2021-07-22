@@ -17,13 +17,15 @@
 //
 
 import WireDataModel
-
+import UIKit
+import WireSyncEngine
 
 private extension ZMConversationMessage {
 
     /// Whether the `Delete for everyone` option should be allowed and shown for this message.
     var canBeDeletedForEveryone: Bool {
-        guard let sender = sender, let conversation = conversation else { return false }
+        guard let sender = senderUser,
+              let conversation = conversationLike else { return false }
         return sender.isSelfUser && conversation.isSelfAnActiveMember
     }
 
@@ -39,12 +41,12 @@ private extension ZMConversationMessage {
 
 }
 
-@objc public protocol SelectableView: NSObjectProtocol {
+protocol SelectableView {
     var selectionView: UIView! { get }
     var selectionRect: CGRect { get }
 }
 
-@objc public protocol HighlightableView: NSObjectProtocol {
+protocol HighlightableView {
     var highlightContainer: UIView { get }
 }
 
@@ -58,34 +60,19 @@ extension CollectionCell: SelectableView {
     }
 }
 
-
-@objcMembers final class DeletionDialogPresenter: NSObject {
+final class DeletionDialogPresenter: NSObject {
 
     private weak var sourceViewController: UIViewController?
-    var alert: UIAlertController!
 
-    public init(sourceViewController: UIViewController) {
-        self.sourceViewController = sourceViewController
-        super.init()
-    }
+    func deleteAlert(message: ZMConversationMessage,
+                     sourceView: UIView?,
+                     completion: ResultHandler? = nil) -> UIAlertController {
+        let alert = UIAlertController.forMessageDeletion(with: message.deletionConfiguration) { (action, alert) in
 
-    /**
-     Presents a `UIAlertController` of type action sheet with the options to delete a message everywhere, locally
-     or to cancel. An optional completion block can be provided to get notified when an action has been selected.
-     The delete everywhere option is only shown if this action is allowed for the input message.
-     
-     - parameter message: The message for which the alert controller should be shown.
-     - parameter source: The source view used for a potential popover presentation of the dialog.
-     - parameter completion: A completion closure which will be invoked with `true` if a deletion occured and `false` otherwise.
-     */
-    public func presentDeletionAlertController(forMessage message: ZMConversationMessage, source: UIView?, completion: ((Bool) -> Void)?) {
-        guard !message.hasBeenDeleted else { return }
-        alert = UIAlertController.forMessageDeletion(with: message.deletionConfiguration) { (action, alert) in
-            
             // Tracking needs to be called before performing the action, since the content of the message is cleared
             if case .delete(let type) = action {
 
-                ZMUserSession.shared()?.enqueueChanges({ 
+                ZMUserSession.shared()?.enqueue({
                     switch type {
                     case .local:
                         ZMMessage.hideMessage(message)
@@ -103,18 +90,40 @@ extension CollectionCell: SelectableView {
         }
 
         if let presentationController = alert.popoverPresentationController,
-            let source = source {
+            let source = sourceView {
             if let selectableView = source as? SelectableView,
                 selectableView.selectionView != nil {
                 presentationController.sourceView = selectableView.selectionView
                 presentationController.sourceRect = selectableView.selectionRect
             } else {
-                presentationController.sourceView = source
-                presentationController.sourceRect = source.frame
+                alert.configPopover(pointToView: source, popoverPresenter: sourceViewController as? PopoverPresenterViewController)
             }
         }
 
-        sourceViewController?.present(alert, animated: true, completion: nil)
+        return alert
+    }
+
+    init(sourceViewController: UIViewController) {
+        self.sourceViewController = sourceViewController
+        super.init()
+    }
+
+    /**
+     Presents a `UIAlertController` of type action sheet with the options to delete a message everywhere, locally
+     or to cancel. An optional completion block can be provided to get notified when an action has been selected.
+     The delete everywhere option is only shown if this action is allowed for the input message.
+     
+     - parameter message: The message for which the alert controller should be shown.
+     - parameter source: The source view used for a potential popover presentation of the dialog.
+     - parameter completion: A completion closure which will be invoked with `true` if a deletion occured and `false` otherwise.
+     */
+    func presentDeletionAlertController(forMessage message: ZMConversationMessage, source: UIView?, completion: ResultHandler?) {
+        guard !message.hasBeenDeleted else { return }
+
+        let alert = deleteAlert(message: message,
+                                sourceView: source,
+                                completion: completion)
+        sourceViewController?.present(alert, animated: true)
     }
 }
 
@@ -123,7 +132,7 @@ private enum AlertAction {
         case local
         case everywhere
     }
-    
+
     case delete(DeletionType), cancel
 }
 

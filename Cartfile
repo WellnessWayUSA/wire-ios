@@ -1,10 +1,11 @@
-github "wireapp/wire-ios-ziphy" ~> 13.0
-github "wireapp/Cartography" "4.0.0"
-github "wireapp/wire-ios-sync-engine" ~> 269.0
-github "wireapp/wire-ios-share-engine" ~> 152.0
-github "wireapp/FormatterKit" "1.8.1-swift3.0.2"
-github "wireapp/wire-ios-canvas" ~> 10.0
-github "wireapp/HockeySDK-iOS" ~> 5.1.4
-github "wireapp/FLAnimatedImage" "1.0.12-wire"
-github "wireapp/Down" "v2.1.3"
-github "wireapp/DifferenceKit" "1.1.1"
+github "wireapp/wire-ios-ziphy" ~> 16.0.2
+github "wireapp/Cartography" "4.0.0_xcframework"
+github "wireapp/wire-ios-sync-engine" ~> 384.0.2
+github "wireapp/wire-ios-share-engine" ~> 221.0.2
+github "wireapp/FormatterKit" "1.8.1_xcframework"
+github "wireapp/wire-ios-canvas" ~> 13.0.1
+github "wireapp/appcenter-sdk-apple" "3.3.4_xcframework"
+github "wireapp/FLAnimatedImage" "1.0.12_xcframework"
+github "wireapp/Down" "v2.3.0_xcframework"
+github "wireapp/DifferenceKit" "1.1.5_xcframework"
+github "wireapp/countly-sdk-ios" "20.11.1_xcframework"

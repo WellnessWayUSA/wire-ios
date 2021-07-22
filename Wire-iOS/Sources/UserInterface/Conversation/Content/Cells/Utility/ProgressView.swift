@@ -16,10 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
+import UIKit
 
-@objcMembers open class ProgressView: UIView {
+final class ProgressView: UIView {
     fileprivate var deterministic: Bool? = .none
     fileprivate var progress: Float = 0
     fileprivate var progressView: UIView = UIView()
@@ -29,41 +29,41 @@ import Foundation
         super.init(frame: frame)
         self.setup()
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.setup()
     }
-    
+
     fileprivate func setup() {
         self.progressView.autoresizingMask = [.flexibleHeight, .flexibleRightMargin]
         self.spinner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        
+
         self.progressView.frame = self.bounds
         self.spinner.frame = self.bounds
-        
+
         self.addSubview(self.progressView)
         self.addSubview(self.spinner)
-        
+
         self.updateForStateAnimated(false)
         self.updateProgress(false)
         self.progressView.backgroundColor = self.tintColor
         self.spinner.backgroundColor = self.tintColor
     }
-    
-    open override var tintColor: UIColor? {
+
+    override var tintColor: UIColor? {
         didSet {
             self.progressView.backgroundColor = tintColor
             self.spinner.backgroundColor = tintColor
         }
     }
-    
-    override open func layoutSubviews() {
+
+    override func layoutSubviews() {
         super.layoutSubviews()
         self.updateProgress(false)
     }
-    
-    open func setDeterministic(_ determenistic: Bool, animated: Bool) {
+
+    func setDeterministic(_ determenistic: Bool, animated: Bool) {
         if self.deterministic != .none && self.deterministic == determenistic {
             return
         }
@@ -72,7 +72,7 @@ import Foundation
         self.updateProgress(animated)
     }
 
-    open func setProgress(_ progress: Float, animated: Bool) {
+    func setProgress(_ progress: Float, animated: Bool) {
         self.progress = progress
         self.updateProgress(animated)
     }
@@ -83,13 +83,13 @@ import Foundation
                 self.bounds.height != 0 else {
             return
         }
-        
-        let progress = (self.deterministic ?? false) ? self.progress : 1;
-        
+
+        let progress = (self.deterministic ?? false) ? self.progress : 1
+
         let setBlock = {
             self.progressView.frame = CGRect(x: 0, y: 0, width: CGFloat(progress) * self.bounds.size.width, height: self.bounds.size.height)
         }
-        
+
         if animated {
             UIView.animate(withDuration: 0.35, delay: 0.0, options: [.beginFromCurrentState], animations: setBlock, completion: .none)
         }
@@ -97,7 +97,7 @@ import Foundation
             setBlock()
         }
     }
-    
+
     fileprivate func updateForStateAnimated(_ animated: Bool) {
         if let det = self.deterministic, det {
             self.progressView.isHidden = false

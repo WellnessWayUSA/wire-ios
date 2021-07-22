@@ -16,20 +16,21 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
+import WireDataModel
+import WireSyncEngine
 
-@objc protocol ArchivedListViewModelDelegate: class {
-    func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateArchivedConversationsWithChange change: ConversationListChangeInfo, applyChangesClosure: @escaping ()->())
+protocol ArchivedListViewModelDelegate: class {
+    func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateArchivedConversationsWithChange change: ConversationListChangeInfo, applyChangesClosure: @escaping () -> Void)
     func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateConversationWithChange change: ConversationChangeInfo)
 }
 
-@objcMembers final class ArchivedListViewModel: NSObject {
+final class ArchivedListViewModel: NSObject {
 
     weak var delegate: ArchivedListViewModelDelegate?
     var archivedConversationListObserverToken: NSObjectProtocol?
     var archivedConversations = [ZMConversation]()
-    
+
     override init() {
         super.init()
         if let userSession = ZMUserSession.shared() {
@@ -38,17 +39,16 @@ import Foundation
             archivedConversations = list.asArray() as! [ZMConversation]
         }
     }
-    
+
     var count: Int {
         return archivedConversations.count
     }
-    
+
     subscript(key: Int) -> ZMConversation? {
         return archivedConversations[key]
     }
-    
-}
 
+}
 
 extension ArchivedListViewModel: ZMConversationListObserver {
     func conversationListDidChange(_ changeInfo: ConversationListChangeInfo) {
@@ -57,7 +57,7 @@ extension ArchivedListViewModel: ZMConversationListObserver {
             self?.archivedConversations = ZMConversationList.archivedConversations(inUserSession: ZMUserSession.shared()!).asArray() as! [ZMConversation]
         }
     }
-    
+
     func conversationInsideList(_ list: ZMConversationList, didChange changeInfo: ConversationChangeInfo) {
         delegate?.archivedListViewModel(self, didUpdateConversationWithChange: changeInfo)
     }

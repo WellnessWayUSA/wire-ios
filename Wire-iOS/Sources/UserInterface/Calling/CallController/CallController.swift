@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,187 +16,174 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
+import UIKit
+import WireSyncEngine
 
-class CallController: NSObject {
+final class CallController: NSObject {
 
-    weak var targetViewController: UIViewController? = nil
-    private(set) weak var activeCallViewController: ActiveCallViewController?
+    // MARK: - Public Implentation
+    weak var router: ActiveCallRouterProtocol?
+    var callConversationProvider: CallConversationProvider?
 
-    fileprivate let callQualityController = CallQualityController()
-    fileprivate var scheduledPostCallAction: (()->Void)?
-    fileprivate var observerTokens: [Any] = []
-    fileprivate var minimizedCall: ZMConversation? = nil
-    fileprivate var topOverlayCall: ZMConversation? = nil {
-        didSet {
-            guard  topOverlayCall != oldValue else { return }
-            
-            if let conversation = topOverlayCall {
-                let callTopOverlayController = CallTopOverlayController(conversation: conversation)
-                callTopOverlayController.delegate = self
-                ZClientViewController.shared()?.setTopOverlay(to: callTopOverlayController)
-            } else {
-                ZClientViewController.shared()?.setTopOverlay(to: nil)
-            }
-        }
+    // MARK: - Private Implentation
+    private var observerTokens: [Any] = []
+    private var minimizedCall: ZMConversation?
+
+    private var priorityCallConversation: ZMConversation? {
+        return callConversationProvider?.priorityCallConversation
     }
-    
+
+    private var dateOfLastErrorAlertByConversationId = [UUID: Date]()
+    private var alertDebounceInterval: TimeInterval { 15 * .oneMinute  }
+
+    // MARK: - Init
     override init() {
         super.init()
-        callQualityController.delegate = self
+        addObservers()
+    }
 
+    // MARK: - Public Implementation
+    func updateActiveCallPresentationState() {
+        guard let priorityCallConversation = priorityCallConversation else {
+            dismissCall()
+            return
+        }
+
+        showCallTopOverlay(for: priorityCallConversation)
+        presentOrMinimizeActiveCall(for: priorityCallConversation)
+    }
+
+    // MARK: - Private Implementation
+    private func addObservers() {
         if let userSession = ZMUserSession.shared() {
             observerTokens.append(WireCallCenterV3.addCallStateObserver(observer: self, userSession: userSession))
             observerTokens.append(WireCallCenterV3.addCallErrorObserver(observer: self, userSession: userSession))
         }
     }
-}
 
-extension CallController: WireCallCenterCallStateObserver {
-    
-    func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: ZMUser, timestamp: Date?, previousCallState: CallState?) {
-        updateState()
+    private func presentOrMinimizeActiveCall(for conversation: ZMConversation) {
+        conversation == minimizedCall
+            ? minimizeCall()
+            : presentCall(in: conversation)
     }
-    
-    func updateState() {
-        guard let userSession = ZMUserSession.shared() else { return }
-        
-        if let priorityCallConversation = userSession.priorityCallConversation {
-            topOverlayCall = priorityCallConversation
-            
-            if priorityCallConversation == minimizedCall {
-                minimizeCall(in: priorityCallConversation)
-            } else {
-                let animated: Bool
-                if SessionManager.shared?.callNotificationStyle == .callKit {
-                    switch priorityCallConversation.voiceChannel?.state {
-                    case .outgoing?:
-                        animated = true
-                    default:
-                        animated = false // We don't want animate when transition from CallKit screen
-                    }
-                } else {
-                    animated =  true
-                }
-                presentCall(in: priorityCallConversation, animated: animated)
-            }
-        } else {
-            dismissCall()
-        }
+
+    private func minimizeCall() {
+        router?.minimizeCall(animated: true, completion: nil)
     }
-    
-    func minimizeCall(completion: (() -> Void)?) {
-        guard let activeCallViewController = activeCallViewController else { completion?(); return }
-    
-        activeCallViewController.dismiss(animated: true, completion: completion)
-    }
-    
-    fileprivate func minimizeCall(in conversation: ZMConversation) {
-        activeCallViewController?.dismiss(animated: true)
-    }
-    
-    fileprivate  func presentCall(in conversation: ZMConversation, animated: Bool = true) {
-        guard activeCallViewController == nil else { return }
+
+    private func presentCall(in conversation: ZMConversation) {
         guard let voiceChannel = conversation.voiceChannel else { return }
-        
-        if minimizedCall == conversation {
-            minimizedCall = nil
-        }
-        
-        let viewController = ActiveCallViewController(voiceChannel: voiceChannel)
-        viewController.dismisser = self
-        activeCallViewController = viewController
-        
-        // NOTE: We resign first reponder for the input bar since it will attempt to restore
-        // first responder when the call overlay is interactively dismissed but canceled.
-        UIResponder.wr_currentFirst()?.resignFirstResponder()
-        
-        let modalVC = ModalPresentationViewController(viewController: viewController)
-        targetViewController?.present(modalVC, animated: animated)
-    }
-    
-    fileprivate func dismissCall() {
-        minimizedCall = nil
-        topOverlayCall = nil
+        if minimizedCall == conversation { minimizedCall = nil }
 
-        activeCallViewController?.dismiss(animated: true) {
-            if let postCallAction = self.scheduledPostCallAction {
-                postCallAction()
-                self.scheduledPostCallAction = nil
-            }
+        let animated = shouldAnimateTransitionForCall(in: conversation)
+        router?.presentActiveCall(for: voiceChannel, animated: animated)
+    }
+
+    private func dismissCall() {
+        router?.dismissActiveCall(animated: true, completion: { [weak self] in
+            self?.hideCallTopOverlay()
+            self?.minimizedCall = nil
+        })
+    }
+
+    private func showCallTopOverlay(for conversation: ZMConversation) {
+        router?.showCallTopOverlay(for: conversation)
+    }
+
+    private func hideCallTopOverlay() {
+        router?.hideCallTopOverlay()
+    }
+
+    private func shouldAnimateTransitionForCall(in conversation: ZMConversation) -> Bool {
+        guard SessionManager.shared?.callNotificationStyle == .callKit else {
+            return true
         }
-        
-        activeCallViewController = nil
+
+        switch conversation.voiceChannel?.state {
+        case .outgoing?:
+            return true
+        default:
+            return false // We don't want animate when transition from CallKit screen
+        }
+    }
+
+    private func isClientOutdated(callState: CallState) -> Bool {
+        switch callState {
+        case .terminating(let reason) where reason == .outdatedClient:
+            return true
+        default:
+            return false
+        }
     }
 }
 
-extension CallController: ViewControllerDismisser {
-    
-    func dismiss(viewController: UIViewController, completion: (() -> ())?) {
-        guard let callViewController = viewController as? CallViewController, let conversation = callViewController.conversation else { return }
-        
+// MARK: - WireCallCenterCallStateObserver
+extension CallController: WireCallCenterCallStateObserver {
+
+    func callCenterDidChange(callState: CallState,
+                             conversation: ZMConversation,
+                             caller: UserType,
+                             timestamp: Date?,
+                             previousCallState: CallState?) {
+        presentUnsupportedVersionAlertIfNecessary(callState: callState)
+        presentSecurityDegradedAlertIfNecessary(for: conversation.voiceChannel)
+        updateActiveCallPresentationState()
+    }
+
+    private func presentUnsupportedVersionAlertIfNecessary(callState: CallState) {
+        guard isClientOutdated(callState: callState) else { return }
+        router?.presentUnsupportedVersionAlert()
+    }
+
+    private func presentSecurityDegradedAlertIfNecessary(for voiceChannel: VoiceChannel?) {
+        guard let degradationState = voiceChannel?.degradationState else {
+            return
+        }
+        switch degradationState {
+        case .incoming(degradedUser: let user):
+            router?.presentSecurityDegradedAlert(degradedUser: user?.value)
+        default:
+            break
+        }
+    }
+}
+
+// MARK: - ActiveCallViewControllerDelegate
+extension CallController: ActiveCallViewControllerDelegate {
+    func activeCallViewControllerDidDisappear(_ activeCallViewController: ActiveCallViewController,
+                                              for conversation: ZMConversation?) {
+        router?.dismissActiveCall(animated: true, completion: nil)
         minimizedCall = conversation
-        activeCallViewController = nil
-        
-        UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
     }
-    
 }
 
-extension CallController: CallTopOverlayControllerDelegate {
-    
-    func voiceChannelTopOverlayWantsToRestoreCall(_ controller: CallTopOverlayController) {
-        presentCall(in: controller.conversation)
-    }
-    
-}
-
-extension CallController: CallQualityControllerDelegate {
-
-    func dismissCurrentSurveyIfNeeded() {
-        if let survey = targetViewController?.presentedViewController as? CallQualityViewController {
-            survey.dismiss(animated: true, completion: nil)
-        }
-    }
-
-    func callQualityControllerDidScheduleSurvey(with controller: CallQualityViewController) {
-        let presentCallQualityControllerAction: () -> Void = { [weak self] in
-            self?.targetViewController?.present(controller, animated: true, completion: nil)
-        }
-        
-        if self.activeCallViewController == nil {
-            presentCallQualityControllerAction()
-        } else {
-            scheduledPostCallAction = presentCallQualityControllerAction
-        }
-    }
-    
-    func callQualityControllerDidScheduleDebugAlert() {
-        let presentDebugAlertAction: () -> Void = {
-            DebugAlert.showSendLogsMessage(message: "The call failed. Sending the debug logs can help us troubleshoot the issue and improve the overall app experience.")
-        }
-        
-        if self.activeCallViewController == nil {
-            presentDebugAlertAction()
-        } else {
-            scheduledPostCallAction = presentDebugAlertAction
-        }
-    }
-
-}
-
-
+// MARK: - WireCallCenterCallErrorObserver
 extension CallController: WireCallCenterCallErrorObserver {
-    
-    func callCenterDidReceiveCallError(_ error: CallError) {
-        guard error == .unknownProtocol else { return }
-        
-        let alertController = UIAlertController(title: "voice.call_error.unsupported_version.title".localized, message: "voice.call_error.unsupported_version.message".localized, preferredStyle: .alert)
-        let alertAction = UIAlertAction(title: "force.update.ok_button".localized, style: .default) { (_) in
-            UIApplication.shared.open(URL.wr_wireAppOnItunes)
+    func callCenterDidReceiveCallError(_ error: CallError, conversationId: UUID) {
+        guard
+            error == .unknownProtocol,
+            shouldDisplayErrorAlert(for: conversationId)
+        else {
+            return
         }
-        alertController.addAction(alertAction)
-        alertController.addAction(UIAlertAction(title: "voice.call_error.unsupported_version.dismiss".localized, style: .default, handler: nil))
-        targetViewController?.present(alertController, animated: true, completion: nil)
+
+        dateOfLastErrorAlertByConversationId[conversationId] = Date()
+        router?.presentUnsupportedVersionAlert()
+    }
+
+    private func shouldDisplayErrorAlert(for conversation: UUID) -> Bool {
+           guard let dateOfLastErrorAlert = dateOfLastErrorAlertByConversationId[conversation] else {
+               return true
+           }
+
+           let elapsedTimeIntervalSinceLastAlert = -dateOfLastErrorAlert.timeIntervalSinceNow
+           return elapsedTimeIntervalSinceLastAlert > alertDebounceInterval
+       }
+}
+
+extension CallController {
+    // NOTA BENE: THIS MUST BE USED JUST FOR TESTING PURPOSE
+    public func testHelper_setMinimizedCall(_ conversation: ZMConversation?) {
+        minimizedCall = conversation
     }
 }

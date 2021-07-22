@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireDataModel
 
 /**
  * An object holding the configuration of the login prefill.
@@ -28,7 +29,7 @@ struct AuthenticationPrefilledCredentials: Equatable {
 
     /// The raw credentials value.
     let credentials: LoginCredentials
-    
+
     /// Whether the credentials are expired.
     let isExpired: Bool
 }

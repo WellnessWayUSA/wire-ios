@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 enum InviteSource {
     case manualInput, addressBook
@@ -37,7 +38,7 @@ extension InviteError {
     var errorDescription: String {
         return errorDescriptionLocalizationKey.localized
     }
-    
+
     private var errorDescriptionLocalizationKey: String {
         switch self {
         case .alreadyRegistered: return "team.invite.error.already_registered"

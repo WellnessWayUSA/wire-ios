@@ -29,25 +29,11 @@ extension UINavigationController {
         }
         return nil
     }
-    
-    open func pushViewController(_ viewController: UIViewController,
-                            animated: Bool,
-                            completion: (() -> Void)?) {
-        pushViewController(viewController, animated: animated)
-        
-        if animated, let coordinator = transitionCoordinator {
-            coordinator.animate(alongsideTransition: nil) { _ in
-                completion?()
-            }
-        } else {
-            completion?()
-        }
-    }
 
-    open func setViewControllers(_ viewControllers: [UIViewController],
+    open func pushViewController(_ viewController: UIViewController,
                                  animated: Bool,
                                  completion: (() -> Void)?) {
-        setViewControllers(viewControllers, animated: animated)
+        pushViewController(viewController, animated: animated)
 
         if animated, let coordinator = transitionCoordinator {
             coordinator.animate(alongsideTransition: nil) { _ in
@@ -57,11 +43,11 @@ extension UINavigationController {
             completion?()
         }
     }
-    
-    @discardableResult open func popViewController(animated: Bool,
-                                                   completion: (() -> Void)?) -> UIViewController? {
+
+    @discardableResult
+    func popViewController(animated: Bool, completion: (() -> Void)?) -> UIViewController? {
         let controller = popViewController(animated: animated)
-        
+
         if animated, let coordinator = transitionCoordinator {
             coordinator.animate(alongsideTransition: nil) { _ in
                 completion?()
@@ -71,9 +57,9 @@ extension UINavigationController {
         }
         return controller
     }
-    
+
     @discardableResult open func popToRootViewController(animated: Bool,
-                                                         completion: (()-> Void)?) -> [UIViewController]? {
+                                                         completion: (() -> Void)?) -> [UIViewController]? {
         let controllers = popToRootViewController(animated: true)
         if animated, let coordinator = transitionCoordinator {
             coordinator.animate(alongsideTransition: nil) { _ in

@@ -17,12 +17,21 @@
 //
 
 import Foundation
+import UIKit
+import WireSystem
+import WireTransport
 
 /**
  * The view controller to use to ask the user to enter their credentials.
  */
 
-class AuthenticationCredentialsViewController: AuthenticationStepController, CountryCodeTableViewControllerDelegate, EmailPasswordTextFieldDelegate, PhoneNumberInputViewDelegate, TabBarDelegate, TextFieldValidationDelegate, UITextFieldDelegate {
+final class AuthenticationCredentialsViewController: AuthenticationStepController,
+                                                     CountryCodeTableViewControllerDelegate,
+                                                     EmailPasswordTextFieldDelegate,
+                                                     PhoneNumberInputViewDelegate,
+                                                     TabBarDelegate,
+                                                     TextFieldValidationDelegate,
+                                                     UITextFieldDelegate {
 
     /// Types of flow provided by the view controller.
     enum FlowType {
@@ -57,6 +66,14 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         }
     }
 
+    var isReauthenticating: Bool {
+        if case .reauthentication? = flowType {
+            return true
+        } else {
+            return false
+        }
+    }
+
     private var emailFieldValidationError: TextFieldValidator.ValidationError? = .tooShort(kind: .email)
 
     convenience init(flowType: FlowType) {
@@ -85,7 +102,7 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
     let contentStack = UIStackView()
 
     let emailPasswordInputField = EmailPasswordTextField()
-    let emailInputField = AccessoryTextField(kind: .email)
+    let emailInputField = ValidatedTextField(kind: .email)
     let phoneInputView = PhoneNumberInputView()
 
     let tabBar: TabBar = {
@@ -123,8 +140,10 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         // Phone Number View
         phoneInputView.delegate = self
         phoneInputView.tintColor = .black
+        phoneInputView.allowEditingPrefilledValue = !isReauthenticating
 
         // Email Password Input View
+        emailPasswordInputField.allowEditingPrefilledValue = !isReauthenticating
         emailPasswordInputField.delegate = self
 
         // Email input view
@@ -141,9 +160,15 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         return contentStack
     }
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return wr_supportedInterfaceOrientations
+    }
+
     func configure(with featureProvider: AuthenticationFeatureProvider) {
         if case .reauthentication? = flowType {
             tabBar.isHidden = prefilledCredentials != nil
+        } else if case .custom = BackendEnvironment.shared.environmentType.value {
+            tabBar.isHidden = true
         } else {
             tabBar.isHidden = featureProvider.allowOnlyEmailLogin
         }
@@ -229,14 +254,6 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         }
     }
 
-    private func updateValidationError(_ error: TextFieldValidator.ValidationError?) {
-        if let error = error {
-            self.valueValidated(.error(error, showVisualFeedback: false))
-        } else {
-            self.valueValidated(nil)
-        }
-    }
-
     override func clearInputFields() {
         phoneInputView.text = nil
         emailInputField.text = nil
@@ -255,7 +272,7 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         valueSubmitted(emailInputField.input)
     }
 
-    @objc private func emailTextInputDidChange(sender: AccessoryTextField) {
+    @objc private func emailTextInputDidChange(sender: ValidatedTextField) {
         sender.validateInput()
     }
 
@@ -305,7 +322,7 @@ class AuthenticationCredentialsViewController: AuthenticationStepController, Cou
         // no-op: handled by the input view directly
     }
 
-    func countryCodeTableViewController(_ viewController: UIViewController!, didSelect country: Country!) {
+    func countryCodeTableViewController(_ viewController: UIViewController, didSelect country: Country) {
         phoneInputView.selectCountry(country)
         viewController.dismiss(animated: true)
     }

@@ -45,8 +45,22 @@
 @property (nonatomic, readwrite) BOOL isConnected;
 @property (nonatomic, readwrite) BOOL isExpired;
 @property (nonatomic, readwrite) BOOL canBeConnected;
-@property (nonatomic, readwrite) BOOL untrusted;
-@property (nonatomic, readwrite) BOOL trusted;
+@property (nonatomic, readwrite) BOOL canCreateConversation;
+@property (nonatomic, readwrite) BOOL canDeleteConversation;
+@property (nonatomic, readwrite) BOOL canModifyTitleInConversation;
+@property (nonatomic, readwrite) BOOL canModifyEphemeralSettingsInConversation;
+@property (nonatomic, readwrite) BOOL canModifyReadReceiptSettingsInConversation;
+@property (nonatomic, readwrite) BOOL canModifyNotificationSettingsInConversation;
+@property (nonatomic, readwrite) BOOL canModifyAccessControlSettingsInConversation;
+@property (nonatomic, readwrite) BOOL canAddUserToConversation;
+@property (nonatomic, readwrite) BOOL canRemoveUserFromConversation;
+@property (nonatomic, readwrite) BOOL canAddServiceToConversation;
+@property (nonatomic, readwrite) BOOL canRemoveServiceFromConversation;
+@property (nonatomic, readwrite) BOOL canModifyOtherMemberInConversation;
+@property (nonatomic, readwrite) BOOL canLeaveConversation;
+
+@property (nonatomic, readwrite) BOOL isTrusted;
+@property (nonatomic, readwrite) BOOL isVerified;
 @property (nonatomic, readwrite) NSUInteger totalCommonConnections;
 @property (nonatomic, readwrite) NSTimeInterval expiresAfter;
 @property (nonatomic, assign) BOOL isSelfUser;
@@ -54,6 +68,7 @@
 @property (nonatomic, readwrite) BOOL isTeamMember;
 @property (nonatomic, readwrite) TeamRole teamRole;
 @property (nonatomic, assign) BOOL isGuestInConversation;
+@property (nonatomic, assign) BOOL isGroupAdminInConversation;
 @property (nonatomic, copy) NSString *displayName;
 @property (nonatomic, copy) NSString *teamName;
 @property (nonatomic, readwrite) BOOL canManageTeam;
@@ -75,7 +90,7 @@
 @property (nonatomic) ZMAddressBookContact *contact;
 @property (nonatomic) AddressBookEntry *addressBookEntry;
 @property (nonatomic) NSUUID *remoteIdentifier;
-@property (nonatomic, readwrite) Availability availability;
+@property (nonatomic, readwrite) AvailabilityKind availability;
 @property (nonatomic, readonly) NSSet<UserClient *> * clientsRequiringUserAttention;
 
 @property (nonatomic) NSUUID *teamIdentifier;
@@ -84,6 +99,11 @@
 @property (nonatomic, readwrite, copy) NSArray<UserRichProfileField *> *richProfile;
 
 @property (nonatomic) UIImage * profileImage;
+
+@property (nonatomic, readwrite) int refreshDataCount;
+@property (nonatomic, readwrite) int refreshRichProfileCount;
+@property (nonatomic, readwrite) int refreshMembershipCount;
+@property (nonatomic, readwrite) int refreshTeamDataCount;
 
 
 - (NSString *)displayNameInConversation:(MockConversation *)conversation;

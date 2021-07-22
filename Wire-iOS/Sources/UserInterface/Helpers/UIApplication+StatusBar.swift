@@ -16,52 +16,17 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import UIKit
 
-public extension UIApplication {
-    
+extension UIApplication {
+
     static let wr_statusBarStyleChangeNotification: Notification.Name = Notification.Name("wr_statusBarStyleChangeNotification")
-
-    @objc func wr_updateStatusBarForCurrentControllerAnimated(_ animated: Bool) {
-        wr_updateStatusBarForCurrentControllerAnimated(animated, onlyFullScreen: true)
-    }
-
-    @objc func wr_updateStatusBarForCurrentControllerAnimated(_ animated: Bool, onlyFullScreen: Bool) {
-        let statusBarHidden: Bool
-        let statusBarStyle: UIStatusBarStyle
-        
-        if let topContoller = self.topmostViewController(onlyFullScreen: onlyFullScreen) {
-            statusBarHidden = topContoller.prefersStatusBarHidden
-            statusBarStyle = topContoller.preferredStatusBarStyle
-        } else {
-            statusBarHidden = true
-            statusBarStyle = .lightContent
-        }
-        
-        var changed = false
-        
-        if (self.isStatusBarHidden != statusBarHidden) {
-            self.wr_setStatusBarHidden(statusBarHidden, with: animated ? .fade : .none)
-            changed = true
-        }
-        
-        if self.statusBarStyle != statusBarStyle {
-            self.wr_setStatusBarStyle(statusBarStyle, animated: animated)
-            changed = true
-        }
-        
-        if changed {
-            NotificationCenter.default.post(name: type(of: self).wr_statusBarStyleChangeNotification, object: self)
-        }
-    }
 
     /// return the visible window on the top most which fulfills these conditions:
     /// 1. the windows has rootViewController
-    /// 2. CallWindowRootViewController is in use and voice channel controller is active
-    /// 3. the window's rootViewController is AppRootViewController
+    /// 2. the window's rootViewController is RootViewController
     var topMostVisibleWindow: UIWindow? {
-        let orderedWindows = self.windows.sorted { win1, win2 in
+        let orderedWindows = windows.sorted { win1, win2 in
             win1.windowLevel < win2.windowLevel
         }
 
@@ -70,18 +35,15 @@ public extension UIApplication {
                 return false
             }
 
-            if let callWindowRootController = controller as? CallWindowRootViewController {
-                return callWindowRootController.isDisplayingCallOverlay
-            } else if controller is AppRootViewController  {
+            if controller is RootViewController {
                 return true
-            } else {
-                return false
             }
+
+            return false
         }
 
         return visibleWindow.last
     }
-
 
     /// Get the top most view controller
     ///
@@ -93,13 +55,27 @@ public extension UIApplication {
             var topController = window.rootViewController else {
                 return .none
         }
-        
+
         while let presentedController = topController.presentedViewController,
             (!onlyFullScreen || presentedController.modalPresentationStyle == .fullScreen) {
             topController = presentedController
         }
-        
+
         return topController
+    }
+
+    @available(iOS 12.0, *)
+    static var userInterfaceStyle: UIUserInterfaceStyle? {
+            UIApplication.shared.keyWindow?.rootViewController?.traitCollection.userInterfaceStyle
     }
 }
 
+extension UINavigationController {
+    override open var childForStatusBarStyle: UIViewController? {
+        return topViewController
+    }
+
+    override open var childForStatusBarHidden: UIViewController? {
+        return topViewController
+    }
+}

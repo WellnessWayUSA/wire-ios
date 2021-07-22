@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireUtilities
 
 class AddEmailPasswordStepDescription: DefaultValidatingStepDescription {
 
@@ -37,4 +38,3 @@ class AddEmailPasswordStepDescription: DefaultValidatingStepDescription {
     }
 
 }
-

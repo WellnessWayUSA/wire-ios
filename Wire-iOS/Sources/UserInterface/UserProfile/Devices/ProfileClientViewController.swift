@@ -16,12 +16,13 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import Cartography
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
-
-@objcMembers class ProfileClientViewController: UIViewController {
+final class ProfileClientViewController: UIViewController, SpinnerCapable {
 
     let userClient: UserClient
     let contentView = UIView()
@@ -36,20 +37,20 @@ import Cartography
     let verifiedToggle = UISwitch()
     let verifiedToggleLabel = UILabel()
     let resetButton = ButtonWithLargerHitArea()
+    var dismissSpinner: SpinnerCompletion?
 
     var userClientToken: NSObjectProtocol!
-    var resetSessionPending: Bool = false
     var fromConversation: Bool = false
 
     /// Used for debugging purposes, disabled in public builds
-    var deleteDeviceButton: ButtonWithLargerHitArea?
+    var debugMenuButton: ButtonWithLargerHitArea?
 
     var showBackButton: Bool = true {
         didSet {
             self.backButton.isHidden = !self.showBackButton
         }
     }
-    
+
     fileprivate let fingerprintSmallFont = FontSpec(.small, .light).font!
     fileprivate let fingerprintSmallBoldFont = FontSpec(.small, .semibold).font!
     fileprivate let fingerprintFont = FontSpec(.normal, .none).font!
@@ -59,33 +60,37 @@ import Cartography
         self.init(client: client)
         self.fromConversation = fromConversation
     }
-    
+
     required init(client: UserClient) {
         self.userClient = client
 
         super.init(nibName: nil, bundle: nil)
-        
-        self.userClientToken = UserClientChangeInfo.add(observer:self, for:client)
+
+        self.userClientToken = UserClientChangeInfo.add(observer: self, for: client)
         if userClient.fingerprint == .none {
-            ZMUserSession.shared()?.enqueueChanges({ () -> Void in
+            ZMUserSession.shared()?.enqueue({ () -> Void in
                 self.userClient.fetchFingerprintOrPrekeys()
             })
         }
         self.updateFingerprintLabel()
         self.modalPresentationStyle = .overCurrentContext
-        self.title = NSLocalizedString("registration.devices.title", comment:"")
+        self.title = NSLocalizedString("registration.devices.title", comment: "")
 
         setupViews()
     }
-    
+
     required override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         fatalError("init(nibNameOrNil:nibBundleOrNil:) has not been implemented")
     }
-    
+
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return ColorScheme.default.statusBarStyle
+    }
+
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return [.portrait]
     }
@@ -105,7 +110,7 @@ import Cartography
         self.setupVerifiedToggle()
         self.setupVerifiedToggleLabel()
         self.setupResetButton()
-        self.setupDeleteButton()
+        self.setupDebugMenuButton()
         self.createConstraints()
         self.updateFingerprintLabel()
     }
@@ -114,7 +119,7 @@ import Cartography
         super.viewWillAppear(animated)
         title = ""
     }
-    
+
     private func setupContentView() {
         self.view.addSubview(contentView)
     }
@@ -126,7 +131,7 @@ import Cartography
         backButton.isHidden = !self.showBackButton
         self.view.addSubview(backButton)
     }
-    
+
     private func setupShowMyDeviceButton() {
         showMyDeviceButton.accessibilityIdentifier = "show my device"
         showMyDeviceButton.setTitle("profile.devices.detail.show_my_device.title".localized(uppercased: true), for: [])
@@ -135,19 +140,19 @@ import Cartography
         showMyDeviceButton.titleLabel?.font = FontSpec(.small, .light).font!
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: showMyDeviceButton)
     }
-    
+
     private func setupDescriptionTextView() {
         descriptionTextView.isScrollEnabled = false
         descriptionTextView.isEditable = false
         descriptionTextView.delegate = self
         descriptionTextView.textColor = UIColor.from(scheme: .textForeground)
         descriptionTextView.backgroundColor = UIColor.from(scheme: .textBackground)
-        descriptionTextView.linkTextAttributes = [.foregroundColor : UIColor.accent()]
-        
+        descriptionTextView.linkTextAttributes = [.foregroundColor: UIColor.accent()]
+
         let descriptionTextFont = FontSpec(.normal, .light).font!
 
         if let user = self.userClient.user {
-            descriptionTextView.attributedText = (String(format: "profile.devices.detail.verify_message".localized, user.displayName) &&
+            descriptionTextView.attributedText = (String(format: "profile.devices.detail.verify_message".localized, user.name ?? "") &&
                 descriptionTextFont &&
                 UIColor.from(scheme: .textForeground)) +
                 "\n" +
@@ -156,12 +161,12 @@ import Cartography
         }
         self.contentView.addSubview(descriptionTextView)
     }
-    
+
     private func setupSeparatorLineView() {
         separatorLineView.backgroundColor = UIColor.from(scheme: .separator)
         self.contentView.addSubview(separatorLineView)
     }
-    
+
     private func setupTypeLabel() {
         typeLabel.text = self.userClient.deviceClass?.localizedDescription.localizedUppercase
         typeLabel.numberOfLines = 1
@@ -169,18 +174,18 @@ import Cartography
         typeLabel.textColor = UIColor.from(scheme: .textForeground)
         self.contentView.addSubview(typeLabel)
     }
-    
+
     private func setupIDLabel() {
         IDLabel.numberOfLines = 1
         IDLabel.textColor = UIColor.from(scheme: .textForeground)
         self.contentView.addSubview(IDLabel)
         self.updateIDLabel()
     }
-    
+
     private func updateIDLabel() {
         let fingerprintSmallMonospaceFont = self.fingerprintSmallFont.monospaced()
         let fingerprintSmallBoldMonospaceFont = self.fingerprintSmallBoldFont.monospaced()
-        
+
         IDLabel.attributedText = self.userClient.attributedRemoteIdentifier(
             [.font: fingerprintSmallMonospaceFont],
             boldAttributes: [.font: fingerprintSmallBoldMonospaceFont],
@@ -193,7 +198,7 @@ import Cartography
         fullIDLabel.textColor = UIColor.from(scheme: .textForeground)
         self.contentView.addSubview(fullIDLabel)
     }
-    
+
     private func setupSpinner() {
         spinner.hidesWhenStopped = true
         self.contentView.addSubview(spinner)
@@ -202,12 +207,11 @@ import Cartography
     fileprivate func updateFingerprintLabel() {
         let fingerprintMonospaceFont = self.fingerprintFont.monospaced()
         let fingerprintBoldMonospaceFont = self.fingerprintBoldFont.monospaced()
-        
+
         if let attributedFingerprint = self.userClient.fingerprint?.attributedFingerprint(
             attributes: [.font: fingerprintMonospaceFont],
             boldAttributes: [.font: fingerprintBoldMonospaceFont],
-            uppercase: false)
-        {
+            uppercase: false) {
             fullIDLabel.attributedText = attributedFingerprint
             spinner.stopAnimating()
         }
@@ -224,7 +228,7 @@ import Cartography
         verifiedToggle.addTarget(self, action: #selector(ProfileClientViewController.onTrustChanged(_:)), for: .valueChanged)
         self.contentView.addSubview(verifiedToggle)
     }
-    
+
     private func setupVerifiedToggleLabel() {
         verifiedToggleLabel.font = FontSpec(.small, .light).font!
         verifiedToggleLabel.textColor = UIColor.from(scheme: .textForeground)
@@ -232,7 +236,7 @@ import Cartography
         verifiedToggleLabel.numberOfLines = 0
         self.contentView.addSubview(verifiedToggleLabel)
     }
-    
+
     private func setupResetButton() {
         resetButton.setTitleColor(UIColor.accent(), for: .normal)
         resetButton.titleLabel?.font = FontSpec(.small, .light).font!
@@ -241,18 +245,18 @@ import Cartography
         resetButton.accessibilityIdentifier = "reset session"
         self.contentView.addSubview(resetButton)
     }
-    
-    private func setupDeleteButton() {
-        guard DeveloperMenuState.developerMenuEnabled() else { return }
-        let deleteButton = ButtonWithLargerHitArea()
-        deleteButton.setTitleColor(UIColor.accent(), for: .normal)
-        deleteButton.titleLabel?.font = FontSpec(.small, .light).font!
-        deleteButton.setTitle("DELETE (⚠️ will cause decryption errors later ⚠️)", for: [])
-        deleteButton.addTarget(self, action: #selector(ProfileClientViewController.onDeleteDeviceTapped(_:)), for: .touchUpInside)
-        self.contentView.addSubview(deleteButton)
-        self.deleteDeviceButton = deleteButton
+
+    private func setupDebugMenuButton() {
+        guard Bundle.developerModeEnabled else { return }
+        let debugButton = ButtonWithLargerHitArea()
+        debugButton.setTitleColor(UIColor.accent(), for: .normal)
+        debugButton.titleLabel?.font = FontSpec(.small, .light).font!
+        debugButton.setTitle("DEBUG MENU", for: [])
+        debugButton.addTarget(self, action: #selector(ProfileClientViewController.onShowDebugActions(_:)), for: .touchUpInside)
+        self.contentView.addSubview(debugButton)
+        self.debugMenuButton = debugButton
     }
-    
+
     private func createConstraints() {
         constrain(view, contentView, descriptionTextView, separatorLineView) { view, contentView, reviewInvitationTextView, separatorLineView in
             contentView.left == view.left + 16
@@ -291,7 +295,7 @@ import Cartography
         }
 
         let topMargin = UIScreen.safeArea.top > 0 ? UIScreen.safeArea.top : 26.0
-        
+
         constrain(contentView, backButton, view) { contentView, backButton, selfView in
             backButton.left == contentView.left - 8
             backButton.top == selfView.top + topMargin
@@ -305,11 +309,11 @@ import Cartography
             spinner.bottom <= verifiedToggle.bottom - 32
         }
 
-        if let deleteDeviceButton = self.deleteDeviceButton {
-            constrain(contentView, descriptionTextView, deleteDeviceButton) { contentView, reviewInvitationTextView, deleteDeviceButton in
-                deleteDeviceButton.right == contentView.right
-                deleteDeviceButton.left == contentView.left
-                deleteDeviceButton.top == reviewInvitationTextView.bottom + 10
+        if let debugMenuButton = self.debugMenuButton {
+            constrain(contentView, descriptionTextView, debugMenuButton) { contentView, reviewInvitationTextView, debugMenuButton in
+                debugMenuButton.right == contentView.right
+                debugMenuButton.left == contentView.left
+                debugMenuButton.top == reviewInvitationTextView.bottom + 10
             }
         }
     }
@@ -321,8 +325,8 @@ import Cartography
     }
 
     @objc private func onShowMyDeviceTapped(_ sender: AnyObject) {
-        let selfClientController = SettingsClientViewController(userClient: ZMUserSession.shared()!.selfUserClient(),
-                                                                fromConversation:self.fromConversation,
+        let selfClientController = SettingsClientViewController(userClient: ZMUserSession.shared()!.selfUserClient!,
+                                                                fromConversation: self.fromConversation,
                                                                 variant: ColorScheme.default.variant)
 
         let navigationControllerWrapper = selfClientController.wrapInNavigationController()
@@ -332,10 +336,10 @@ import Cartography
     }
 
     @objc private func onTrustChanged(_ sender: AnyObject) {
-        ZMUserSession.shared()?.enqueueChanges({ [weak self] in
+        ZMUserSession.shared()?.enqueue({ [weak self] in
             guard let `self` = self else { return }
-            let selfClient = ZMUserSession.shared()!.selfUserClient()
-            if(self.verifiedToggle.isOn) {
+            let selfClient = ZMUserSession.shared()!.selfUserClient
+            if self.verifiedToggle.isOn {
                 selfClient?.trustClient(self.userClient)
             } else {
                 selfClient?.ignoreClient(self.userClient)
@@ -346,13 +350,31 @@ import Cartography
     }
 
     @objc private func onResetTapped(_ sender: AnyObject) {
-        ZMUserSession.shared()?.performChanges {
+        ZMUserSession.shared()?.perform {
             self.userClient.resetSession()
         }
-        self.resetSessionPending = true
+        isLoadingViewVisible = true
     }
-    
-    @objc private func onDeleteDeviceTapped(_ sender: AnyObject) {
+
+    @objc private func onShowDebugActions(_ sender: AnyObject) {
+        let actionSheet = UIAlertController(title: "Debug actions",
+                                            message: "⚠️ will cause decryption errors ⚠️",
+                                            preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Delete Session", style: .default, handler: { [weak self] (_) in
+            self?.onDeleteDeviceTapped()
+        }))
+
+        actionSheet.addAction(UIAlertAction(title: "Corrupt Session", style: .default, handler: { [weak self] (_) in
+            self?.onCorruptSessionTapped()
+        }))
+
+        actionSheet.addAction(.cancel())
+
+        present(actionSheet, animated: true)
+    }
+
+    @objc private func onDeleteDeviceTapped() {
         let sync = self.userClient.managedObjectContext!.zm_sync!
         sync.performGroupedBlockAndWait {
             let client = try! sync.existingObject(with: self.userClient.objectID) as! UserClient
@@ -362,32 +384,43 @@ import Cartography
         self.presentingViewController?.dismiss(animated: true, completion: .none)
     }
 
+    @objc private func onCorruptSessionTapped() {
+        let sync = self.userClient.managedObjectContext!.zm_sync!
+        let selfClientID = ZMUser.selfUser()?.selfClient()?.objectID
+        sync.performGroupedBlockAndWait {
+            let client = try! sync.existingObject(with: self.userClient.objectID) as! UserClient
+            let selfClient = try! sync.existingObject(with: selfClientID!) as! UserClient
+
+            _ = selfClient.establishSessionWithClient(client, usingPreKey: "pQABAQACoQBYIBi1nXQxPf9hpIp1K1tBOj/tlBuERZHfTMOYEW38Ny7PA6EAoQBYIAZbZQ9KtsLVc9VpHkPjYy2+Bmz95fyR0MGKNUqtUUi1BPY=")
+            sync.saveOrRollback()
+        }
+        self.presentingViewController?.dismiss(animated: true, completion: .none)
+    }
+
 }
 
-
 // MARK: - UserClientObserver
-
 
 extension ProfileClientViewController: UserClientObserver {
 
     func userClientDidChange(_ changeInfo: UserClientChangeInfo) {
-        self.updateFingerprintLabel()
-        
-        // This means the fingerprint is acquired
-        if self.resetSessionPending && self.userClient.fingerprint != .none {
+
+        if changeInfo.fingerprintChanged {
+            self.updateFingerprintLabel()
+        }
+
+        if changeInfo.sessionHasBeenReset {
             let alert = UIAlertController(title: "", message: NSLocalizedString("self.settings.device_details.reset_session.success", comment: ""), preferredStyle: .alert)
-            let okAction = UIAlertAction(title: NSLocalizedString("general.ok", comment: ""), style: .destructive, handler:  nil)
+            let okAction = UIAlertAction(title: NSLocalizedString("general.ok", comment: ""), style: .destructive, handler: nil)
             alert.addAction(okAction)
             self.present(alert, animated: true, completion: .none)
-            self.resetSessionPending = false
+            isLoadingViewVisible = false
         }
     }
 
 }
 
-
 // MARK: - UITextViewDelegate
-
 
 extension ProfileClientViewController: UITextViewDelegate {
 

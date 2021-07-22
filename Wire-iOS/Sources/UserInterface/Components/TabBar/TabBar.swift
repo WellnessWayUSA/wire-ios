@@ -16,22 +16,20 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Cartography
 
-protocol TabBarDelegate : class {
+protocol TabBarDelegate: class {
     func tabBar(_ tabBar: TabBar, didSelectItemAt index: Int)
 }
 
-@objc
-class TabBar: UIView {
+final class TabBar: UIView {
     fileprivate let stackView = UIStackView()
 
     // MARK: - Properties
 
-    weak var delegate : TabBarDelegate?
+    weak var delegate: TabBarDelegate?
     var animatesTransition = true
-    fileprivate(set) var items : [UITabBarItem] = []
+    fileprivate(set) var items: [UITabBarItem] = []
     private let tabInset: CGFloat = 16
 
     private let selectionLineView = UIView()
@@ -45,13 +43,13 @@ class TabBar: UIView {
         }
     }
 
-    fileprivate(set) var selectedIndex : Int {
+    fileprivate(set) var selectedIndex: Int {
         didSet {
             updateButtonSelection()
         }
     }
 
-    fileprivate var selectedTab : Tab {
+    fileprivate var selectedTab: Tab {
         return self.tabs[selectedIndex]
     }
 
@@ -65,11 +63,11 @@ class TabBar: UIView {
 
     init(items: [UITabBarItem], style: ColorSchemeVariant, selectedIndex: Int = 0) {
         precondition(items.count > 0, "TabBar must be initialized with at least one item")
-        
+
         self.items = items
         self.selectedIndex = selectedIndex
         self.style = style
-        
+
         super.init(frame: CGRect.zero)
 
         self.accessibilityTraits = .tabBar
@@ -82,7 +80,7 @@ class TabBar: UIView {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     fileprivate func setupViews() {
         tabs = items.enumerated().map(makeButtonForItem)
         tabs.forEach(stackView.addArrangedSubview)
@@ -91,10 +89,10 @@ class TabBar: UIView {
         stackView.axis = .horizontal
         stackView.alignment = .fill
         addSubview(stackView)
-        
+
         addSubview(selectionLineView)
         selectionLineView.backgroundColor = style == .dark ? .white : .black
-        
+
         constrain(self, selectionLineView) { selfView, selectionLineView in
             lineLeadingConstraint = selectionLineView.leading == selfView.leading + tabInset
             selectionLineView.height == 1
@@ -103,7 +101,7 @@ class TabBar: UIView {
             selectionLineView.width == selfView.width / CGFloat(items.count) - widthInset
         }
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         if !didUpdateInitialBarPosition, bounds != .zero {
@@ -111,16 +109,16 @@ class TabBar: UIView {
             updateLinePosition(animated: false)
         }
     }
-    
+
     private func updateLinePosition(animated: Bool) {
         let offset = CGFloat(selectedIndex) * selectionLineView.bounds.width
         guard offset != lineLeadingConstraint?.constant else { return }
         updateLinePosition(offset: offset, animated: animated)
     }
-    
+
     private func updateLinePosition(offset: CGFloat, animated: Bool) {
         lineLeadingConstraint?.constant = offset + tabInset
-        
+
         if animated {
             UIView.animate(
                 withDuration: 0.35,
@@ -132,7 +130,7 @@ class TabBar: UIView {
             layoutIfNeeded()
         }
     }
-    
+
     func setOffsetPercentage(_ percentage: CGFloat) {
         let offset = percentage * (bounds.width - tabInset * 2)
         updateLinePosition(offset: offset, animated: false)
@@ -175,9 +173,9 @@ class TabBar: UIView {
     fileprivate func updateTabStyle(_ tab: Tab) {
         tab.colorSchemeVariant = style
     }
-    
+
     // MARK: - Actions
-    
+
     @objc func itemSelected(_ sender: AnyObject) {
         guard
             let tab = sender as? Tab,
@@ -185,7 +183,7 @@ class TabBar: UIView {
         else {
             return
         }
-        
+
         self.delegate?.tabBar(self, didSelectItemAt: selectedIndex)
         setSelectedIndex(selectedIndex, animated: animatesTransition)
     }
@@ -195,8 +193,8 @@ class TabBar: UIView {
             self?.selectedIndex = index
             self?.layoutIfNeeded()
         }
-        
-        if (animated) {
+
+        if animated {
             UIView.transition(
                 with: self,
                 duration: 0.3,
@@ -206,7 +204,7 @@ class TabBar: UIView {
         } else {
             changes()
         }
-        
+
         updateLinePosition(animated: animated)
     }
 

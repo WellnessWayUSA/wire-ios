@@ -18,14 +18,17 @@
 
 import Foundation
 import Cartography
+import WireCommonComponents
+import UIKit
+import WireSystem
 
-@objcMembers final public class CollectionHeaderView: UICollectionReusableView {
-    
+final class CollectionHeaderView: UICollectionReusableView {
+
     public var section: CollectionsSectionSet = .none {
         didSet {
             let icon: StyleKitIcon
-            
-            switch(section) {
+
+            switch section {
             case CollectionsSectionSet.images:
                 self.titleLabel.text = "collections.section.images.title".localized(uppercased: true)
                 icon = .photo
@@ -40,20 +43,20 @@ import Cartography
                 icon = .link
             default: fatal("Unknown section")
             }
-            
+
             self.iconImageView.setIcon(icon, size: .tiny, color: .lightGraphite)
         }
     }
-    
+
     public var totalItemsCount: UInt = 0 {
         didSet {
             self.actionButton.isHidden = totalItemsCount == 0
-            
+
             let totalCountText = String(format: "collections.section.all.button".localized, totalItemsCount)
             self.actionButton.setTitle(totalCountText, for: .normal)
         }
     }
-    
+
     public let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .smallSemiboldFont
@@ -71,52 +74,50 @@ import Cartography
     }()
 
     public let iconImageView = UIImageView()
-    
-    public var selectionAction: ((CollectionsSectionSet) -> ())? = .none
-    
+
+    public var selectionAction: ((CollectionsSectionSet) -> Void)? = .none
+
     public required init(coder: NSCoder) {
         fatal("init(coder: NSCoder) is not implemented")
     }
-    
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         self.addSubview(self.titleLabel)
-        
+
         self.actionButton.contentHorizontalAlignment = .right
         self.actionButton.accessibilityLabel = "open all"
         self.actionButton.addTarget(self, action: #selector(CollectionHeaderView.didSelect(_:)), for: .touchUpInside)
         self.addSubview(self.actionButton)
-        
+
         self.iconImageView.contentMode = .center
         self.addSubview(self.iconImageView)
-        
+
         constrain(self, self.titleLabel, self.actionButton, self.iconImageView) { selfView, titleLabel, actionButton, iconImageView in
             iconImageView.leading == selfView.leading + 16
             iconImageView.centerY == selfView.centerY
             iconImageView.width == 16
             iconImageView.height == 16
-            
+
             titleLabel.leading == iconImageView.trailing + 8
             titleLabel.centerY == selfView.centerY
             titleLabel.trailing == selfView.trailing
-            
+
             actionButton.leading == selfView.leading
             actionButton.top == selfView.top
             actionButton.trailing == selfView.trailing - 16
             actionButton.bottom == selfView.bottom
         }
     }
-    
+
     public var desiredWidth: CGFloat = 0
     public var desiredHeight: CGFloat = 0
-    
+
     override public var intrinsicContentSize: CGSize {
-        get {
-            return CGSize(width: self.desiredWidth, height: self.desiredHeight)
-        }
+        return CGSize(width: self.desiredWidth, height: self.desiredHeight)
     }
-    
+
     override public func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
         var newFrame = layoutAttributes.frame
         newFrame.size.width = intrinsicContentSize.width
@@ -124,8 +125,8 @@ import Cartography
         layoutAttributes.frame = newFrame
         return layoutAttributes
     }
-    
-    @objc public func didSelect(_ button: UIButton!) {
+
+    @objc func didSelect(_ button: UIButton!) {
         self.selectionAction?(self.section)
     }
 }

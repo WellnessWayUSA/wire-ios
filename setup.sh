@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Wire
-# Copyright (C) 2016 Wire Swiss GmbH
+# Copyright (C) 2021 Wire Swiss GmbH
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,24 +37,36 @@ CARTHAGE_VERSION=( ${version//./ } )
 version=`xcodebuild -version | head -n 1 | sed "s/Xcode //"`
 XCODE_VERSION=( ${version//./ } )
 
-[[ ${CARTHAGE_VERSION[0]} -gt 0 || ${CARTHAGE_VERSION[1]} -ge 29 ]] || die "Carthage should be at least version 0.29"
-[[ ${XCODE_VERSION[0]} -gt 9 || ( ${XCODE_VERSION[0]} -eq 9 && ${XCODE_VERSION[1]} -ge 3 ) ]] || die "Xcode version should be at least 9.3.0"
+[[ ${CARTHAGE_VERSION[0]} -gt 0 || ${CARTHAGE_VERSION[1]} -ge 36 ]] || die "Carthage should be at least version 0.36"
+[[ ${XCODE_VERSION[0]} -gt 12 || ( ${XCODE_VERSION[0]} -eq 12 && ${XCODE_VERSION[1]} -ge 4 ) ]] || die "Xcode version should be at least 12.4. The current version is ${XCODE_VERSION}. If you have multiple versions of Xcode installed, please run: sudo xcode-select --switch /Applications/Xcode12.app/Contents/Developer"
 
 # SETUP
+
+# Workaround for for carthage "The file couldn’t be saved." error
+rm -rf ${TMPDIR}/TemporaryItems/*carthage*
+
 echo "ℹ️  Carthage bootstrap. This might take a while..."
-carthage bootstrap --platform ios
+carthage bootstrap --cache-builds --platform ios --use-xcframeworks 
 echo ""
 
 echo "ℹ️  Downloading AVS library..."
-./Scripts/download-avs.sh 
+./Scripts/download-avs.sh
 echo ""
 
 echo "ℹ️  Downloading additional assets..."
-./Scripts/download-assets.sh $@
+./Scripts/download-assets.sh "$@"
 echo ""
 
 echo "ℹ️  Doing additional postprocessing..."
 ./Scripts/postprocess.sh
+echo ""
+
+echo "ℹ️  [CodeGen] Update StyleKit Icons..."
+swift run --package-path Scripts/updateStylekit
+echo ""
+
+echo "ℹ️ Update Licenses File..."
+swift run --package-path ./Scripts/updateLicenses
 echo ""
 
 echo "✅  Wire project was set up, you can now open Wire-iOS.xcodeproj"

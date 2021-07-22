@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireDataModel
 
 protocol GroupOptionsSectionControllerDelegate: class {
     func presentTimeoutOptions(animated: Bool)
@@ -26,17 +27,18 @@ protocol GroupOptionsSectionControllerDelegate: class {
 
 final class GroupOptionsSectionController: GroupDetailsSectionController {
 
-    private enum Option: Int, CaseIterable, Restricted {
+    private enum Option: Int, CaseIterable {
 
         fileprivate static let count = Option.allCases.count
 
         case notifications = 0, guests, timeout
-        
-        var requiredPermissions: Permissions {
+
+        func accessible(in conversation: GroupDetailsConversationType,
+                        by user: UserType) -> Bool {
             switch self {
-            case .notifications: return .partner
-            case .guests:        return .member
-            case .timeout:       return .member
+            case .notifications: return user.canModifyNotificationSettings(in: conversation)
+            case .guests:        return user.canModifyAccessControlSettings(in: conversation)
+            case .timeout:       return user.canModifyEphemeralSettings(in: conversation)
             }
         }
 
@@ -53,45 +55,23 @@ final class GroupOptionsSectionController: GroupDetailsSectionController {
     // MARK: - Properties
 
     private weak var delegate: GroupOptionsSectionControllerDelegate?
-    private let conversation: ZMConversation
+    private let conversation: GroupDetailsConversationType
     private let syncCompleted: Bool
     private let options: [Option]
-    
+
     var hasOptions: Bool {
         return !options.isEmpty
     }
-    
-    init(conversation: ZMConversation, delegate: GroupOptionsSectionControllerDelegate, syncCompleted: Bool) {
+
+    init(conversation: GroupDetailsConversationType, delegate: GroupOptionsSectionControllerDelegate, syncCompleted: Bool) {
         self.delegate = delegate
         self.conversation = conversation
         self.syncCompleted = syncCompleted
-        var options = [Option]()
-        
-        let selfIsGuest = ZMUser.selfUser().isGuest(in: conversation)
-        
-        if ZMUser.selfUserIsTeamMember {
-            Option.notifications.authorizeSelfUser {
-                options.append(.notifications)
-            }
-        }
-        
-        if conversation.canManageAccess {
-            Option.guests.authorizeSelfUser {
-                options.append(.guests)
-            }
-        }
-        
-        if !selfIsGuest {
-            Option.timeout.authorizeSelfUser {
-                options.append(.timeout)
-            }
-        }
-        
-        self.options = options
+        self.options = Option.allCases.filter({ $0.accessible(in: conversation, by: SelfUser.current) })
     }
 
     // MARK: - Collection View
-    
+
     override var sectionTitle: String {
         return "participants.section.settings".localized(uppercased: true)
     }

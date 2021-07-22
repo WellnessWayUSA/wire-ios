@@ -19,15 +19,20 @@
 import Foundation
 import WireSyncEngine
 
-fileprivate var ciContext = CIContext(options: nil)
-
-public var defaultUserImageCache: ImageCache<UIImage> = ImageCache()
-
+extension CIContext {
+    static var shared: CIContext = CIContext(options: nil)
+}
 
 typealias ProfileImageFetchableUser = UserType & ProfileImageFetchable
 
 protocol ProfileImageFetchable {
-    func fetchProfileImage(session: ZMUserSessionInterface, cache: ImageCache<UIImage>, sizeLimit: Int?, desaturate: Bool, completion: @escaping (_ image: UIImage?, _ cacheHit: Bool) -> Void ) -> Void
+
+    func fetchProfileImage(session: ZMUserSessionInterface,
+                           cache: ImageCache<UIImage>,
+                           sizeLimit: Int?,
+                           desaturate: Bool,
+                           completion: @escaping (_ image: UIImage?, _ cacheHit: Bool) -> Void)
+
 }
 
 extension ProfileImageFetchable where Self: UserType {
@@ -50,7 +55,11 @@ extension ProfileImageFetchable where Self: UserType {
         return derivedKey
     }
 
-    func fetchProfileImage(session: ZMUserSessionInterface, cache: ImageCache<UIImage> = defaultUserImageCache, sizeLimit: Int? = nil, desaturate: Bool = false, completion: @escaping (_ image: UIImage?, _ cacheHit: Bool) -> Void ) -> Void {
+    func fetchProfileImage(session: ZMUserSessionInterface,
+                           cache: ImageCache<UIImage> = UIImage.defaultUserImageCache,
+                           sizeLimit: Int? = nil,
+                           desaturate: Bool = false,
+                           completion: @escaping (_ image: UIImage?, _ cacheHit: Bool) -> Void) {
 
         let screenScale = UIScreen.main.scale
         let previewSizeLimit: CGFloat = 280
@@ -91,7 +100,7 @@ extension ProfileImageFetchable where Self: UserType {
             }
 
             if desaturate {
-                image = image?.desaturatedImage(with: ciContext, saturation: 0)
+                image = image?.desaturatedImage(with: CIContext.shared)
             }
 
             if let image = image {
@@ -106,3 +115,4 @@ extension ProfileImageFetchable where Self: UserType {
 }
 
 extension ZMUser: ProfileImageFetchable {}
+extension ZMSearchUser: ProfileImageFetchable {}

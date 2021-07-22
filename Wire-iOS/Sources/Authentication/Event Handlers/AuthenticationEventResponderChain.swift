@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import WireSystem
+import WireDataModel
 
 /**
  * Provides information to the event responder chain and executes actions.
@@ -25,7 +27,7 @@ import Foundation
 protocol AuthenticationEventResponderChainDelegate: class {
 
     /// The object providing authentication status info.
-    var statusProvider: AuthenticationStatusProvider? { get }
+    var statusProvider: AuthenticationStatusProvider { get }
 
     /// The object providing the current authentication state.
     var stateController: AuthenticationStateController { get }
@@ -229,7 +231,8 @@ class AuthenticationEventResponderChain {
                 handler.statusProvider = nil
             }
 
-            if let responseActions = handler.handleEvent(currentStep: delegate.stateController.currentStep, context: context) {
+            if let responseActions = handler.handleEvent(currentStep: delegate.stateController.currentStep,
+                                                         context: context) {
                 lookupResult = (handler.name, responseActions)
                 break
             }

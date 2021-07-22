@@ -17,14 +17,16 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension ConversationInputBarViewController {
-    @objc func locationButtonPressed(_ sender: IconButton?) {
+    @objc
+    func locationButtonPressed(_ sender: IconButton?) {
         guard let parentViewConvtoller = self.parent else { return }
 
         let locationSelectionViewController = LocationSelectionViewController()
         locationSelectionViewController.modalPresentationStyle = .popover
-        
+
         if let popover = locationSelectionViewController.popoverPresentationController,
            let imageView = sender?.imageView {
 
@@ -34,7 +36,29 @@ extension ConversationInputBarViewController {
         }
 
         locationSelectionViewController.title = conversation.displayName
-        locationSelectionViewController.delegate = self as? LocationSelectionViewControllerDelegate
+        locationSelectionViewController.delegate = self
         parentViewConvtoller.present(locationSelectionViewController, animated: true)
+    }
+}
+
+extension ConversationInputBarViewController: LocationSelectionViewControllerDelegate {
+
+    func locationSelectionViewController(_ viewController: LocationSelectionViewController, didSelectLocationWithData locationData: LocationData) {
+        guard let conversation = conversation as? ZMConversation else { return }
+
+        ZMUserSession.shared()?.enqueue {
+            do {
+                try conversation.appendLocation(with: locationData)
+                Analytics.shared.tagMediaActionCompleted(.location, inConversation: conversation)
+            } catch {
+                Logging.messageProcessing.warn("Failed to append location message. Reason: \(error.localizedDescription)")
+            }
+        }
+
+        parent?.dismiss(animated: true)
+    }
+
+    func locationSelectionViewControllerDidCancel(_ viewController: LocationSelectionViewController) {
+        parent?.dismiss(animated: true)
     }
 }

@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2019 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 import Foundation
 import WireDataModel
+import WireSyncEngine
 
 protocol BackupRestoreControllerDelegate: class {
     func backupResoreControllerDidFinishRestoring(_ controller: BackupRestoreController)
@@ -27,15 +28,20 @@ protocol BackupRestoreControllerDelegate: class {
  * An object that coordinates restoring a backup.
  */
 
-class BackupRestoreController: NSObject {
-    static let WireBackupUTI = "com.wire.backup-ios"
+final class BackupRestoreController: NSObject {
 
-    let target: UIViewController
+    // There are some external apps that users can use to transfer backup files, which can modify
+    // their attachments and change the underscore with a dash. This is the reason we accept 2 types
+    // of file extensions: 'ios_wbu' and 'ios-wbu'.
+
+    static let WireBackupUTIs = ["com.wire.backup-ios-underscore", "com.wire.backup-ios-hyphen"]
+
+    let target: SpinnerCapableViewController
     weak var delegate: BackupRestoreControllerDelegate?
 
     // MARK: - Initialization
 
-    init(target: UIViewController) {
+    init(target: SpinnerCapableViewController) {
         self.target = target
         super.init()
     }
@@ -52,15 +58,10 @@ class BackupRestoreController: NSObject {
 
     fileprivate func showFilePicker() {
         // Test code to verify restore
-        #if arch(i386) || arch(x86_64)
-        let testFilePath = "/var/tmp/backup.ios_wbu"
-        if FileManager.default.fileExists(atPath: testFilePath) {
-            self.restore(with: URL(fileURLWithPath: testFilePath))
-            return
-        }
-        #endif
 
-        let picker = UIDocumentPickerViewController(documentTypes: [BackupRestoreController.WireBackupUTI], in: .`import`)
+        let picker = UIDocumentPickerViewController(
+            documentTypes: BackupRestoreController.WireBackupUTIs,
+            in: .`import`)
         picker.delegate = self
         target.present(picker, animated: true)
     }
@@ -73,13 +74,13 @@ class BackupRestoreController: NSObject {
 
     fileprivate func performRestore(using password: String, from url: URL) {
         guard let sessionManager = SessionManager.shared else { return }
-        target.showLoadingView = true
+        target.isLoadingViewVisible = true
 
         sessionManager.restoreFromBackup(at: url, password: password) { [weak self] result in
             guard let `self` = self else { return }
             switch result {
             case .failure(SessionManager.BackupError.decryptionError):
-                self.target.showLoadingView = false
+                self.target.isLoadingViewVisible = false
                 self.showWrongPasswordAlert { _ in
                     self.restore(with: url)
                 }
@@ -87,7 +88,7 @@ class BackupRestoreController: NSObject {
             case .failure(let error):
                 BackupEvent.importFailed.track()
                 self.showRestoreError(error)
-                self.target.showLoadingView = false
+                self.target.isLoadingViewVisible = false
 
             case .success:
                 BackupEvent.importSucceeded.track()
@@ -97,14 +98,6 @@ class BackupRestoreController: NSObject {
     }
 
     // MARK: - Alerts
-
-    fileprivate func showWarningMessage() {
-        let controller = UIAlertController.historyImportWarning { [showFilePicker] in
-            showFilePicker()
-        }
-
-        target.present(controller, animated: true)
-    }
 
     fileprivate func requestPassword(completion: @escaping (String) -> Void) {
         let controller = UIAlertController.requestRestorePassword { password in

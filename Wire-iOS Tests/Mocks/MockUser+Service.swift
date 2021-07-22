@@ -19,11 +19,11 @@
 import Foundation
 
 extension MockUser {
-    @objc var canSeeServices: Bool {
+    var canSeeServices: Bool {
         return self.hasTeam
     }
 
-    //MARK: - clients
+    // MARK: - clients
     @discardableResult
     func feature(withUserClients numClients: Int) -> [MockUserClient]? {
         var newClients: [AnyHashable] = []

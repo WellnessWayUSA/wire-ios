@@ -16,16 +16,16 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
+import WireDataModel
 
 private let latitudeKey = "LastLocationLatitudeKey"
 private let longitudeKey = "LastLocationLongitudeKey"
 private let zoomLevelKey = "LastLocationZoomLevelKey"
 
-public extension LocationData {
+extension LocationData {
 
-    func toDictionary() -> [String : Any] {
+    func toDictionary() -> [String: Any] {
         return [
             latitudeKey: latitude,
             longitudeKey: longitude,
@@ -33,14 +33,14 @@ public extension LocationData {
         ]
     }
 
-    static func locationData(fromDictionary dict: [String : Any]) -> LocationData? {
+    static func locationData(fromDictionary dict: [String: Any]) -> LocationData? {
         guard let latitude = dict[latitudeKey],
             let longitude = dict[longitudeKey],
             let zoomLevel = dict[zoomLevelKey] as? Int else { return nil }
-        
+
         let latitudeFloat: Float
         let longitudeFloat: Float
-        
+
         if let latitudeFloatUnwrap = latitude as? Float,
             let longitudeFloatUnwrap = longitude as? Float {
             latitudeFloat = latitudeFloatUnwrap
@@ -54,8 +54,8 @@ public extension LocationData {
         else {
             return nil
         }
-        
+
         return .locationData(withLatitude: latitudeFloat, longitude: longitudeFloat, name: nil, zoomLevel: Int32(zoomLevel))
     }
-    
+
 }

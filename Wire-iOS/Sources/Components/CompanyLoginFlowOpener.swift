@@ -18,6 +18,9 @@
 
 import Foundation
 import SafariServices
+import AuthenticationServices
+import UIKit
+import WireSyncEngine
 
 protocol CompanyLoginFlowHandlerDelegate: class {
     /// Called when the user cancels the company login flow.
@@ -28,7 +31,7 @@ protocol CompanyLoginFlowHandlerDelegate: class {
  * Handles opening URLs to validate company login authentication.
  */
 
-class CompanyLoginFlowHandler {
+final class CompanyLoginFlowHandler {
 
     /// The delegate of the flow handler.
     weak var delegate: CompanyLoginFlowHandlerDelegate?
@@ -92,16 +95,39 @@ class CompanyLoginFlowHandler {
 
     @available(iOS 11, *)
     private func openSafariAuthenticationSession(at url: URL) {
-        let session = SFAuthenticationSession(url: url, callbackURLScheme: callbackScheme) { url, error in
-            if let url = url {
-                SessionManager.shared?.urlHandler.openURL(url, options: [:])
+        if #available(iOS 12, *) {
+            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: callbackScheme) { url, _ in
+                if let url = url {
+                    self.processURL(url)
+                }
+
+                self.currentAuthenticationSession = nil
             }
 
-            self.currentAuthenticationSession = nil
-        }
+            currentAuthenticationSession = session
+            session.start()
+        } else {
+            let session = SFAuthenticationSession(url: url, callbackURLScheme: callbackScheme) { url, _ in
+                if let url = url {
+                    self.processURL(url)
+                }
 
-        currentAuthenticationSession = session
-        session.start()
+                self.currentAuthenticationSession = nil
+            }
+
+            currentAuthenticationSession = session
+            session.start()
+        }
+    }
+
+    private func processURL(_ url: URL) {
+        do {
+            try SessionManager.shared?.openURL(url)
+        } catch let error as LocalizedError {
+            UIApplication.shared.topmostViewController()?.showAlert(for: error)
+        } catch {
+            // nop
+        }
     }
 
     private func openSafariEmbed(at url: URL) {

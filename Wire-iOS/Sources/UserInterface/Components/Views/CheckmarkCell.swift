@@ -17,12 +17,15 @@
 //
 
 import UIKit
+import WireCommonComponents
 
-class CheckmarkCell: RightIconDetailsCell {
+final class CheckmarkCell: RightIconDetailsCell {
 
     var showCheckmark: Bool = false {
         didSet {
             updateCheckmark(forColor: ColorScheme.default.variant)
+
+            titleBolded = showCheckmark
         }
     }
 
@@ -31,11 +34,14 @@ class CheckmarkCell: RightIconDetailsCell {
             updateCheckmark(forColor: ColorScheme.default.variant)
         }
     }
-    
+
     override func setUp() {
         super.setUp()
         icon = nil
         status = nil
+
+        isAccessibilityElement = true
+        shouldGroupAccessibilityChildren = true
     }
 
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
@@ -51,7 +57,7 @@ class CheckmarkCell: RightIconDetailsCell {
         }
 
         let color: UIColor
-        
+
         switch (colorSchemeVariant, disabled) {
         case (.light, false):
             color = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
@@ -62,8 +68,28 @@ class CheckmarkCell: RightIconDetailsCell {
         case (.dark, true):
             color = UIColor.from(scheme: .textPlaceholder, variant: colorSchemeVariant)
         }
-    
+
         accessory = StyleKitIcon.checkmark.makeImage(size: .tiny, color: color)
     }
 
+    // MARK: - accessibility
+    override var accessibilityLabel: String? {
+        get {
+            return title
+        }
+
+        set {
+            // no op
+        }
+    }
+
+    override var accessibilityValue: String? {
+        get {
+            return "\(showCheckmark)"
+        }
+
+        set {
+            // no op
+        }
+    }
 }

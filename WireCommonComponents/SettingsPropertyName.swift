@@ -26,7 +26,7 @@ import Foundation
  - DarkMode:               Dark mode for conversation
  - PriofileName:           User name
  - SoundAlerts:            Sound alerts level
- - DisableCrashAndAnalyticsSharing: Opt-Out analytics and Hockey
+ - DisableCrashAndAnalyticsSharing: Opt-Out analytics and App Center
  - DisableSendButton:      Opt-Out of new send button
  - DisableLinkPreviews:    Disable link previews for links you send
  - Disable(.*):            Disable some app features (debug)
@@ -69,21 +69,28 @@ public enum SettingsPropertyName: String, CustomStringConvertible {
 
     // Persoanl Information
     // Analytics
-    case disableCrashAndAnalyticsSharing = "DisableCrashAndAnalyticsSharing"
+    case disableCrashSharing = "DisableCrashSharing"
+    case disableAnalyticsSharing = "DisableAnalyticsSharing"
     case receiveNewsAndOffers = "ReceiveNewsAndOffers"
 
     // Debug
     case disableCallKit = "DisableCallKit"
     case callingProtocolStrategy = "CallingProtcolStrategy"
     case enableBatchCollections = "EnableBatchCollections"
+    case federationEnabled = "federationEnabled"
 
     case lockApp = "lockApp"
-    case lockAppLastDate = "lockAppLastDate"
-    
+
     case readReceiptsEnabled = "readReceiptsEnabled"
+    
+    case encryptMessagesAtRest = "encryptMessagesAtRest"
     
     public var changeNotificationName: String {
         return self.description + "ChangeNotification"
+    }
+
+    public var notificationName: Notification.Name {
+        return Notification.Name(changeNotificationName)
     }
     
     public var description: String {

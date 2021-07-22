@@ -19,14 +19,31 @@
 import Foundation
 @testable import Wire
 
-final class MockZMUserSession: NSObject, ZMUserSessionInterface {
-    func performChanges(_ block: @escaping () -> Swift.Void) {
-        block()
+final class MockZMUserSession: NSObject, UserSessionInterface {
+
+    func perform(_ changes: @escaping () -> Swift.Void) {
+        changes()
     }
 
-    func enqueueChanges(_ block: @escaping () -> Swift.Void) {
-        block()
+    func enqueue(_ changes: @escaping () -> Swift.Void) {
+        changes()
+    }
+
+    func enqueue(_ changes: @escaping () -> Void, completionHandler: (() -> Void)?) {
+        changes()
+        completionHandler?()
+    }
+
+    var mockConversationDirectory = MockConversationDirectory()
+    var conversationDirectory: ConversationDirectoryType {
+        return mockConversationDirectory
     }
 
     var isNotificationContentHidden: Bool = false
+
+    var encryptMessagesAtRest: Bool = false
+
+    var appLockController: AppLockType = AppLockModule.MockAppLockController()
+
+    var lock: SessionLock?
 }

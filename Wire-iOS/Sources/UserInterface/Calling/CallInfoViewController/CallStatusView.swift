@@ -18,8 +18,7 @@
 
 import UIKit
 
-
-protocol CallStatusViewInputType: CallTypeProvider, ColorVariantProvider {
+protocol CallStatusViewInputType: CallTypeProvider, ColorVariantProvider, CBRSettingProvider {
     var state: CallStatusViewState { get }
     var isConstantBitRate: Bool { get }
     var title: String { get }
@@ -31,6 +30,10 @@ protocol CallTypeProvider {
 
 protocol ColorVariantProvider {
     var variant: ColorSchemeVariant { get }
+}
+
+protocol CBRSettingProvider {
+    var userEnabledCBR: Bool { get }
 }
 
 extension CallStatusViewInputType {
@@ -57,15 +60,15 @@ final class CallStatusView: UIView {
 
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
-    private let bitrateLabel = UILabel()
+    private let bitrateLabel = BitRateLabel()
     private let stackView = UIStackView(axis: .vertical)
-    
+
     var configuration: CallStatusViewInputType {
         didSet {
             updateConfiguration()
         }
     }
-    
+
     init(configuration: CallStatusViewInputType) {
         self.configuration = configuration
         super.init(frame: .zero)
@@ -73,12 +76,12 @@ final class CallStatusView: UIView {
         createConstraints()
         updateConfiguration()
     }
-    
+
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func setupViews() {
         [stackView, bitrateLabel].forEach(addSubview)
         stackView.distribution = .fill
@@ -97,12 +100,12 @@ final class CallStatusView: UIView {
         subtitleLabel.font = FontSpec(.normal, .semibold).font
         subtitleLabel.alpha = 0.64
 
-        bitrateLabel.text = "call.status.constant_bitrate".localized(uppercased: true)
         bitrateLabel.font = FontSpec(.small, .semibold).font
         bitrateLabel.alpha = 0.64
         bitrateLabel.accessibilityIdentifier = "bitrate-indicator"
+        bitrateLabel.isHidden = true
     }
-    
+
     private func createConstraints() {
         NSLayoutConstraint.activate([
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
@@ -114,17 +117,18 @@ final class CallStatusView: UIView {
             bitrateLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
-    
+
     private func updateConfiguration() {
         titleLabel.text = configuration.title
         subtitleLabel.text = configuration.displayString
-        bitrateLabel.isHidden = !configuration.isConstantBitRate
+        bitrateLabel.isHidden = !configuration.userEnabledCBR
+        bitrateLabel.bitRateStatus = BitRateStatus(configuration.isConstantBitRate)
 
         [titleLabel, subtitleLabel, bitrateLabel].forEach {
             $0.textColor = UIColor.from(scheme: .textForeground, variant: configuration.effectiveColorVariant)
         }
     }
-    
+
 }
 
 // MARK: - Helper
@@ -150,10 +154,10 @@ extension CallStatusViewInputType {
         case .terminating: return "call.status.terminating".localized
         }
     }
-    
+
     var effectiveColorVariant: ColorSchemeVariant {
         guard !isVideoCall else { return .dark }
-        return variant == .dark ? .dark : .light
+        return variant
     }
-    
+
 }

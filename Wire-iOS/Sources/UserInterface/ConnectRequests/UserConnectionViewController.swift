@@ -16,22 +16,23 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
+import UIKit
+import WireSyncEngine
 
-public enum IncomingConnectionAction: UInt {
+enum IncomingConnectionAction: UInt {
     case ignore, accept
 }
 
-final public class IncomingConnectionViewController: UIViewController {
+final class IncomingConnectionViewController: UIViewController {
 
     fileprivate var connectionView: IncomingConnectionView!
 
-    public let userSession: ZMUserSession!
-    public let user: ZMUser
-    public var onAction: ((IncomingConnectionAction) -> ())?
+    let userSession: ZMUserSession?
+    let user: UserType
+    var onAction: ((IncomingConnectionAction) -> Void)?
 
-    public init(userSession: ZMUserSession!, user: ZMUser) {
+    init(userSession: ZMUserSession?, user: UserType) {
         self.userSession = userSession
         self.user = user
         super.init(nibName: .none, bundle: .none)
@@ -40,55 +41,54 @@ final public class IncomingConnectionViewController: UIViewController {
         user.refreshData()
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override public func loadView() {
-        self.connectionView = IncomingConnectionView(user: user)
-        self.connectionView.onAccept = { [weak self] user in
-            guard let `self` = self else { return }
-            self.userSession.performChanges {
-                self.user.accept()
+    override func loadView() {
+        connectionView = IncomingConnectionView(user: user)
+        connectionView.onAccept = { [weak self] user in
+            guard let weakSelf = self else { return }
+            weakSelf.userSession?.perform {
+                (weakSelf.user as? ZMUser)?.accept()
             }
-            self.onAction?(.accept)
+            weakSelf.onAction?(.accept)
         }
-        self.connectionView.onIgnore = { [weak self] user in
-            guard let `self` = self else { return }
-            self.userSession.performChanges {
-                self.user.ignore()
+        connectionView.onIgnore = { [weak self] user in
+            guard let weakSelf = self else { return }
+            weakSelf.userSession?.perform {
+                (weakSelf.user as? ZMUser)?.ignore()
+                weakSelf.onAction?(.ignore)
             }
-
-            self.onAction?(.ignore)
         }
 
         view = connectionView
     }
-    
+
 }
 
-@objcMembers final public class UserConnectionViewController: UIViewController {
+final class UserConnectionViewController: UIViewController {
 
     fileprivate var userConnectionView: UserConnectionView!
 
-    public let userSession: ZMUserSession
-    public let user: ZMUser
+    let userSession: ZMUserSession
+    let user: ZMUser
 
-    
-    public init(userSession: ZMUserSession, user: ZMUser) {
+    init(userSession: ZMUserSession, user: ZMUser) {
         self.userSession = userSession
         self.user = user
         super.init(nibName: .none, bundle: .none)
-        
+
         guard !self.user.isConnected else { return }
         user.refreshData()
     }
-    
-    required public init?(coder aDecoder: NSCoder) {
+
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    override public func loadView() {
+
+    override func loadView() {
         self.userConnectionView = UserConnectionView(user: self.user)
         self.view = self.userConnectionView
     }

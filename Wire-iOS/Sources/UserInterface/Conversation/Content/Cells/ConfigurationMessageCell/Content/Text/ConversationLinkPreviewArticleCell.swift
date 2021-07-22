@@ -17,8 +17,9 @@
 //
 
 import UIKit
+import WireDataModel
 
-class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell {
+final class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell, ContextMenuDelegate {
 
     struct Configuration {
         let textMessageData: ZMTextMessageData
@@ -30,9 +31,9 @@ class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell {
     }
 
     private let articleView = ArticleView(withImagePlaceholder: true)
-    
-    weak var delegate: ConversationMessageCellDelegate? = nil
-    weak var message: ZMConversationMessage? = nil
+
+    weak var delegate: ConversationMessageCellDelegate?
+    weak var message: ZMConversationMessage?
 
     var isSelected: Bool = false
 
@@ -66,8 +67,10 @@ class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell {
 
     func configure(with object: Configuration, animated: Bool) {
         configuration = object
-        articleView.configure(withTextMessageData: object.textMessageData, obfuscated: object.isObfuscated)
-        updateImageLayout(isRegular: self.traitCollection.horizontalSizeClass == .regular)
+        articleView.configure(withTextMessageData: object.textMessageData,
+                              obfuscated: object.isObfuscated)
+
+        updateImageLayout(isRegular: traitCollection.horizontalSizeClass == .regular)
     }
 
     func updateImageLayout(isRegular: Bool) {
@@ -85,22 +88,20 @@ class ConversationLinkPreviewArticleCell: UIView, ConversationMessageCell {
 
 }
 
-extension ConversationLinkPreviewArticleCell: ArticleViewDelegate {
-    
-    func articleViewWantsToOpenURL(_ articleView: ArticleView, url: URL) {
-        url.open()
+extension ConversationLinkPreviewArticleCell: LinkViewDelegate {
+    var url: URL? {
+        return configuration?.textMessageData.linkPreview?.openableURL
     }
-    
 }
 
-class ConversationLinkPreviewArticleCellDescription: ConversationMessageCellDescription {
+final class ConversationLinkPreviewArticleCellDescription: ConversationMessageCellDescription {
     typealias View = ConversationLinkPreviewArticleCell
     let configuration: View.Configuration
 
     weak var message: ZMConversationMessage?
-    weak var delegate: ConversationMessageCellDelegate? 
+    weak var delegate: ConversationMessageCellDelegate?
     weak var actionController: ConversationMessageActionController?
-    
+
     var showEphemeralTimer: Bool = false
     var topMargin: Float = 8
 
@@ -108,7 +109,10 @@ class ConversationLinkPreviewArticleCellDescription: ConversationMessageCellDesc
     let supportsActions: Bool = true
     let containsHighlightableContent: Bool = true
 
-    let accessibilityIdentifier: String? = nil
+    var accessibilityIdentifier: String? {
+        return configuration.isObfuscated ? "ObfuscatedLinkPreviewCell" : "LinkPreviewCell"
+    }
+
     let accessibilityLabel: String? = nil
 
     init(message: ZMConversationMessage, data: ZMTextMessageData) {

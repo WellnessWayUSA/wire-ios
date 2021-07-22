@@ -16,13 +16,19 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import Foundation
+import WireSystem
+import UIKit
 
 private let log = ZMSLog(tag: "link opening")
-
 
 enum BrowserOpeningOption: Int, LinkOpeningOption {
 
     case safari, chrome, firefox, snowhaze, brave
+
+    typealias ApplicationOptionEnum = BrowserOpeningOption
+    static var settingKey: SettingKey = .browserOpeningRawValue
+    static var defaultPreference: ApplicationOptionEnum = .safari
 
     static var allOptions: [BrowserOpeningOption] {
         return [.safari, .chrome, .firefox, .snowhaze, .brave]
@@ -47,18 +53,13 @@ enum BrowserOpeningOption: Int, LinkOpeningOption {
         case .brave: return UIApplication.shared.braveInstalled
         }
     }
-
-    static func storedPreference() -> BrowserOpeningOption {
-        return BrowserOpeningOption(rawValue: Settings.shared().browserLinkOpeningOptionRawValue) ?? .safari
-    }
-
 }
 
 extension URL {
 
     func openAsLink() -> Bool {
         log.debug("Trying to open \"\(self)\" in thrid party browser")
-        let saved = BrowserOpeningOption.storedPreference()
+        let saved = BrowserOpeningOption.storedPreference
         log.debug("Saved option to open a regular link: \(saved.displayString)")
         let app = UIApplication.shared
 
@@ -81,15 +82,13 @@ extension URL {
             log.debug("Trying to open brave app using \"\(url)\"")
             app.open(url)
         }
-        
+
         return true
     }
 
 }
 
-
 // MARK: - Private
-
 
 fileprivate extension UIApplication {
 
@@ -100,17 +99,16 @@ fileprivate extension UIApplication {
     var firefoxInstalled: Bool {
         return canHandleScheme("firefox://")
     }
-    
+
     var snowhazeInstalled: Bool {
         return canHandleScheme("shtps://")
     }
-    
+
     var braveInstalled: Bool {
         return canHandleScheme("brave://")
     }
 
 }
-
 
 extension URL {
 
@@ -125,13 +123,13 @@ extension URL {
     }
 
     var percentEncodingString: String {
-        return absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!;
+        return absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
     }
 
     var firefoxURL: URL? {
         return URL(string: "firefox://open-url?url=\(percentEncodingString)")
     }
-    
+
     var snowhazeURL: URL? {
         // Reference: https://github.com/snowhaze/SnowHaze-iOS/blob/master/SnowHaze/Info.plist
         if absoluteString.contains("http://") {
@@ -142,7 +140,7 @@ extension URL {
         }
         return URL(string: "shtp://\(absoluteString)")
     }
-    
+
     var braveURL: URL? {
         // Reference: https://github.com/brave/ios-open-thirdparty-browser/blob/master/OpenInThirdPartyBrowser/OpenInThirdPartyBrowserControllerSwift.swift
         return URL(string: "brave://open-url?url=\(percentEncodingString)")

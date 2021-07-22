@@ -16,33 +16,37 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
+import UIKit
+import WireDataModel
 
-@objcMembers public final class CollectionCellHeader: UIView {
-    public var message: ZMConversationMessage? {
+final class CollectionCellHeader: UIView {
+    var message: ZMConversationMessage? {
         didSet {
-            guard let message = self.message, let serverTimestamp = message.serverTimestamp, let sender = message.sender else {
+            guard let message = message,
+                  let serverTimestamp = message.serverTimestamp,
+                  let sender = message.senderUser else {
                 return
             }
-            
-            self.nameLabel.textColor = sender.nameAccentColor
-            self.nameLabel.text = sender.displayName
-            self.dateLabel.text = serverTimestamp.formattedDate
+
+            nameLabel.textColor = sender.nameAccentColor
+
+            nameLabel.text = sender.name
+            dateLabel.text = serverTimestamp.formattedDate
         }
     }
-    
-    public required init(coder: NSCoder) {
+
+    required init(coder: NSCoder) {
         fatal("init(coder: NSCoder) is not implemented")
     }
-    
-    public override init(frame: CGRect) {
+
+    override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         self.addSubview(self.nameLabel)
         self.addSubview(self.dateLabel)
-        
+
         constrain(self, self.nameLabel, self.dateLabel) { selfView, nameLabel, dateLabel in
             nameLabel.leading == selfView.leading
             nameLabel.trailing <= dateLabel.leading
@@ -52,8 +56,8 @@ import Cartography
             dateLabel.centerY == nameLabel.centerY
         }
     }
-    
-    public var nameLabel: UILabel = {
+
+    var nameLabel: UILabel = {
         let label = UILabel()
         label.accessibilityLabel = "sender name"
         label.font = .smallSemiboldFont
@@ -61,7 +65,7 @@ import Cartography
         return label
     }()
 
-    public var dateLabel: UILabel = {
+    var dateLabel: UILabel = {
         let label = UILabel()
         label.accessibilityLabel = "sent on"
         label.font = .smallLightFont

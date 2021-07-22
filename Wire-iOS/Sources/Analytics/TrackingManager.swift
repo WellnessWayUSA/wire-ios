@@ -17,46 +17,54 @@
 //
 
 import Foundation
-import HockeySDK
+import AppCenter
 import WireCommonComponents
+import avs
+import WireSyncEngine
 
-
-@objc public class TrackingManager: NSObject, TrackingInterface {
+final class TrackingManager: NSObject, TrackingInterface {
     private let flowManagerObserver: NSObjectProtocol
-    
+
     private override init() {
-        AVSFlowManager.getInstance()?.setEnableMetrics(!ExtensionSettings.shared.disableCrashAndAnalyticsSharing)
-        
+        AVSFlowManager.getInstance()?.setEnableMetrics(!ExtensionSettings.shared.disableAnalyticsSharing)
+
         flowManagerObserver = NotificationCenter.default.addObserver(forName: FlowManager.AVSFlowManagerCreatedNotification, object: nil, queue: OperationQueue.main, using: { _ in
-            AVSFlowManager.getInstance()?.setEnableMetrics(!ExtensionSettings.shared.disableCrashAndAnalyticsSharing)
+            AVSFlowManager.getInstance()?.setEnableMetrics(!ExtensionSettings.shared.disableAnalyticsSharing)
         })
     }
-    
-    @objc public static let shared = TrackingManager()
 
-    @objc public var disableCrashAndAnalyticsSharing: Bool {
-        set {
-            Analytics.shared().isOptedOut = newValue
-            AVSFlowManager.getInstance()?.setEnableMetrics(!newValue)
-            updateHockeyStateIfNeeded(oldState: disableCrashAndAnalyticsSharing, newValue)
-            ExtensionSettings.shared.disableCrashAndAnalyticsSharing = newValue
-        }
-        
+    static let shared = TrackingManager()
+
+    var disableCrashSharing: Bool {
         get {
-            return ExtensionSettings.shared.disableCrashAndAnalyticsSharing
+            return ExtensionSettings.shared.disableCrashSharing
+        }
+
+        set {
+            updateAppCenterStateIfNeeded(oldState: disableCrashSharing, newValue)
+            ExtensionSettings.shared.disableCrashSharing = newValue
         }
     }
 
-    private func updateHockeyStateIfNeeded(oldState: Bool, _ newState: Bool) {
+    var disableAnalyticsSharing: Bool {
+        get {
+            return ExtensionSettings.shared.disableAnalyticsSharing
+        }
+
+        set {
+            Analytics.shared?.isOptedOut = newValue
+            AVSFlowManager.getInstance()?.setEnableMetrics(!newValue)
+            ExtensionSettings.shared.disableAnalyticsSharing = newValue
+        }
+    }
+
+    private func updateAppCenterStateIfNeeded(oldState: Bool, _ newState: Bool) {
         switch (oldState, newState) {
         case (true, false):
-            BITHockeyManager.shared().setTrackingEnabled(true)
-            BITHockeyManager.shared().start()
-            BITHockeyManager.shared().authenticator.authenticateInstallation()
-
+            MSAppCenter.setEnabled(true)
+            MSAppCenter.start()
         case (false, true):
-            BITHockeyManager.shared().setTrackingEnabled(false)
-
+            MSAppCenter.setEnabled(false)
         default:
             return
         }

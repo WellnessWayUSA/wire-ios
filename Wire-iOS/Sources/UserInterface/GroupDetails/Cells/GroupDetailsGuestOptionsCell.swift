@@ -17,9 +17,10 @@
 //
 
 import UIKit
+import WireCommonComponents
+import WireDataModel
 
-
-class GroupDetailsGuestOptionsCell: GroupDetailsDisclosureOptionsCell {
+final class GroupDetailsGuestOptionsCell: GroupDetailsDisclosureOptionsCell {
 
     var isOn = false {
         didSet {
@@ -34,8 +35,8 @@ class GroupDetailsGuestOptionsCell: GroupDetailsDisclosureOptionsCell {
         title = "group_details.guest_options_cell.title".localized
     }
 
-    func configure(with conversation: ZMConversation) {
-        self.isOn = conversation.allowGuests
+    func configure(with conversation: GroupDetailsConversationType) {
+        isOn = conversation.allowGuests
     }
 
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {

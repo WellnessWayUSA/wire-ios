@@ -19,10 +19,10 @@
 import Foundation
 import Cartography
 
-@objcMembers final public class TextSearchResultsView: UIView {
-    internal var tableView = UITableView()
-    internal var noResultsView = NoResultsView()
-    
+final public class TextSearchResultsView: UIView {
+    var tableView = UITableView()
+    var noResultsView = NoResultsView()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -54,7 +54,7 @@ import Cartography
             noResultsView.center == resultsView.center
         }
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

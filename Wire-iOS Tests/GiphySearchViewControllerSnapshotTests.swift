@@ -18,6 +18,7 @@
 
 import Foundation
 @testable import Wire
+import Ziphy
 
 final class GiphySearchViewControllerSnapshotTests: ZMSnapshotTestCase {
     var sut: GiphySearchViewController!
@@ -51,11 +52,11 @@ final class GiphySearchViewControllerSnapshotTests: ZMSnapshotTestCase {
         client = nil
         requester = nil
         resultsController = nil
-        
+
         super.tearDown()
     }
 
-    func testEmptySearchScreenWithKeyword(){
+    func testEmptySearchScreenWithKeyword() {
         verify(view: mockNavigationController.view)
     }
 }

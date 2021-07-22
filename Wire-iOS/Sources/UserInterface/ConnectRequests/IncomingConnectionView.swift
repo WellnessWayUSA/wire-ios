@@ -16,11 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
+import WireSyncEngine
 
-public final class IncomingConnectionView: UIView {
+final class IncomingConnectionView: UIView {
 
     static private var correlationFormatter: AddressBookCorrelationFormatter = {
         return AddressBookCorrelationFormatter(
@@ -37,18 +37,18 @@ public final class IncomingConnectionView: UIView {
     private let acceptButton = Button(style: .full)
     private let ignoreButton = Button(style: .empty)
 
-    public var user: ZMUser {
+    var user: UserType {
         didSet {
             self.setupLabelText()
             self.userImageView.user = self.user
         }
     }
 
-    public typealias UserAction = (ZMUser) -> Void
-    public var onAccept: UserAction?
-    public var onIgnore: UserAction?
+    typealias UserAction = (UserType) -> Void
+    var onAccept: UserAction?
+    var onIgnore: UserAction?
 
-    public init(user: ZMUser) {
+    init(user: UserType) {
         self.user = user
         super.init(frame: .zero)
 
@@ -58,7 +58,7 @@ public final class IncomingConnectionView: UIView {
         self.createConstraints()
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -87,9 +87,9 @@ public final class IncomingConnectionView: UIView {
         let viewModel = UserNameDetailViewModel(
             user: user,
             fallbackName: "",
-            addressBookName: user.zmUser?.addressBookEntry?.cachedName
+            addressBookName: (user as? ZMUser)?.addressBookEntry?.cachedName
         )
-        
+
         usernameLabel.attributedText = viewModel.title
         usernameLabel.accessibilityIdentifier = "name"
         userDetailView.configure(with: viewModel)
@@ -113,7 +113,7 @@ public final class IncomingConnectionView: UIView {
             usernameLabel.top == selfView.top + 18
             usernameLabel.centerX == selfView.centerX
             usernameLabel.left >= selfView.left
-            
+
             userDetailView.centerX == selfView.centerX
             userDetailView.top == usernameLabel.bottom + 4
             userDetailView.left >= selfView.left
@@ -133,11 +133,13 @@ public final class IncomingConnectionView: UIView {
 
     // MARK: - Actions
 
-    @objc func onAcceptButton(sender: AnyObject!) {
-        self.onAccept?(self.user)
+    @objc
+    private func onAcceptButton(sender: AnyObject!) {
+        onAccept?(self.user)
     }
 
-    @objc func onIgnoreButton(sender: AnyObject!) {
-        self.onIgnore?(self.user)
+    @objc
+    private func onIgnoreButton(sender: AnyObject!) {
+        onIgnore?(user)
     }
 }

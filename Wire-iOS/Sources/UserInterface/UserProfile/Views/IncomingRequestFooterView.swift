@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import UIKit
 
 protocol IncomingRequestFooterViewDelegate: class {
 
@@ -110,7 +111,7 @@ class IncomingRequestFooterView: UIView, Themeable {
             contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
             contentStack.topAnchor.constraint(equalTo: topAnchor, constant: 24),
             contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
-            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24),
+            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -24)
         ])
     }
 
@@ -137,7 +138,8 @@ class IncomingRequestFooterView: UIView, Themeable {
         delegate?.footerView(self, didRespondToRequestWithAction: .accept)
     }
 
-    @objc private func ignoreButtonTapped() {
+    @objc
+    private func ignoreButtonTapped() {
         delegate?.footerView(self, didRespondToRequestWithAction: .ignore)
     }
 

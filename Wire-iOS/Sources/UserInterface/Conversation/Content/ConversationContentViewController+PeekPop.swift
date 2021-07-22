@@ -16,17 +16,17 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import SafariServices
-
+import UIKit
+import WireDataModel
 
 private var lastPreviewURL: URL?
 
-
 extension ConversationContentViewController: UIViewControllerPreviewingDelegate {
 
-    public func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
+    @available(iOS, introduced: 9.0, deprecated: 13.0, renamed: "UIContextMenuInteraction")
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
 
         let cellLocation = view.convert(location, to: tableView)
 
@@ -34,22 +34,24 @@ extension ConversationContentViewController: UIViewControllerPreviewingDelegate 
               let cell = tableView.cellForRow(at: cellIndexPath) as? SelectableView & UIView else {
             return .none
         }
-        
-        let message = self.dataSource.messages[cellIndexPath.section]
 
-        guard message.isObfuscated == false else {
+        let message = dataSource.messages[cellIndexPath.section]
+        guard !message.isObfuscated else {
             return nil
         }
 
         lastPreviewURL = nil
         var controller: UIViewController?
 
+        // Preview an URL
         if message.isText, cell.selectionView is ArticleView, let url = message.textMessageData?.linkPreview?.openableURL as URL? {
             lastPreviewURL = url
             controller = BrowserViewController(url: url)
         } else if message.isImage {
-            controller = self.messagePresenter.viewController(forImageMessagePreview: message, actionResponder: self)
+            // Preview an image
+            controller = messagePresenter.viewController(forImageMessagePreview: message, actionResponder: self)
         } else if message.isLocation {
+            // Preview a location
             controller = LocationPreviewController(message: message, actionResponder: self)
         }
 
@@ -57,7 +59,8 @@ extension ConversationContentViewController: UIViewControllerPreviewingDelegate 
         return controller
     }
 
-    public func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
+    @available(iOS, introduced: 9.0, deprecated: 13.0, renamed: "UIContextMenuInteraction")
+    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
 
         // If the previewed item is an image, show the previously hidden controls.
         if let imagesViewController = viewControllerToCommit as? ConversationImagesViewController {

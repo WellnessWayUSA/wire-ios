@@ -16,10 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
-
+import WireCommonComponents
+import UIKit
+import WireDataModel
 
 struct CallCellViewModel {
 
@@ -29,38 +30,40 @@ struct CallCellViewModel {
     let font, boldFont: UIFont?
     let textColor: UIColor?
     let message: ZMConversationMessage
-    
+
     func image() -> UIImage? {
         return iconColor.map { icon.makeImage(size: .tiny, color: $0) }
     }
 
     func attributedTitle() -> NSAttributedString? {
         guard let systemMessageData = message.systemMessageData,
-            let sender = message.sender,
+            let sender = message.senderUser,
             let labelFont = font,
             let labelBoldFont = boldFont,
             let labelTextColor = textColor,
             systemMessageData.systemMessageType == systemMessageType
             else { return nil }
 
-        let senderString = string(for: sender)
-        
+        let senderString: String
         var called = NSAttributedString()
         let childs = systemMessageData.childMessages.count
-        
+
         if systemMessageType == .missedCall {
-            
+
             var detailKey = "missed-call"
-            
-            if message.conversation?.conversationType == .group {
+
+            if message.conversationLike?.conversationType == .group {
                 detailKey.append(".groups")
             }
-            
+
+            senderString = sender.isSelfUser ? selfKey(with: detailKey).localized : (sender.name ?? "")
             called = key(with: detailKey).localized(pov: sender.pov, args: childs + 1, senderString) && labelFont
         } else {
-            called = key(with: "called").localized(pov: sender.pov, args: senderString) && labelFont
+            let detailKey = "called"
+            senderString = sender.isSelfUser ? selfKey(with: detailKey).localized : (sender.name ?? "")
+            called = key(with: detailKey).localized(pov: sender.pov, args: senderString) && labelFont
         }
-        
+
         var title = called.adding(font: labelBoldFont, to: senderString)
 
         if childs > 0 {
@@ -70,11 +73,11 @@ struct CallCellViewModel {
         return title && labelTextColor
     }
 
-    private func string(for user: ZMUser) -> String {
-        return user.isSelfUser ? key(with: "you").localized : user.displayName
-    }
-
     private func key(with component: String) -> String {
         return "content.system.call.\(component)"
+    }
+
+    private func selfKey(with component: String) -> String {
+        return "\(key(with: component)).you"
     }
 }

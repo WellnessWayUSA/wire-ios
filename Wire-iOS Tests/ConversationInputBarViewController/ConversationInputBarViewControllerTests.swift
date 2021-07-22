@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,145 +16,197 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import XCTest
 @testable import Wire
+import WireCommonComponents
 
+final class ConversationInputBarViewControllerTests: XCTestCase {
 
-final class ConversationInputBarViewControllerTests: CoreDataSnapshotTestCase {
-
-    var sut: ConversationInputBarViewController!
+    var mockConversation: MockInputBarConversationType!
 
     override func setUp() {
         super.setUp()
-        sut = ConversationInputBarViewController(conversation: otherUserConversation)
-        sut.loadViewIfNeeded()
+
+        UIColor.setAccentOverride(.vividRed)
+        mockConversation = MockInputBarConversationType()
     }
 
     override func tearDown() {
-        sut = nil
+        mockConversation = nil
+
         super.tearDown()
     }
 
-    func testNormalState(){
-        verifyInAllPhoneWidths(view: sut.view)
-        verifyInAllTabletWidths(view: sut.view)
-    }
-}
+    func testNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            return ConversationInputBarViewController(conversation: mockConversation)
+        })
+        verifyInWidths(createSut: {
+                return ConversationInputBarViewController(conversation: mockConversation)
+            },
+            widths: tabletWidths(),
+            snapshotBackgroundColor: .white)
 
-// MARK: - Typing indication
-extension ConversationInputBarViewControllerTests {
-    func testTypingIndicationIsShown(){
-        // GIVEN & WHEN
-        /// directly working with sut.typingIndicatorView to prevent triggering aniamtion
-        if let typingIndicatorView = sut.typingIndicatorView {
-            typingIndicatorView.typingUsers = [otherUser]
-            typingIndicatorView.setHidden(false, animated: false)
+    }
+
+    // MARK: - Typing indication
+
+    func testTypingIndicationIsShown() {
+        // THEN
+        let createSut: () -> UIViewController = {
+            // GIVEN & WHEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // Directly working with sut.typingIndicatorView to prevent triggering aniamtion
+            sut.typingIndicatorView.typingUsers = [MockUserType.createUser(name: "Bruno")]
+            sut.typingIndicatorView.setHidden(false, animated: false)
+
+            return sut
         }
 
-        // THEN
-        verifyInAllPhoneWidths(view: sut.view)
-    }
-}
-
-// MARK: - Ephemeral indicator button
-extension ConversationInputBarViewControllerTests {
-    func testEphemeralIndicatorButton(){
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-
-        // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: createSut)
     }
 
-    func testEphemeralTimeNone(){
-        // GIVEN
+    // MARK: - Ephemeral indicator button
 
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(.none)
-
+    func testEphemeralIndicatorButton() {
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        let createSut: () -> UIViewController = {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            return sut
+        }
+
+        verifyInAllPhoneWidths(createSut: createSut)
+    }
+
+    func testEphemeralTimeNone() {
+        // THEN
+        let createSut: () -> UIViewController = {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.mockConversation.messageDestructionTimeout = .local(.none)
+            return sut
+        }
+
+        verifyInAllPhoneWidths(createSut: createSut)
+    }
+
+    private func setMessageDestructionTimeout(timeInterval: TimeInterval) {
+        mockConversation.messageDestructionTimeout = .local(MessageDestructionTimeoutValue(rawValue: timeInterval))
+        mockConversation.messageDestructionTimeoutValue = timeInterval
     }
 
     func testEphemeralTime10Second() {
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(10)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 10)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+            return sut
+        } as () -> UIViewController)
     }
 
     func testEphemeralTime5Minutes() {
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(300)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 300)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+
+            return sut
+        } as () -> UIViewController)
     }
 
     func testEphemeralTime2Hours() {
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(7200)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 7200)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+
+            return sut
+        } as () -> UIViewController)
     }
 
     func testEphemeralTime3Days() {
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(259200)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 259200)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+
+            return sut
+        } as () -> UIViewController)
     }
 
-    func testEphemeralTime4Weeks(){
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(2419200)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-
+    func testEphemeralTime4Weeks() {
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 2419200)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+
+            return sut
+        } as () -> UIViewController)
     }
 
     func testEphemeralModeWhenTyping() {
-        // GIVEN
-
-        // WHEN
-        sut.mode = .timeoutConfguration
-        otherUserConversation.messageDestructionTimeout = .local(2419200)
-
-        sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
-        let shortText = "Lorem ipsum dolor"
-        sut.inputBar.textView.text = shortText
-
         // THEN
-        self.verifyInAllPhoneWidths(view: sut.view)
+        verifyInAllPhoneWidths(createSut: {
+            // GIVEN
+            let sut = ConversationInputBarViewController(conversation: self.mockConversation)
+
+            // WHEN
+            sut.mode = .timeoutConfguration
+            self.setMessageDestructionTimeout(timeInterval: 2419200)
+
+            sut.inputBar.setInputBarState(.writing(ephemeral: .message), animated: false)
+            let shortText = "Lorem ipsum dolor"
+            sut.inputBar.textView.text = shortText
+
+            return sut
+        } as () -> UIViewController)
+    }
+
+// MARK: - file action sheet
+
+    func testUploadFileActionSheet() {
+        let sut = ConversationInputBarViewController(conversation: mockConversation)
+
+        let alert: UIAlertController = sut.createDocUploadActionSheet()
+
+        verify(matching: alert)
     }
 }

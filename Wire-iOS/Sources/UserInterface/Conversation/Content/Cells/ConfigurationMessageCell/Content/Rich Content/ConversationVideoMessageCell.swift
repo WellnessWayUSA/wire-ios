@@ -17,69 +17,71 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
-class ConversationVideoMessageCell: RoundedView, ConversationMessageCell {
-    
+final class ConversationVideoMessageCell: RoundedView, ConversationMessageCell {
+
     struct Configuration {
         let message: ZMConversationMessage
         var isObfuscated: Bool {
             return message.isObfuscated
         }
     }
-    
+
     private let transferView = VideoMessageView(frame: .zero)
     private let obfuscationView = ObfuscationView(icon: .videoMessage)
-    
-    weak var delegate: ConversationMessageCellDelegate? = nil
-    weak var message: ZMConversationMessage? = nil
-    
+
+    weak var delegate: ConversationMessageCellDelegate?
+    weak var message: ZMConversationMessage?
+
     var isSelected: Bool = false
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureSubviews()
         configureConstraints()
     }
-    
+
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         configureSubviews()
         configureConstraints()
     }
-    
+
     private func configureSubviews() {
         shape = .rounded(radius: 4)
         backgroundColor = .from(scheme: .placeholderBackground)
         clipsToBounds = true
-        
+
         transferView.delegate = self
         obfuscationView.isHidden = true
-        
+
         addSubview(self.transferView)
         addSubview(self.obfuscationView)
     }
-    
+
     private func configureConstraints() {
         transferView.translatesAutoresizingMaskIntoConstraints = false
         obfuscationView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             heightAnchor.constraint(equalToConstant: 160.0),
-            
+
             // transferView
             transferView.leadingAnchor.constraint(equalTo: leadingAnchor),
             transferView.topAnchor.constraint(equalTo: topAnchor),
             transferView.trailingAnchor.constraint(equalTo: trailingAnchor),
             transferView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
+
             // obfuscationView
             obfuscationView.leadingAnchor.constraint(equalTo: leadingAnchor),
             obfuscationView.topAnchor.constraint(equalTo: topAnchor),
             obfuscationView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            obfuscationView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            obfuscationView.bottomAnchor.constraint(equalTo: bottomAnchor)
             ])
     }
-    
+
     func configure(with object: Configuration, animated: Bool) {
         transferView.configure(for: object.message, isInitial: false)
 
@@ -87,51 +89,54 @@ class ConversationVideoMessageCell: RoundedView, ConversationMessageCell {
         transferView.isHidden = object.isObfuscated
 
     }
-    
+
     override public var tintColor: UIColor! {
         didSet {
             self.transferView.tintColor = self.tintColor
         }
     }
-    
+
     var selectionView: UIView! {
         return transferView
     }
-    
+
     var selectionRect: CGRect {
         return transferView.bounds
     }
-    
+
 }
 
 extension ConversationVideoMessageCell: TransferViewDelegate {
     func transferView(_ view: TransferView, didSelect action: MessageAction) {
         guard let message = message else { return }
-        
+
         delegate?.perform(action: action, for: message, view: self)
     }
 }
 
-class ConversationVideoMessageCellDescription: ConversationMessageCellDescription {
+final class ConversationVideoMessageCellDescription: ConversationMessageCellDescription {
     typealias View = ConversationVideoMessageCell
     let configuration: View.Configuration
-    
+
     var topMargin: Float = 8
     var showEphemeralTimer: Bool = false
-    
+
     let isFullWidth: Bool = false
     let supportsActions: Bool = true
     let containsHighlightableContent: Bool = true
-    
+
     weak var message: ZMConversationMessage?
     weak var delegate: ConversationMessageCellDelegate?
     weak var actionController: ConversationMessageActionController?
-    
-    let accessibilityIdentifier: String? = nil
+
+    var accessibilityIdentifier: String? {
+        return configuration.isObfuscated ? "ObfuscatedVideoCell" : "VideoCell"
+    }
+
     let accessibilityLabel: String? = nil
-    
+
     init(message: ZMConversationMessage) {
         self.configuration = View.Configuration(message: message)
     }
-    
+
 }

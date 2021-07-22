@@ -32,6 +32,10 @@ static id<UserType> mockSelfUser = nil;
     if (self) {
         _clients = [NSSet set];
         _legalHoldDataSource = [[NSClassFromString(@"MockLegalHoldDataSource") alloc] init];
+        _canCreateConversation = YES;
+        _canAddUserToConversation = YES;
+        _canRemoveUserFromConversation = YES;
+        _canModifyOtherMemberInConversation = NO;
     }
     return self;
 }
@@ -78,6 +82,7 @@ static id<UserType> mockSelfUser = nil;
     if (mockSelfUser == nil) {
         MockUser *mockUser = (MockUser *)self.mockUsers.lastObject;
         mockUser.isSelfUser = YES;
+        mockUser.remoteIdentifier = [NSUUID UUID];
         mockSelfUser = (MockUser *)mockUser;
     }
     
@@ -133,6 +138,13 @@ static id<UserType> mockSelfUser = nil;
 @synthesize readReceiptsEnabled;
 @synthesize activeConversations;
 @synthesize isUnderLegalHold;
+@synthesize richProfile;
+@synthesize canCreateService;
+@synthesize oneToOneConversation;
+@synthesize refreshDataCount;
+@synthesize refreshRichProfileCount;
+@synthesize refreshMembershipCount;
+@synthesize refreshTeamDataCount;
 
 #pragma mark - ZMBareUserConnection
 
@@ -190,7 +202,22 @@ static id<UserType> mockSelfUser = nil;
 
 - (void)refreshData
 {
-    // no-op
+    refreshDataCount += 1;
+}
+
+- (void)refreshMembership
+{
+    refreshMembershipCount += 1;
+}
+
+- (void)refreshRichProfile
+{
+    refreshRichProfileCount += 1;
+}
+
+- (void)refreshTeamData
+{
+    refreshTeamDataCount += 1;
 }
 
 - (void)connectWithMessage:(NSString * _Nonnull)message {
@@ -207,16 +234,13 @@ static id<UserType> mockSelfUser = nil;
     }
 }
 
-
 - (BOOL)isGuestIn:(ZMConversation * _Nonnull)conversation {
     return self.isGuestInConversation;
 }
 
-
 - (void)requestCompleteProfileImage {
     
 }
-
 
 - (void)requestPreviewProfileImage {
     
@@ -266,6 +290,15 @@ static id<UserType> mockSelfUser = nil;
     
 }
 
+- (UserClient *)selfClient
+{
+    if (self.isSelfUser) {
+        return (UserClient *)self.clients.anyObject;
+    }
+    
+    return nil;
+}
+
 - (NSSet<UserClient *> *)clientsRequiringUserAttention
 {
     return [NSSet new];
@@ -293,27 +326,73 @@ static id<UserType> mockSelfUser = nil;
     return NO;
 }
 
-- (BOOL)canCreateConversation
+- (BOOL)canModifyTitleInConversation:(ZMConversation *)conversation
 {
-    return YES;
+    return self.canModifyTitleInConversation;
 }
 
-- (BOOL)canAddUserToConversation:(ZMConversation * _Nonnull)conversation
+- (BOOL)canModifyEphemeralSettingsInConversation:(ZMConversation *)conversation
 {
-    if (self.isGuestInConversation || !conversation.isSelfAnActiveMember) {
-        return NO;
-    }
-
-    return self.teamRole != TeamRoleNone && self.teamRole != TeamRolePartner;
+    return self.canModifyEphemeralSettingsInConversation;
 }
+
+- (BOOL)canModifyReadReceiptSettingsInConversation:(ZMConversation *)conversation
+{
+    return self.canModifyReadReceiptSettingsInConversation;
+}
+
+- (BOOL)canModifyNotificationSettingsInConversation:(ZMConversation *)conversation
+{
+    return self.canModifyNotificationSettingsInConversation;
+}
+
+- (BOOL)canModifyAccessControlSettingsInConversation:(ZMConversation *)conversation
+{
+    return self.canModifyNotificationSettingsInConversation;
+}
+
+- (BOOL)canAddUserToConversation:(id<ConversationLike>)conversation
+{
+    return self.canAddUserToConversation;
+}
+
 
 - (BOOL)canRemoveUserFromConversation:(ZMConversation * _Nonnull)conversation
 {
-    return [self canAddUserToConversation:conversation];
+    return self.canRemoveUserFromConversation;
 }
 
-@synthesize richProfile;
+- (BOOL)canAddServiceToConversation:(ZMConversation * _Nonnull)conversation {
+    return self.canAddServiceToConversation;
+}
 
-@synthesize needsRichProfileUpdate;
+- (BOOL)canRemoveServiceFromConversation:(ZMConversation * _Nonnull)conversation {
+    return self.canRemoveUserFromConversation;
+}
+
+- (BOOL)canModifyOtherMemberInConversation:(ZMConversation * _Nonnull)conversation
+{
+    return self.canModifyOtherMemberInConversation;
+}
+
+
+- (BOOL)canCreateConversationWithType:(ZMConversationType)type {
+    return self.canCreateConversation;
+}
+
+
+- (BOOL)canDeleteConversation:(ZMConversation * _Nonnull)conversation {
+    return self.canDeleteConversation;
+}
+
+
+- (BOOL)canLeave:(ZMConversation * _Nonnull)conversation {
+    return self.canLeaveConversation;
+}
+
+- (BOOL)isGroupAdminInConversation:(ZMConversation *)conversation
+{
+    return self.isGroupAdminInConversation;
+}
 
 @end

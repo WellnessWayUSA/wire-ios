@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2017 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,116 +17,127 @@
 //
 
 import Foundation
+import UIKit
+import WireSystem
+import WireDataModel
+import WireSyncEngine
 
-fileprivate let zmLog = ZMSLog(tag: "calling")
+private let zmLog = ZMSLog(tag: "calling")
+
+protocol ActiveCallViewControllerDelegate: class {
+    func activeCallViewControllerDidDisappear(_ activeCallViewController: ActiveCallViewController,
+                                              for conversation: ZMConversation?)
+}
 
 /// ViewController container for CallViewControllers. Displays the active the controller for active or incoming calls.
-class ActiveCallViewController : UIViewController {
-    
-    weak var dismisser: ViewControllerDismisser? {
-        didSet {
-            visibleVoiceChannelViewController.dismisser = dismisser
-        }
-    }
-    
-    var callStateObserverToken : Any?
-    
+final class ActiveCallViewController: UIViewController {
+
+    weak var delegate: ActiveCallViewControllerDelegate?
+
+    var callStateObserverToken: Any?
+
     init(voiceChannel: VoiceChannel) {
-        visibleVoiceChannelViewController = CallViewController(voiceChannel: voiceChannel)
-        
+        visibleVoiceChannelViewController = CallViewController(voiceChannel: voiceChannel, selfUser: ZMUser.selfUser())
+
         super.init(nibName: nil, bundle: nil)
-        
+
         addChild(visibleVoiceChannelViewController)
-        
+
         visibleVoiceChannelViewController.view.frame = view.bounds
         visibleVoiceChannelViewController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         view.addSubview(visibleVoiceChannelViewController.view)
         visibleVoiceChannelViewController.didMove(toParent: self)
-        
+
         zmLog.debug(String(format: "Presenting CallViewController: %p", visibleVoiceChannelViewController))
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    var visibleVoiceChannelViewController : CallViewController {
+
+    var visibleVoiceChannelViewController: CallViewController {
         didSet {
             transition(to: visibleVoiceChannelViewController, from: oldValue)
         }
     }
-    
-    override func loadView() {
-        view = PassthroughTouchesView()
-    }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         guard let userSession = ZMUserSession.shared() else {
             zmLog.error("UserSession not available when initializing \(type(of: self))")
             return
         }
-        
+
         callStateObserverToken = WireCallCenterV3.addCallStateObserver(observer: self, userSession: userSession)
+        visibleVoiceChannelViewController.delegate = self
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         updateVisibleVoiceChannelViewController()
     }
 
-    override var prefersStatusBarHidden: Bool {
-        return visibleVoiceChannelViewController.prefersStatusBarHidden
+    override var childForStatusBarStyle: UIViewController? {
+        return visibleVoiceChannelViewController
     }
-    
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return visibleVoiceChannelViewController.preferredStatusBarStyle
+
+    override var childForStatusBarHidden: UIViewController? {
+        return visibleVoiceChannelViewController
     }
-    
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return wr_supportedInterfaceOrientations
+    }
+
     func updateVisibleVoiceChannelViewController() {
         guard let conversation = ZMUserSession.shared()?.priorityCallConversation, visibleVoiceChannelViewController.conversation != conversation,
               let voiceChannel = conversation.voiceChannel else {
             return
         }
-        
-        visibleVoiceChannelViewController = CallViewController(voiceChannel: voiceChannel)
-        visibleVoiceChannelViewController.dismisser = dismisser
+
+        visibleVoiceChannelViewController = CallViewController(voiceChannel: voiceChannel, selfUser: ZMUser.selfUser())
+        visibleVoiceChannelViewController.delegate = self
     }
-    
+
     func transition(to toViewController: UIViewController, from fromViewController: UIViewController) {
         guard toViewController != fromViewController else { return }
-        
+
         zmLog.debug(String(format: "Transitioning to CallViewController: %p from: %p", toViewController, fromViewController))
-        
+
         toViewController.view.frame = view.bounds
         toViewController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         addChild(toViewController)
-        
+
         transition(from: fromViewController,
                    to: toViewController,
                    duration: 0.35,
                    options: .transitionCrossDissolve,
                    animations: nil,
-                   completion:
-            { (finished) in
+                   completion: { _ in
                 toViewController.didMove(toParent: self)
                 fromViewController.removeFromParent()
-                UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
         })
     }
-    
-    var ongoingCallConversation : ZMConversation? {
+
+    var ongoingCallConversation: ZMConversation? {
         return ZMUserSession.shared()?.ongoingCallConversation
     }
-    
+
 }
 
-extension ActiveCallViewController : WireCallCenterCallStateObserver {
-    
-    func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: ZMUser, timestamp: Date?, previousCallState: CallState?)  {
+extension ActiveCallViewController: WireCallCenterCallStateObserver {
+
+    func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
         updateVisibleVoiceChannelViewController()
     }
-    
+
+}
+
+extension ActiveCallViewController: CallViewControllerDelegate {
+    func callViewControllerDidDisappear(_ callController: CallViewController,
+                                        for conversation: ZMConversation?) {
+        delegate?.activeCallViewControllerDidDisappear(self, for: conversation)
+    }
 }

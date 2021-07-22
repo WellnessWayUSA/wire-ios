@@ -17,29 +17,46 @@
 //
 
 import Foundation
-
+import UIKit
 
 extension CellConfiguration {
 
-    static func allowGuestsToogle(get: @escaping () -> Bool, set: @escaping (Bool) -> Void) -> CellConfiguration {
-        return .toggle(
-            title: "guest_room.allow_guests.title".localized,
-            subtitle: "guest_room.allow_guests.subtitle".localized,
-            identifier: "toggle.guestoptions.allowguests",
+    static func groupAdminToogle(get: @escaping () -> Bool,
+                                 set: @escaping (Bool, UIView?) -> Void) -> CellConfiguration {
+        return .iconToggle(
+            title: "profile.profile.group_admin_options.title".localized,
+            subtitle: "",
+            identifier: "cell.profile.group_admin_options",
+            titleIdentifier: "label.groupAdminOptions.description",
+            icon: .groupAdmin,
+            color: nil,
             get: get,
             set: set
         )
     }
-    
-    static func createLinkButton(action: @escaping () -> Void) -> CellConfiguration {
+
+    static func allowGuestsToogle(get: @escaping () -> Bool, set: @escaping (Bool, UIView?) -> Void) -> CellConfiguration {
+        return .iconToggle(
+            title: "guest_room.allow_guests.title".localized,
+            subtitle: "guest_room.allow_guests.subtitle".localized,
+            identifier: "toggle.guestoptions.allowguests",
+            titleIdentifier: "label.guestoptions.description",
+            icon: nil,
+            color: nil,
+            get: get,
+            set: set
+        )
+    }
+
+    static func createLinkButton(action: @escaping Action) -> CellConfiguration {
         return .leadingButton(
             title: "guest_room.link.button.title".localized,
             identifier: "",
             action: action
         )
     }
-    
-    static func copyLink(action: @escaping () -> Void) -> CellConfiguration {
+
+    static func copyLink(action: @escaping Action) -> CellConfiguration {
         return .iconAction(
             title: "guest_room.actions.copy_link".localized,
             icon: .copy,
@@ -47,15 +64,15 @@ extension CellConfiguration {
             action: action
         )
     }
-    
+
     static let copiedLink: CellConfiguration = .iconAction(
             title: "guest_room.actions.copied_link".localized,
             icon: .checkmark,
             color: nil,
-            action: {}
+            action: {_ in }
         )
-    
-    static func shareLink(action: @escaping () -> Void) -> CellConfiguration {
+
+    static func shareLink(action: @escaping Action) -> CellConfiguration {
         return .iconAction(
             title: "guest_room.actions.share_link".localized,
             icon: .export,
@@ -63,8 +80,8 @@ extension CellConfiguration {
             action: action
         )
     }
-    
-    static func revokeLink(action: @escaping () -> Void) -> CellConfiguration {
+
+    static func revokeLink(action: @escaping Action) -> CellConfiguration {
         return .iconAction(
             title: "guest_room.actions.revoke_link".localized,
             icon: .cross,

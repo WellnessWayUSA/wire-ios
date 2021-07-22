@@ -16,11 +16,14 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import WireDataModel
+
 enum CallInfoViewControllerAccessoryType: Equatable {
+
     case none
-    case avatar(ZMUser)
+    case avatar(HashBoxUser)
     case participantsList(CallParticipantsList)
-    
+
     var showParticipantList: Bool {
         if case .participantsList = self {
             return true
@@ -28,7 +31,7 @@ enum CallInfoViewControllerAccessoryType: Equatable {
             return false
         }
     }
-    
+
     var showAvatar: Bool {
         if case .avatar = self {
             return true
@@ -36,7 +39,7 @@ enum CallInfoViewControllerAccessoryType: Equatable {
             return false
         }
     }
-    
+
     var participants: CallParticipantsList {
         switch self {
         case .participantsList(let participants):
@@ -45,5 +48,5 @@ enum CallInfoViewControllerAccessoryType: Equatable {
             return []
         }
     }
-    
+
 }

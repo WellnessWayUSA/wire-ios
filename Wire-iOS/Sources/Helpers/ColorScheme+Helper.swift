@@ -17,15 +17,31 @@
 //
 
 import Foundation
+import UIKit
+
+extension UIStatusBarStyle {
+    static var compatibleDarkContent: UIStatusBarStyle {
+        if #available(iOS 13.0, *) {
+            return .darkContent
+        }
+
+        return .default
+    }
+}
 
 extension ColorScheme {
 
-    @objc var statusBarStyle: UIStatusBarStyle {
-        return variant == .light ? .default : .lightContent
+    var statusBarStyle: UIStatusBarStyle {
+        switch variant {
+        case .light:
+            return .compatibleDarkContent
+        case .dark:
+            return .lightContent
+        }
     }
 
-    @objc var indicatorStyle: UIScrollView.IndicatorStyle {
-        return variant == .light ? .default : .white
+    func isCurrentAccentColor(_ accentColor: UIColor) -> Bool {
+        return self.accentColor == accentColor
     }
 
 }

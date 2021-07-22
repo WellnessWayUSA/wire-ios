@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import UIKit
 
 final class SectionFooterView: UIView, Themeable {
 
@@ -52,7 +53,7 @@ final class SectionFooterView: UIView, Themeable {
             titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
             ])
     }
 
@@ -62,7 +63,7 @@ final class SectionFooterView: UIView, Themeable {
 
 }
 
-class SectionFooter: UICollectionReusableView, Themeable {
+final class SectionFooter: UICollectionReusableView, Themeable {
 
     let footerView = SectionFooterView()
 
@@ -95,6 +96,9 @@ class SectionFooter: UICollectionReusableView, Themeable {
         footerView.applyColorScheme(colorSchemeVariant)
     }
 
+    class func register(collectionView: UICollectionView) {
+        collectionView.register(SectionFooter.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "SectionFooter")
+    }
 }
 
 class SectionTableFooter: UITableViewHeaderFooterView, Themeable {

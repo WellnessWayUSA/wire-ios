@@ -18,22 +18,23 @@
 
 import XCTest
 @testable import Wire
+import SnapshotTesting
 
-final class TeamMemberInviteViewControllerSnapshotTests: ZMSnapshotTestCase {
-    
+final class TeamMemberInviteViewControllerSnapshotTests: XCTestCase {
+
     var sut: TeamMemberInviteViewController!
-    
+
     override func setUp() {
         super.setUp()
         sut = TeamMemberInviteViewController()
     }
-    
+
     override func tearDown() {
         sut = nil
         super.tearDown()
     }
 
-    func testForInitState(){
-        verify(view: sut.view)
+    func testForInitState() {
+        verify(matching: sut)
     }
 }

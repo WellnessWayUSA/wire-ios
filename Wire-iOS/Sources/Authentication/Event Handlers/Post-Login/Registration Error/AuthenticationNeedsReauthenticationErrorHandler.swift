@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import WireDataModel
+import WireSyncEngine
 
 /**
  * Handles client registration errors related to the expiration of the auth token, which requires
@@ -34,16 +36,16 @@ class AuthenticationNeedsReauthenticationErrorHandler: AuthenticationEventHandle
         guard error.userSessionErrorCode == .needsPasswordToRegisterClient else {
             return nil
         }
-        
+
         var isSignedOut: Bool = true
-        
+
         // If the error comes from the "no history" step, it means that we show
         // the "password needed" screen, and that we should hide the "your session
         // is expired" text.
         if case .noHistory = currentStep {
             isSignedOut = false
         }
-        
+
         let numberOfAccounts = statusProvider?.numberOfAccounts ?? 0
         let credentials = error.userInfo[ZMUserLoginCredentialsKey] as? LoginCredentials
 

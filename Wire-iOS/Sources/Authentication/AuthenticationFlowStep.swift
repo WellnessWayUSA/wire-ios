@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 /**
  * The type of credentials to ask when the user is creating or
@@ -61,6 +62,7 @@ indirect enum AuthenticationFlowStep: Equatable {
     case authenticateEmailCredentials(ZMEmailCredentials)
     case authenticatePhoneCredentials(ZMPhoneCredentials)
     case companyLogin
+    case switchBackend(url: URL)
 
     // Post Sign-In
     case noHistory(credentials: ZMCredentials?, context: NoHistoryContext)
@@ -82,19 +84,6 @@ indirect enum AuthenticationFlowStep: Equatable {
 
     // MARK: - Properties
 
-    /// Whether the step can be unwinded.
-    var allowsUnwind: Bool {
-        switch self {
-        case .landingScreen: return false
-        case .clientManagement: return false
-        case .noHistory: return false
-        case .addEmailAndPassword: return false
-        case .incrementalUserCreation: return false
-        case .teamCreation(let teamState): return teamState.allowsUnwind
-        default: return true
-        }
-    }
-
     /// Whether the authentication steps generates a user interface.
     var needsInterface: Bool {
         switch self {
@@ -111,6 +100,7 @@ indirect enum AuthenticationFlowStep: Equatable {
         case .authenticatePhoneCredentials: return false
         case .registerEmailCredentials: return false
         case .companyLogin: return false
+        case .switchBackend: return true
 
         // Post Sign-In
         case .noHistory: return true

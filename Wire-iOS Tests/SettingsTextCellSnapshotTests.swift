@@ -20,28 +20,27 @@ import XCTest
 @testable import Wire
 
 final class SettingsTextCellSnapshotTests: CoreDataSnapshotTestCase {
-    
+
     var sut: SettingsTextCell!
     var settingsCellDescriptorFactory: SettingsCellDescriptorFactory!
-    
+
     override func setUp() {
         super.setUp()
-        MockUser.mockSelf()?.name = "Johannes Chrysostomus Wolfgangus Theophilus Mozart"
 
         sut = SettingsTextCell()
 
-        let settingsPropertyFactory = SettingsPropertyFactory(userSession: SessionManager.shared?.activeUserSession, selfUser: ZMUser.selfUser())
+        let selfUser = MockUserType.createSelfUser(name: "Johannes Chrysostomus Wolfgangus Theophilus Mozart")
+        let settingsPropertyFactory = SettingsPropertyFactory(userSession: SessionManager.shared?.activeUserSession, selfUser: selfUser)
 
         settingsCellDescriptorFactory = SettingsCellDescriptorFactory(settingsPropertyFactory: settingsPropertyFactory)
-
     }
-    
+
     override func tearDown() {
         sut = nil
         super.tearDown()
     }
 
-    func testForNameElementWithALongName(){
+    func testForNameElementWithALongName() {
         let cellDescriptor = settingsCellDescriptorFactory.nameElement()
         sut.descriptor = cellDescriptor
         cellDescriptor.featureCell(sut)
@@ -55,14 +54,14 @@ final class SettingsTextCellSnapshotTests: CoreDataSnapshotTestCase {
         verify(view: mockTableView)
     }
 
-    func testThatTextFieldIsDisabledWhenEnabledFlagIsFalse(){
+    func testThatTextFieldIsDisabledWhenEnabledFlagIsFalse() {
         // GIVEN
         let cellDescriptor = settingsCellDescriptorFactory.nameElement(enabled: false)
 
         // WHEN
         cellDescriptor.featureCell(sut)
 
-        //THEN
+        // THEN
         XCTAssertFalse(sut.textInput.isUserInteractionEnabled)
     }
 }

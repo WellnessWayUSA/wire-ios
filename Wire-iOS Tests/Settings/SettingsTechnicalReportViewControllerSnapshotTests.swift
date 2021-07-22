@@ -24,6 +24,7 @@ final class SettingsTechnicalReportViewControllerSnapshotTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        accentColor = .strongBlue
         sut = SettingsTechnicalReportViewController()
     }
 
@@ -33,7 +34,7 @@ final class SettingsTechnicalReportViewControllerSnapshotTests: XCTestCase {
     }
 
     func testForInitState() {
-        let naviViewController = sut.wrapInNavigationController(SettingsStyleNavigationController.self)
+        let naviViewController = sut.wrapInNavigationController(navigationControllerClass: SettingsStyleNavigationController.self)
         naviViewController.view.backgroundColor = .black
         verify(matching: naviViewController)
     }

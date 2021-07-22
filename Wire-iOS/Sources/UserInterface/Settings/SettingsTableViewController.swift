@@ -16,18 +16,19 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import UIKit
 import Cartography
+import WireSyncEngine
 
-class SettingsBaseTableViewController: UIViewController {
+class SettingsBaseTableViewController: UIViewController, SpinnerCapable {
+    var dismissSpinner: SpinnerCompletion?
 
     var tableView: UITableView
     let topSeparator = OverflowSeparatorView()
     let footerSeparator = OverflowSeparatorView()
     private let footerContainer = UIView()
 
-    public var footer: UIView? {
+    var footer: UIView? {
         didSet {
             updateFooter(footer)
         }
@@ -45,7 +46,7 @@ class SettingsBaseTableViewController: UIViewController {
             return CGSize(width: UIView.noIntrinsicMetric, height: contentSize.height)
         }
     }
-    
+
     init(style: UITableView.Style) {
         tableView = IntrinsicSizeTableView(frame: .zero, style: style)
         super.init(nibName: nil, bundle: nil)
@@ -103,7 +104,7 @@ class SettingsBaseTableViewController: UIViewController {
             footerContainer.right == tableView.right
             footerContainer.bottom == view.bottom
             footerContainer.height == 0 ~ 750.0
-            
+
             footerSeparator.left == footerContainer.left
             footerSeparator.right == footerContainer.right
             footerSeparator.top == footerContainer.top
@@ -147,13 +148,15 @@ extension SettingsBaseTableViewController: UITableViewDelegate, UITableViewDataS
 
 }
 
-class SettingsTableViewController: SettingsBaseTableViewController {
+final class SettingsTableViewController: SettingsBaseTableViewController {
 
     let group: SettingsInternalGroupCellDescriptorType
+    fileprivate var sections: [SettingsSectionDescriptorType]
     fileprivate var selfUserObserver: NSObjectProtocol!
-    
+
     required init(group: SettingsInternalGroupCellDescriptorType) {
         self.group = group
+        self.sections = group.visibleItems
         super.init(style: group.style == .plain ? .plain : .grouped)
         self.title = group.title.localizedUppercase
 
@@ -164,8 +167,10 @@ class SettingsTableViewController: SettingsBaseTableViewController {
         }
 
         if let userSession = ZMUserSession.shared() {
-            self.selfUserObserver = UserChangeInfo.add(observer: self, for: ZMUser.selfUser(), userSession: userSession)
+            self.selfUserObserver = UserChangeInfo.add(observer: self, for: userSession.selfUser, in: userSession)
         }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -179,31 +184,44 @@ class SettingsTableViewController: SettingsBaseTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupTableView()
-        
+
         self.navigationItem.rightBarButtonItem = navigationController?.closeItem()
     }
 
     func setupTableView() {
-        let allCellTypes: [SettingsTableCell.Type] = [SettingsTableCell.self, SettingsGroupCell.self, SettingsButtonCell.self, SettingsToggleCell.self, SettingsValueCell.self, SettingsTextCell.self, SettingsStaticTextTableCell.self]
+        let allCellTypes: [SettingsTableCell.Type] = [
+            SettingsTableCell.self,
+            SettingsGroupCell.self,
+            SettingsButtonCell.self,
+            SettingsToggleCell.self,
+            SettingsValueCell.self,
+            SettingsTextCell.self,
+            SettingsStaticTextTableCell.self
+        ]
 
         for aClass in allCellTypes {
             tableView.register(aClass, forCellReuseIdentifier: aClass.reuseIdentifier)
         }
     }
 
+    func refreshData() {
+        sections = group.visibleItems
+        tableView.reloadData()
+    }
+
     // MARK: - UITableViewDelegate & UITableViewDelegate
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return self.group.visibleItems.count
+        return sections.count
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let sectionDescriptor = self.group.visibleItems[section]
+        let sectionDescriptor = sections[section]
         return sectionDescriptor.visibleCellDescriptors.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let sectionDescriptor = self.group.visibleItems[(indexPath as NSIndexPath).section]
+        let sectionDescriptor = sections[(indexPath as NSIndexPath).section]
         let cellDescriptor = sectionDescriptor.visibleCellDescriptors[(indexPath as NSIndexPath).row]
 
         if let cell = tableView.dequeueReusableCell(withIdentifier: type(of: cellDescriptor).cellType.reuseIdentifier, for: indexPath) as? SettingsTableCell {
@@ -217,20 +235,20 @@ class SettingsTableViewController: SettingsBaseTableViewController {
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let sectionDescriptor = self.group.visibleItems[(indexPath as NSIndexPath).section]
+        let sectionDescriptor = sections[(indexPath as NSIndexPath).section]
         let property = sectionDescriptor.visibleCellDescriptors[(indexPath as NSIndexPath).row]
 
-        property.select(.none)
+        property.select(SettingsPropertyValue.none)
         tableView.deselectRow(at: indexPath, animated: false)
     }
 
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        let sectionDescriptor = self.group.visibleItems[section]
+        let sectionDescriptor = sections[section]
         return sectionDescriptor.header
     }
 
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        let sectionDescriptor = self.group.visibleItems[section]
+        let sectionDescriptor = sections[section]
         return sectionDescriptor.footer
     }
 
@@ -248,10 +266,19 @@ class SettingsTableViewController: SettingsBaseTableViewController {
 
 }
 
+extension SettingsTableViewController {
+
+    @objc
+    func applicationDidBecomeActive() {
+        refreshData()
+    }
+
+}
+
 extension SettingsTableViewController: ZMUserObserver {
     func userDidChange(_ note: UserChangeInfo) {
         if note.accentColorValueChanged {
-            self.tableView.reloadData()
+            refreshData()
         }
     }
 }

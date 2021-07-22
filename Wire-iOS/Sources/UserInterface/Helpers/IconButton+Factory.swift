@@ -17,13 +17,13 @@
 //
 
 import UIKit
+import WireCommonComponents
 
 extension IconButton {
-    
+
     static let width: CGFloat = 64
     static let height: CGFloat = 64
 
-    
     static func acceptCall() -> IconButton {
         return .init(
             icon: .phone,
@@ -33,7 +33,7 @@ extension IconButton {
             width: IconButton.width
         )
     }
-    
+
     static func endCall() -> IconButton {
         return .init(
             icon: .endCall,
@@ -52,7 +52,7 @@ extension IconButton {
         let sendButton = IconButton(
             icon: .send,
             accessibilityId: "sendButton",
-            backgroundColor: [.normal:      UIColor.accent(),
+            backgroundColor: [.normal: UIColor.accent(),
                               .highlighted: UIColor.accentDarken],
             iconColor: [.normal: sendButtonIconColor,
                         .highlighted: sendButtonIconColor,
@@ -96,13 +96,11 @@ extension IconButton {
             heightAnchor.constraint(greaterThanOrEqualToConstant: width).isActive = true
         }
     }
-    
+
 }
 
 extension UIControl.State: Hashable {
     public var hashValue: Int {
-        get {
-            return Int(self.rawValue)
-        }
+        return Int(self.rawValue)
     }
 }

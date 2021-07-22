@@ -17,23 +17,24 @@
 //
 
 import Foundation
+import WireDataModel
 
-fileprivate extension Availability {
-    
+fileprivate extension AvailabilityKind {
+
     var dontRemindMeUserDefaultsKey: String {
         return "dont_remind_me_\(canonicalName)"
     }
-    
+
 }
 
 extension Settings {
-    
-    func shouldRemindUserWhenChanging(_ availability: Availability) -> Bool {
-        return defaults()?.bool(forKey: availability.dontRemindMeUserDefaultsKey) != true
+
+    func shouldRemindUserWhenChanging(_ availability: AvailabilityKind) -> Bool {
+        return defaults.bool(forKey: availability.dontRemindMeUserDefaultsKey) != true
     }
-    
-    func dontRemindUserWhenChanging(_ availability: Availability) {
-        defaults()?.set(true, forKey: availability.dontRemindMeUserDefaultsKey)
+
+    func dontRemindUserWhenChanging(_ availability: AvailabilityKind) {
+        defaults.set(true, forKey: availability.dontRemindMeUserDefaultsKey)
     }
-    
+
 }

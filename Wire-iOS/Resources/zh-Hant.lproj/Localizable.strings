@@ -27,11 +27,12 @@
 "general.edit" = "編輯";
 "general.done" = "完成";
 "general.confirm" = "確認";
-"general.skip" = "Not Now";
+"general.later" = "以後再說";
+"general.skip" = "現在略過";
 "general.accept" = "同意";
 "general.decline" = "不了，謝謝";
 "general.failure" = "出了點問題";
-"general.failure.try_again" = "Please try again.";
+"general.failure.try_again" = "請再試一次。";
 "general.service" = "服務";
 "general.off" = "關閉";
 "general.on" = "開啟";
@@ -59,6 +60,7 @@
 "peoplepicker.header.contacts" = "連絡人";
 "peoplepicker.header.contacts_personal" = "聯絡人";
 "peoplepicker.header.directory" = "加為連絡人";
+"peoplepicker.header.federation" = "Connect with other domain";
 
 "peoplepicker.group.title.singular" = "加入參與者";
 "peoplepicker.group.title.plural" = "加入參與者（%d）";
@@ -79,23 +81,20 @@
 
 "peoplepicker.no_contacts_title" = "沒有連絡人。";
 
-"peoplepicker.no_matching_results_title" = "沒有結果。";
-"peoplepicker.no_matching_results_message" = "請輸入完整的電子郵件地址。";
+"peoplepicker.no_search_results" = "沒有符合的結果。請試試別的名稱。";
 
 "peoplepicker.no_matching_results.action.send_invite" = "發送邀請";
 "peoplepicker.no_matching_results.action.share_contacts" = "分享通訊錄";
+"peoplepicker.no_matching_results.action.learn_more" = "瞭解詳情";
+"peoplepicker.no_matching_results.action.manage_services" = "管理服務";
 
-"peoplepicker.no_matching_results_provide_valid_email" = "請輸入有效電子郵件信箱";
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "沒有符合結果。";
-"peoplepicker.no_matching_results_services_title" = "服務可改善你的工作流程。要啟用它們, 請詢問您的管理員。";
-"peoplepicker.no_matching_results_services_admin_title" = "服務可改善你的工作流程。";
-"peoplepicker.no_matching_results_services_manage_services_title" = "管理服務";
-/* This sentence ends with button title, contained in peoplepicker.no_matching_results_after_address_book_upload_button */
-"peoplepicker.no_matching_results_after_address_book_upload_message" = "請輸入完整的電子郵件地址或";
-/*  */
-"peoplepicker.no_matching_results_after_address_book_upload_button" = "分享通訊錄";
-
-"peoplepicker.share_contacts.no_results.title" = "透過名稱或電子郵件搜尋連絡人";
+"peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
+"peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
+"peoplepicker.no_matching_results.message.users_all_added" = "Everyone’s here.";
+"peoplepicker.no_matching_results.message.services" = "沒有符合結果。";
+"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Services are helpers that can improve your workflow.";
+"peoplepicker.no_matching_results.message.services_not_enabled" = "Services are helpers that can improve your workflow. To enable them, ask your administrator.";
 
 "peoplepicker.send_invitation.dialog.title" = "已送出邀請";
 "peoplepicker.send_invitation.dialog.message" = "連結兩週內有效。如逾期請重新發送。";
@@ -108,7 +107,7 @@
 "peoplepicker.quick-action.create-guest-room" = "建立訪客聊天室";
 "peoplepicker.quick-action.admin-services" = "管理服務";
 
-"add_participants.all_contacts_added" = "大家都已加入";
+"peoplepicker.federation.domain_unvailable" = "The federated domain is currently not available. [Learn more](%@)";
 
 "add_participants.alert.title" = "此群組參與者已達上限";
 "add_participants.alert.message.new_conversation" = "最多%d人可以加入對話。";
@@ -158,6 +157,10 @@
 "conversation_list.voiceover.status.ping" = "招呼";
 "conversation_list.voiceover.status.mention" = "有人提及你";
 "conversation_list.voiceover.status.reply" = "回覆";
+"conversation_list.voiceover.bottom_bar.recent_button.label" = "最近更新";
+"conversation_list.voiceover.bottom_bar.recent_button.hint" = "最近更新對話列表";
+"conversation_list.voiceover.bottom_bar.folder_button.label" = "資料夾";
+"conversation_list.voiceover.bottom_bar.folder_button.hint" = "文件夾中已整理的對話列表";
 "conversation_list.voiceover.bottom_bar.archived_button.label" = "已封存";
 "conversation_list.voiceover.bottom_bar.archived_button.hint" = "已封存對話";
 "conversation_list.voiceover.bottom_bar.contacts_button.label" = "連絡人";
@@ -185,6 +188,17 @@
 "send_invitation.text" = "我在使用Wire，搜尋%@或造訪get.wire.com。";
 "send_invitation_no_email.text" = "我已加入 Wire ，請造訪 https://get.wire.com 來和我聯繫吧。";
 
+// Folders
+
+"folder.creation.name.title" = "新建資料夾";
+"folder.creation.name.button.create" = "建立";
+"folder.creation.name.header" = "移動對話「%@」 到一個新文件夾。";
+"folder.creation.name.footer" = "最多64個字元";
+"folder.creation.name.placeholder" = "資料夾名稱";
+
+"folder.picker.title" = "移動到";
+"folder.picker.empty.hint" = "按+按鈕創建一個新文件夾";
+
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++x
 // In-app notifications (chat heads)
 "notifications.shared_a_photo" = "分享了一幀圖片";
@@ -203,18 +217,25 @@
 "list.archived_conversations" = "封存";
 "list.archived_conversations_close" = "關閉封存";
 
+"list.section.groups" = "群組";
+"list.section.contacts" = "聯絡人";
+"list.section.requests" = "請求";
+"list.section.favorites" = "我的最愛";
+
 "conversation.voiceover.verified" = "已驗證";
 "conversation.voiceover.legalhold" = "合法保留";
 "conversation.voiceover.value.active" = "啟動";
 "conversation.voiceover.value.disabled" = "已停用";
+
+"conversation.status.secutity_alert.default" = "新安全提醒";
 
 "conversation.status.typing" = "輸入訊息中...";
 "conversation.status.typing.group" = "%@：輸入訊息中…";
 "conversation.status.silenced" = "訊息通知已關閉";
 "conversation.status.poor_connection" = "連線品質不佳";
 "conversation.status.blocked" = "已封鎖";
-"conversation.status.incoming_call" = "%@呼叫中...";
-"conversation.status.incoming_call.unknown" = "Someone is calling…";
+"conversation.status.incoming_call" = "%@來電…";
+"conversation.status.incoming_call.unknown" = "來電中…";
 
 "conversation.status.message.text" = "%@";
 "conversation.status.message.link" = "分享一條連結";
@@ -280,7 +301,7 @@
 "conversation.input_bar.audio_message.keyboard.filter_tip" = "選擇特效";
 
 "conversation.call.many_participants_confirmation.title" = "開始通話";
-"conversation.call.many_participants_confirmation.message" = "這將會打電話給%d位聯絡人";
+"conversation.call.many_participants_confirmation.message" = "這將會致電給%d位聯絡人";
 "conversation.call.many_participants_confirmation.call" = "通話";
 
 "conversation.connection_view.in_address_book" = "在連絡人中";
@@ -289,6 +310,8 @@
 "conversation.input_bar.shortcut.newline" = "插入換行";
 "conversation.input_bar.shortcut.edit_last_message" = "編輯最近訊息";
 "conversation.input_bar.shortcut.cancel_editing_message" = "取消";
+"conversation.input_bar.shortcut.choose_previous_mention" = "選擇前一個提及";
+"conversation.input_bar.shortcut.choose_next_mention" = "選擇下一個提及";
 
 "conversation.input_bar.message_too_long.title" = "訊息過長";
 "conversation.input_bar.message_too_long.message" = "每則訊息最多只能包含%d個字元。";
@@ -309,11 +332,17 @@
 "conversation.input_bar.ongoing_call_alert.video.message" = "在通話時不能錄製視像訊息。";
 "conversation.input_bar.ongoing_call_alert.photo.message" = "在通話時不能拍攝相片。";
 
-"conversation.alert.message_deleted" = "The message is deleted.";
+"conversation.alert.message_deleted" = "此訊息已刪除。";
 
-"conversation.guests_present" = "訪客在對話中";
-"conversation.services_present" = "服務已啟動";
-"conversation.guests_services_present" = "對話中有訪客和服務";
+// Conversation banner
+"conversation.banner.guests_present" = "**Guests** are present";
+"conversation.banner.services_present" = "**Services** are active";
+"conversation.banner.externals_present" = "**Externals** are present";
+"conversation.banner.guests_services_present" = "**Guests** and **services** are present";
+"conversation.banner.externals_services_present" = "**External**s and **services** are present";
+"conversation.banner.externals_guests_present" = "**Externals** and **guests** are present";
+"conversation.banner.externals_guests_services_present" = "**Externals**, **guests**, and **services** are present";
+
 "conversation.action.search" = "搜索";
 
 // Reply message preview
@@ -336,10 +365,11 @@
 "image_confirmer.confirm" = "確認";
 "image_confirmer.cancel" = "取消";
 "image.add_sketch" = "加入手繪";
+"image.add_emoji" = "新增表情符號";
 "image.edit_image" = "編輯圖片";
 
 // Camera access
-"camera_access.denied" = "Wire需要使用相機權限。";
+"camera_access.denied" = "Wire需要使用相機權限";
 "video_call.camera_access.denied" = "Wire無法使用相機";
 "camera_access.denied.instruction" = "";
 "camera_access.denied.open_settings" = "請前往手機「設定」並允許Wire使用相機權限";
@@ -403,19 +433,29 @@
 "content.message.link_attachment.accessibility_label.soundcloud_song" = "SoundCloud歌曲預覽";
 "content.message.link_attachment.accessibility_label.soundcloud_set" = "SoundCloud歌單預覽";
 
+// Digital signature
+"digital_signature.alert.error" = "不幸地，您的數字簽署失敗。";
+"digital_signature.alert.error.no_consent_url" = "不幸地，簽名表格沒有打開。 請再試一遍。";
+"digital_signature.alert.error.no_signature" = "不幸地，您的數字簽署失敗。 請再試一遍。";
+"digital_signature.alert.download_necessary" = "請在簽名之前保存並閱讀文檔。";
+
 // New conversation participants added / removed / started system message
 
 "content.system.conversation.other.started" = "%@和%@開始對話";
 "content.system.conversation.other.added" = "%@加了%@到對話";
 "content.system.conversation.other.removed" = "%@移除了%@";
+"content.system.conversation.other.removed.legalhold" = "%@ was removed from this conversation because legal hold has been activated.";
+"content.system.conversation.others.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.other.left" = "%@離開了";
 
 "content.system.conversation.you.started" = "%@開始與%@對話";
 "content.system.conversation.you.added" = "%@加了%@到對話";
 "content.system.conversation.you.removed" = "%@移除了%@";
+"content.system.conversation.you.removed.legalhold" = "%@ were removed from this conversation because legal hold has been activated.";
 "content.system.conversation.you.left" = "%@離開了";
 "content.system.conversation.team.member-leave" = "%@從團隊中被移除了";
 "content.system.conversation.guest.joined" = "%@已加入";
+"content.system.conversation.guest.you_joined" = "You joined";
 
 "content.system.conversation.invite.title" = "你的團隊以外的訪客和服務可以參加這個對話。";
 "content.system.conversation.invite.button" = "邀請朋友加入";
@@ -438,12 +478,21 @@
 "content.system.you_wanted_to_talk" = "您曾打電話";
 "content.system.ephemeral_time_remaining" = "餘下%@";
 
-"content.system.you_started" = "您";
-"content.system.this_device" = "這個設備";
+"content.system.self_user_new_client" = "**You** started using [a new device](%@)";
+"content.system.self_user_new_self_client" = "**You** started using [this device](%@)";
 
-"content.system.call.you" = "您";
+"content.system.you_started" = "您";
+
 "content.system.call.called" = "%@曾打電話";
 "content.system.call.called-you" = "%@曾打電話";
+"content.system.call.called.you" = "您";
+
+"content.system.call.missed-call" = "未接來電";
+"content.system.call.missed-call-you" = "未接來電";
+
+"content.system.call.missed-call.groups" = "錯過%@的來電";
+"content.system.call.missed-call.groups-you" = "錯過%2$@的來電";
+"content.system.call.missed-call.groups.you" = "您";
 
 "content.system.renamed_conv.title" = "%@ 重新命名了聊天室";
 "content.system.renamed_conv.title-you" = "%@重新命名聊天室";
@@ -472,40 +521,39 @@
 
 // legal hold
 
-"content.system.message_legal_hold.enabled" = "This conversation is under legal hold";
-"content.system.message_legal_hold.disabled" = "Legal hold deactivated for this conversation";
+"content.system.message_legal_hold.enabled" = "此對話已啟用合法保留";
+"content.system.message_legal_hold.disabled" = "此對話已停用合法保留";
 
 "content.system.message_legal_hold.learn_more" = "瞭解詳情";
 
 //
 
-"content.system.reactivated_device" = "您重新使用%@，在沒有使用期間的訊息不會顯示出來。";
+"content.system.reactivated_device" = "You started using [this device](%@) again. Messages sent in the meantime will not appear here.";
 
-"content.system.new_device" = "新的設備";
-"content.system.started_using" = "開始使用";
 "content.system.is_verified" = "所有的指紋已完成驗證";
 
 "content.system.new_users" = "新使用者加入。";
 "content.system.verify_devices" = "驗證設備";
 
-"content.system.unverified" = "%@ 取消了 %@ 的某個設備驗證"; // example "You unverified one of Jule’s devices"
-"content.system.your_devices" = "您的設備";
-"content.system.other_devices" = "%@的設備";
+"content.system.unverified_self_devices" = "**You** unverified one of [your devices](%@)";
+"content.system.unverified_other_devices" = "**You** unverified one of [%1$@’s devices](%2$@)";
 
 "content.system.missing_messages.title" = "您已有一段時間沒有使用此設備，可能不會顯示部分訊息。";
 "content.system.missing_messages.subtitle_start" = "同時，";
 
-"content.system.cannot_decrypt" = "從 %@ 的訊息未被接收。";
+"content.system.cannot_decrypt.self" = "A message from **you** could not be decrypted.";
+"content.system.cannot_decrypt.other" = "A message from **%@** could not be decrypted.";
+"content.system.cannot_decrypt.reset_session" = "修正將來的信息";
+"content.system.cannot_decrypt.error_details" = "(Fixed error: %d ID: %@)";
 
-"content.system.cannot_decrypt.you_part" = "您";
-"content.system.cannot_decrypt.why_part" = "為甚麼？";
+"content.system.cannot_decrypt_resolved.self" = "You can now decrypt messages from yourself. To recover lost messages, **you need to resend them.**";
+"content.system.cannot_decrypt_resolved.other" = "You can now decrypt messages from **%1$@**. To recover lost messages, **ask %1$@ to resend them.**";
 
-"content.system.cannot_decrypt.identity" = "%@ 的設備識別已更改。信息無法送達。";
-"content.system.cannot_decrypt.identity.you_part" = "您的";
-"content.system.cannot_decrypt.identity.otherUser_part" = "%@的"; // possessive apostrophe - might differ in different languages
-"content.system.cannot_decrypt.identity.why_part" = "瞭解更多";
-"content.system.cannot_decrypt.otherDevice_part" = "(設備 %@)"; // example " (device d1b23c54f34a)".
-// Full sentence: "A message from %@ was not received. [...] (device d1b23c54f34a). This is a debug information.
+"content.system.cannot_decrypt_identity_changed.self" = "**Your** device identity changed. Undelivered message.";
+"content.system.cannot_decrypt_identity_changed.other" = "**%@’s** device identity changed. Undelivered message."; // possessive apostrophe - might differ in different languages
+
+"content.system.session_reset.other" = "**%@ was unable to decrypt some of your messages but has solved the issue**. This affected all conversations you share together.";
+"content.system.session_reset.self" = "**You were unable to decrypt some of your messages but you solved the issue**. This affected all conversations.";
 
 "content.system.unknown_message.body" = "無法顯示此消息。可能因為您使用舊版本的Wire。";
 
@@ -515,6 +563,7 @@
 "content.file.upload_cancelled" = "上傳被取消";
 "content.file.upload_video" = "影片";
 "content.file.take_video" = "錄製影片";
+"content.file.browse" = "瀏覽";
 
 "content.file.save_video" = "儲存";
 "content.file.save_audio" = "儲存";
@@ -532,6 +581,7 @@
 "content.message.go_to_conversation" = "顯示";
 "content.message.forward.to" = "搜索...";
 "content.message.open" = "開啟";
+"content.message.sign" = "簽署";
 "content.message.copy" = "複製";
 "content.message.download" = "下載";
 "content.message.details" = "詳細資訊";
@@ -540,7 +590,7 @@
 "content.message.reply" = "回覆";
 "content.message.original_label" = "原始訊息";
 "content.message.reply.original_timestamp.date" = "原訊息於%@";
-"content.message.reply.original_timestamp.time" = "原訊息於%@";
+"content.message.reply.original_timestamp.time" = "來自%@的原始訊息";
 "content.message.reply.broken_message" = "您不能看見這則訊息";
 "content.message.reply.edited_message" = "已編輯";
 
@@ -565,12 +615,15 @@
 
 // Connecting (NEW IMPLEMENTATION, REVIEW LATER)
 "connection_request.title" = "連接到%@"; // check UPPERCASE implementation in code
+
+// Default connect message to be shown
 "missive.connection_request.default_message" = "%@您好，\n在Wire和我一起聊天吧。\n%@";
 
 "connection_request_pending_title" = "連接請求";
 "connection_request.send_button_title" = "加為連絡人";
 "inbox.connection_request.connect_button_title" = "加為連絡人";
 "inbox.connection_request.ignore_button_title" = "忽略";
+"error.connection.missing_legalhold_consent" = "You cannot connect to this user due to legal hold.";
 
 // Save image errors
 "library.alert.permission_warning.title" = "Wire需要讀取你的照片庫";
@@ -610,11 +663,9 @@
 "voice.alert.call_in_progress.message" = "您只可同時接撥一則通話";
 "voice.alert.call_in_progress.confirm" = "確認";
 
-"voice.alert.microphone_warning.title" = "Wire需要使用麥克風權限。";
-"voice.alert.microphone_warning.explanation" = "請前往手機「設定」並允許Wire使用麥克風權限。";
+"voice.alert.microphone_warning.title" = "Wire需要使用麥克風權限";
 
-"voice.alert.camera_warning.title" = "Wire需要相機權限。";
-"voice.alert.camera_warning.explanation" = "請前往手機「設定」並允許Wire使用相機權限。";
+"voice.alert.camera_warning.title" = "Wire需要使用相機權限";
 
 "voice.top_overlay.tap_to_return" = "點擊返回通話";
 "voice.top_overlay.accessibility_title" = "通話中";
@@ -622,19 +673,28 @@
 // Voice New
 
 "call.status.connecting" = "連接中…";
-"call.status.incoming.user" = "%@呼叫中...";
-"call.status.incoming" = "呼叫中...";
+"call.status.incoming.user" = "%@來電…";
+"call.status.incoming" = "致電中...";
 "call.status.outgoing" = "響鈴中...";
-"call.status.outgoing.user" = "呼叫%@中...";
+"call.status.outgoing.user" = "致電給%@...";
 "call.status.reconnecting" = "重新連線中...";
 "call.status.terminating" = "正在掛斷...";
 "call.status.constant_bitrate" = "固定位元率";
+"call.status.variable_bitrate" = "可變位元率";
 
 "call.participants.show_all" = "全部顯示 (%@)";
 "call.participants.list.title" = "參與者";
 
-"call.video.paused" = "影像已暫停";
+"call.overlay.switch_to.speakers" = "擴音";
+"call.overlay.switch_to.all" = "全部";
 
+"call.grid.no_active_speakers" = "No active video speakers...";
+
+"call.grid.hints.fullscreen" = "Double tap on a tile for fullscreen";
+"call.grid.hints.go_back_or_zoom" = "Double tap to go back, pinch to zoom";
+"call.grid.hints.zoom" = "Pinch to zoom";
+
+"call.video.paused" = "影像已暫停";
 "call.video.too_many.alert.title" = "已超過視像通話限定人數";
 "call.video.too_many.alert.message" = "視像通話僅能在4個人以下的群組中使用。";
 
@@ -644,12 +704,20 @@
 "call.degraded.alert.message.unknown" = "某人開始使用了新設備。";
 "call.degraded.alert.action.continue" = "仍然要通話";
 
+"call.degraded.ended.alert.title" = "通話結束";
+"call.degraded.ended.alert.message.self" = "The call was disconnected because you started using a new device.";
+"call.degraded.ended.alert.message.user" = "The call was disconnected because %@ is no longer a verified contact.";
+"call.degraded.ended.alert.message.unknown" = "The call was disconnected because someone is no longer a verified contact.";
+
 "call.alert.ongoing.alert_title" = "這將結束你的其他通話。";
 
 "call.alert.ongoing.start.message" = "在其他對話裏有另一通話。 \n現在打電話會掛斷該通話。";
 "call.alert.ongoing.join.message" = "在其他對話裏有另一通話。 \n加入這個通話會掛斷該通話。";
 "call.alert.ongoing.start.button" = "仍然要通話";
 "call.alert.ongoing.join.button" = "仍要加入";
+
+"call.quality.indicator.message" = "您的呼叫中繼無法接通。 這可能會影響您的通話體驗。";
+"call.quality.indicator.more_info.button.text" = "更多資訊";
 
 // Call Actions (accessibility)
 
@@ -683,7 +751,11 @@
 "participants.section.services" = "服務 (%d)";
 "participants.section.settings" = "選項";
 "participants.footer.add_title" = "加入參與者";
-"participants.section.name.footer" = "最多%1$d參與者可以加入群組對話。視像通話可用以你與另外%2$d人。";
+"participants.section.name.footer" = "Up to %1$d participants can join a group conversation.";
+"participants.section.admins.footer" = "沒有管理員";
+"participants.section.members.footer" = "沒有成員";
+
+"profile.profile.group_admin_options.title" = "群組管理員";
 
 // Meta Menu
 "meta.menu.accessibility_more_options_button" = "更多動作";
@@ -691,7 +763,10 @@
 "meta.menu.leave" = "離開群組";
 "meta.menu.archive" = "封存";
 "meta.menu.unarchive" = "解除封存";
-"meta.menu.delete" = "刪除內容...";
+"meta.menu.delete" = "刪除群組…";
+"meta.menu.clear_content" = "清除內容…";
+"meta.menu.move_to_folder" = "移動到...";
+"meta.menu.remove_from_folder" = "從 \"%@\" 中移除";
 "meta.menu.silence.mute" = "關閉訊息通知";
 "meta.menu.silence.unmute" = "開啟訊息通知";
 "meta.menu.cancel" = "取消";
@@ -703,11 +778,11 @@
 "meta.menu.open_self_profile" = "開啟個人資料";
 
 // Delete conversation
-"meta.menu.delete_content.dialog_title" = "確定刪除內容？";
+"meta.menu.delete_content.dialog_title" = "確定清除內容？";
 "meta.menu.delete_content.dialog_message" = "這將清除你所有設備上的會話歷史。";
 "meta.menu.delete_content.leave_as_well_message" = "離開聊天室";
 "meta.menu.delete_content.button_cancel" = "取消";
-"meta.menu.delete_content.button_delete" = "刪除";
+"meta.menu.delete_content.button_delete" = "清除";
 "meta.menu.delete_content.button_delete_and_leave" = "刪除並離開";
 
 // Configure conversation notifications
@@ -720,21 +795,21 @@
 // Leave conversation
 "meta.leave_conversation_dialog_title" = "確定離開聊天室？";
 "meta.leave_conversation_dialog_message" = "此聊天室將從您的對話清單被移除，參與者也將收到離開通知。";
-"meta.leave_conversation.delete_content_as_well_message" = "並且刪除內容";
+"meta.leave_conversation.delete_content_as_well_message" = "並且清除內容";
 "meta.leave_conversation_button_cancel" = "取消";
 "meta.leave_conversation_button_leave" = "離開";
-"meta.leave_conversation_button_leave_and_delete" = "離開並刪除內容";
+"meta.leave_conversation_button_leave_and_delete" = "離開並清除內容";
 
 // Conversation Degraded (security level lowered)
 "meta.degraded.degradation_reason_message.singular" = "%@開始使用新設備。";
 "meta.degraded.degradation_reason_message.plural" = "%@開始使用新設備。";
-"meta.degraded.degradation_reason_message.someone" = "某人開始使用了新設備。";
+"meta.degraded.degradation_reason_message.someone" = "有人開始使用了新的設備。";
 "meta.degraded.dialog_message" = "您仍然要發送您的訊息嗎？";
 "meta.degraded.verify_devices_button" = "驗證設備…";
-"meta.degraded.send_anyway_button" = "Send Anyway";
+"meta.degraded.send_anyway_button" = "仍然要寄送";
 "meta.degraded.cancel_sending_button" = "取消";
-"meta.legalhold.info_button" = "What Is Legal Hold?";
-"meta.legalhold.send_alert_title" = "The conversation is now subject to legal hold.";
+"meta.legalhold.info_button" = "甚麼是合法保留？";
+"meta.legalhold.send_alert_title" = "對話現在受到合法保留。";
 
 // Remove from conversation dialogue
 "profile.remove_dialog_title" = "確定移除？";
@@ -764,6 +839,12 @@
 "profile.connection_request_dialog.button_cancel" = "忽略";
 "profile.connection_request_dialog.button_connect" = "加為連絡人";
 
+// Delete group
+"conversation.delete_request_dialog.title" = "要刪除群組對話嗎?";
+"conversation.delete_request_dialog.message" = "這將刪除本群組和所有設備上的所有參與者的所有內容。您將無法以任何方式恢復，並將通知所有參與者。";
+"conversation.delete_request_error_dialog.title" = "試圖刪除群組%@時出錯。請再試。";
+"conversation.delete_request_error_dialog.button_delete_group" = "刪除群組";
+
 // Cancel connection request
 "profile.cancel_connection_request_dialog.title" = "取消請求？";
 "profile.cancel_connection_request_dialog.message" = "取消與%@的連結請求？";
@@ -773,6 +854,10 @@
 // Unblock button
 "profile.block_button_title" = "封鎖...";
 "profile.unblock_button_title" = "解除封鎖...";
+
+// Favorite button
+"profile.favorite_button_title" = "新增到最愛";
+"profile.unfavorite_button_title" = "從我的最愛中移除";
 
 "profile.block_button_title_action" = "封鎖";
 "profile.unblock_button_title_action" = "解除封鎖";
@@ -786,11 +871,16 @@
 "profile.read_receipts_disabled_memo.header" = "您已停用讀取回條";
 "profile.read_receipts_memo.body" = "如果雙方都打開讀取回條，則可以查看何時讀取信息。您可以在帳戶設置中更改此選項。";
 
+"profile.group_admin_status_memo.body" = "開啓該選項後，管理員可以添加或移除用戶或服務，更新群組設定，變更參與者角色。";
+
 "profile.extended_metadata.header" = "資訊";
 
 // User Details
 "profile.details.title" = "詳細資訊";
 "profile.details.guest" = "訪客";
+"profile.details.group_admin" = "群組管理員";
+"profile.details.partner" = "外部合作者";
+"profile.details.blocking_reason" = "This user is blocked due to legal hold. [LEARN MORE](%@)";
 
 "profile_view.accessibility.handle" = "使用者名稱";
 "profile_view.accessibility.name" = "暱稱";
@@ -810,16 +900,16 @@
 "device.verified" = "已驗證";
 "device.not_verified" = "未驗證";
 
-"device.class.legalhold" = "Legal Hold";
+"device.class.legalhold" = "合法保留";
 "device.class.desktop" = "桌面";
 "device.class.tablet" = "平板電腦";
 "device.class.phone" = "手機";
-"device.class.unknown" = "Unknown";
+"device.class.unknown" = "未知";
 
 "device.type.permanent" = "永久設備";
-"device.type.temporary" = "Temporary";
-"device.type.legalhold" = "Legal Hold";
-"device.type.unknown" = "Unknown";
+"device.type.temporary" = "臨時";
+"device.type.legalhold" = "合法保留";
+"device.type.unknown" = "未知";
 
 // Bot
 "participants.services.remove_integration.button" = "移除服務";
@@ -834,13 +924,17 @@
 "group_details.receipt_options_cell.title" = "讀取回條";
 "group_details.receipt_options_cell.description" = "當這啓用時, 參與者可以看到他們在此對話中的消息何時已閱讀。";
 
+"group_details.conversation_admins_header.title" = "群組管理員";
+"group_details.conversation_members_header.title" = "群組成員";
+
+
 // Legal hold details
 
-"legalhold.participants.section.title" = "Legal hold subjects";
-"legalhold.header.title" = "Legal Hold";
-"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.";
-"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and timed messages.\nYour conversation partners will be aware of the recording.";
-"legalhold.accessibility" = "Legal hold details";
+"legalhold.participants.section.title" = "合法保留對象";
+"legalhold.header.title" = "合法保留";
+"legalhold.header.other_description" = "此對話中至少有一個人被激活了合法保留。\n所有消息都將保留，以供將來訪問，包括刪除，編輯和定時消息。";
+"legalhold.header.self_description" = "您的帳戶的合法保留已被激活。\n所有消息都將保留，以供將來訪問，包括刪除，編輯和定時消息。\n您的對話成員將被提醒記錄中。";
+"legalhold.accessibility" = "合法保留詳情";
 
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -894,7 +988,7 @@
 // Settings - top level
 "self.settings.create_team.title" = "建立團隊";
 "self.settings.manage_team.title" = "管理團隊";
-"self.settings.add_team_or_account.title" = "Add Account";
+"self.settings.add_team_or_account.title" = "新增帳號";
 "self.settings.add_account.title" = "新增帳號";
 
 "self.settings.add_account.error.title" = "已啓動三個賬號";
@@ -930,12 +1024,14 @@
 "self.settings.enable_read_receipts.title" = "傳送讀取回條";
 "self.settings.privacy_section_group.subtitle" = "當關閉這設定，你將無法看到從其他人是否已讀取你的訊息。\n此設定不適用於群組對話。";
 
+"self.settings.encrypt_messages_at_rest.title" = "待命時加密消息";
+
 "self.settings.account_picture_group.picture" = "大頭照";
 "self.settings.account_picture_group.color" = "主色調";
 
 "self.settings.account_personal_information_group.title" = "個人資訊";
 
-"self.settings.account_picture_group.theme" = "暗色系主題";
+"self.settings.account_picture_group.theme" = "主題";
 
 "self.settings.device_details.fingerprint.subtitle" = "Wire為每個設備設置了一個獨特的指紋。您可以透過指紋比對來驗證您的設備和聊天室。";
 "self.settings.device_details.reset_session.subtitle" = "如果設備指紋比對結果不吻合，請重設工作階段以產生兩方新的加密金鎖。";
@@ -951,11 +1047,18 @@
 
 "self.settings.account_details.log_out.alert.title" = "登出";
 "self.settings.account_details.log_out.alert.message" = "在此設備上，您信息歷史記錄將被刪除。";
+"self.settings.account_details.log_out.alert.password" = "密碼";
 
 // Settings - Personal information
 "self.settings.privacy_analytics_section.title" = "使用資料和崩潰報告";
-"self.settings.privacy_analytics.title" = "寄送匿名資料";
-"self.settings.privacy_analytics_menu.description.title" = "發送匿名使用紀錄和崩潰報告以改善Wire。";
+
+// Crash
+"self.settings.privacy_crash.title" = "傳送匿名錯誤資料";
+"self.settings.privacy_crash_menu.description.title" = "Send anonymous crash reports and basic data like version number and operating system to help Wire identify and solve issues in the app.";
+
+// Analytics
+"self.settings.privacy_analytics.title" = "傳送匿名使用資料";
+"self.settings.privacy_analytics_menu.description.title" = "Usage data allows Wire to understand how the app is being used and how it can be improved. The data is anonymous and does not include the content of your communications (such as messages, files or calls).";
 
 "self.settings.receiveNews_and_offers.title" = "接收新聞";
 "self.settings.receiveNews_and_offers.description.title" = "接收Wire的新聞和產品更新電子郵件。";
@@ -966,7 +1069,7 @@
 
 "self.settings.account_section.handle.change.title" = "使用者名稱";
 "self.settings.account_section.handle.change.save" = "儲存";
-"self.settings.account_section.handle.change.footer" = "至少要兩個字元，只可使用 a 到 z、0 到 9 或_。";
+"self.settings.account_section.handle.change.footer" = "至少要兩個字元，只可使用 a 到 z、0 到 9 或 '.', '-', '_'。";
 "self.settings.account_section.handle.change.footer.unavailable" = "已經被用了";
 
 "self.settings.account_section.handle.change.failure_alert.title" = "無法設置使用者名稱";
@@ -1034,7 +1137,12 @@
 "self.settings.popular_demand.title" = "推薦選項";
 "self.settings.popular_demand.send_button.title" = "發送按鍵";
 "self.settings.popular_demand.send_button.footer" = "停用按輸入鍵發送信息功能。";
-"self.settings.popular_demand.dark_mode.footer" = "Switch between dark and light theme.";
+"self.settings.popular_demand.dark_mode.footer" = "切換暗或亮畫面主題";
+
+// dark theme
+"dark_theme.option.dark" = "暗色";
+"dark_theme.option.light" = "亮色";
+"dark_theme.option.system" = "與系統同步";
 
 // Open in
 "self.settings.external_apps.header" = "開啟";
@@ -1043,7 +1151,7 @@
 "self.settings.link_options.maps.title" = "位置";
 "self.settings.link_options.browser.title" = "瀏覽器";
 
-"open_link.twitter.option.default" = "Browser / Twitter";
+"open_link.twitter.option.default" = "瀏覽器 / 推特";
 "open_link.twitter.option.tweetbot" = "Tweetbot";
 "open_link.twitter.option.twitterrific" = "Twitterrific";
 
@@ -1075,17 +1183,16 @@
 "self.settings.privacy_contacts_menu.description_disabled.title" = "分享您的通訊錄將幫助您找到其他連絡人。我們將您的資料匿名處理並且不與任何人分享。您可透過手機「設定」 > 隱私 > 聯絡資訊來開啟權限。";
 
 "self.settings.privacy_security.lock_app" = "使用Passcode鎖定";
-"self.settings.privacy_security.lock_app.subtitle.lock_description" = "在背景10秒後鎖定Wire。";
+"self.settings.privacy_security.lock_app.subtitle.lock_description" = "在背景%@後鎖定Wire。";
 "self.settings.privacy_security.lock_app.subtitle.touch_id" = "使用Touch ID解鎖或輸入你的密碼。";
 "self.settings.privacy_security.lock_app.subtitle.face_id" = "使用Face ID解鎖或輸入你的密碼。";
 "self.settings.privacy_security.lock_app.subtitle.none" = "輸入密碼解鎖。";
+"self.settings.privacy_security.lock_app.subtitle.custom_app_lock_reminder" = "If forgotten, your passcode can not be recovered.";
 
 "self.settings.privacy_security.lock_app.description" = "解鎖Wire";
-
-"self.settings.privacy_security.lock_cancelled.description_face_id" = "請使用Face ID或密碼解鎖Wire";
-"self.settings.privacy_security.lock_cancelled.description_touch_id" = "請使用Touch ID或密碼解鎖Wire";
-"self.settings.privacy_security.lock_cancelled.description_passcode" = "用密碼解鎖Wire";
-"self.settings.privacy_security.lock_cancelled.action" = "解鎖";
+"self.settings.privacy_security.lock_password.description.unlock" = "用您的密碼解鎖。";
+"self.settings.privacy_security.lock_password.description.wrong_password" = "密碼錯誤，請再試一次。";
+"self.settings.privacy_security.lock_password.description.wrong_offline_password" = "密碼錯誤，如果您最近更改過密碼，連接到網路並重試。";
 
 "self.settings.privacy_security.disable_link_previews.title" = "製作連結預覽";
 "self.settings.privacy_security.disable_link_previews.footer" = "其他人的連結預覽可能會顯示出來";
@@ -1097,8 +1204,12 @@
 
 "self.settings.advanced.title" = "進階";
 "self.settings.advanced.troubleshooting.title" = "疑難排解";
-"self.settings.advanced.troubleshooting.submit_debug.title" = "Debug Report";
-"self.settings.advanced.troubleshooting.submit_debug.subtitle" = "This information helps Wire Support diagnose calling problems and improve the overall app experience.";
+"self.settings.advanced.troubleshooting.submit_debug.title" = "錯誤回報";
+"self.settings.advanced.debugging_tools.title" = "除錯工具";
+"self.settings.advanced.debugging_tools.first_unread_conversation.title" = "查找第一個未讀對話";
+"self.settings.advanced.debugging_tools.show_user_id.title" = "Show my user ID";
+"self.settings.advanced.debugging_tools.enter_debug_command.title" = "輸入除錯指令";
+"self.settings.advanced.troubleshooting.submit_debug.subtitle" = "此信息有助於Wire診斷通話問題，並改善整個應用體驗。";
 "self.settings.advanced.reset_push_token.title" = "重置推送通知的 Token";
 "self.settings.advanced.reset_push_token.subtitle" = "如果您有推送通知的問題，Wire客服可能會請您重設此token。";
 "self.settings.advanced.reset_push_token_alert.title" = "推送token 已被重設";
@@ -1111,7 +1222,7 @@
 // Technical Report
 "self.settings.technical_report_section.title" = "技術報告";
 "self.settings.technical_report.send_report" = "傳送報告到Wire";
-"self.settings.technical_report.mail.subject" = "Wire Debug Report";
+"self.settings.technical_report.mail.subject" = "Wire除錯報告";
 "self.settings.technical_report.include_log" = "包含詳細日誌";
 "self.settings.technical_report.privacy_warning" = "詳細日誌可能包含個人資料";
 "self.settings.technical_report.no_mail_alert" = "沒有電郵程式。點擊「確定」並手動將日誌發送到：";
@@ -1138,7 +1249,7 @@
 "self.settings.history_backup.password.title" = "設置密碼";
 "self.settings.history_backup.password.cancel" = "取消";
 "self.settings.history_backup.password.next" = "下一步";
-"self.settings.history_backup.password.placeholder" = "至少8個字元";
+"self.settings.history_backup.password.placeholder" = "密碼";
 "self.settings.history_backup.password.description" = "備份會被壓縮，並使用你輸入的密碼加密。";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1168,16 +1279,22 @@
 // Landing screen
 
 "landing.header" = "Wire。加入您的帳戶。";
-"landing.create_account.title" = "個人版";
+"landing.welcome_message" = "Trying to create a Pro or Enterprise account for your business or organization?";
+"landing.welcome_submessage" = "Unfortunately, that's not possible in the app - once you have created your team, you can log in here";
+"landing.create_account.title" = "建立新Wire個人帳戶";
+"landing.create_account.infotitle" = "與朋友和家人聊天？";
 "landing.create_account.subtitle" = "與朋友和家人私密聊天";
 "landing.create_team.title" = "專業版";
 "landing.create_team.subtitle" = "保密企業、機構和專業組織的協作";
 "landing.login.hints" = "已有帳號？";
 "landing.login.button.title" = "登入";
+"landing.login.email.button.title" = "使用電子信箱地址登入";
+"landing.login.enterprise.button.title" = "企業登錄";
+"landing.login.sso.button.title" = "使用單一登入(SSO)登入\n";
 
-"landing.custom_backend.title" = "Connected to \"%@\"";
+"landing.custom_backend.title" = "連接到「%@」";
 "landing.custom_backend.more_info.button.title" = "顯示更多";
-"landing.custom_backend.more_info.alert.title" = " You are connected to a third-party server: %@";
+"landing.custom_backend.more_info.alert.title" = " 您目前連線到第三方伺服器: %@";
 
 // Create team
 
@@ -1284,7 +1401,7 @@
 "registration.alert.account_exists.title" = "帳戶已存在";
 "registration.alert.account_exists.message_phone" = "您註冊的電話號碼已連結到帳戶。\n\n請使用其他電話號碼，或者如果您擁有此帳戶，請嘗試登錄。";
 "registration.alert.account_exists.message_email" = "您註冊的電郵地址已連結到帳戶。\n\n請使用其他電郵地址，或者如果您擁有此帳戶，請嘗試登錄。";
-"registration.alert.change_email_action" = "Register with Another Email";
+"registration.alert.change_email_action" = "使用另一電郵註冊";
 "registration.alert.change_phone_action" = "使用另一手機號碼註冊";
 "registration.alert.change_signin_action" = "登入";
 
@@ -1309,21 +1426,30 @@
 "registration.no_history.restore_backup_failed.wrong_version.message" = "此備份是由較新的或過時版本的Wire創建的，無法在此版本還原。";
 
 // SSO – Company Login
-"login.sso.alert.title" = "公司登錄";
-"login.sso.alert.message" = "輸入公司的單一登入(SSO)存取碼。";
+"login.sso.alert.title" = "企業登錄";
+"login.sso.alert.message.sso_and_email" = "請輸入您的電子郵件或SSO代碼。 如果您的電子郵件與Wire的企業安裝相匹配，則此應用將連接到該服務器。";
+"login.sso.alert.message.sso_only" = "請輸入你的單一登入（SSO）：";
 "login.sso.alert.action" = "登入";
-"login.sso.alert.text_field.placeholder" = "單一登入(SSO)存取碼";
+"login.sso.alert.text_field.placeholder.sso_and_email" = "電郵或單一登入（SSO）碼";
+"login.sso.alert.text_field.placeholder.sso_only" = "單一登入(SSO)存取碼";
 
-"login.sso.start_error_title" = "無法開始公司登錄";
-"login.sso.link_error_message" = "您按下的公司登錄連結無效。請與管理員聯繫以解決此問題。";
+"login.sso.start_error_title" = "無法啓動企業登錄";
+"login.sso.link_error_message" = "這個公司登錄連結無效。請與管理員聯繫以解決此問題。";
 
-"login.sso.error.alert.title" = "出了點問題";
-"login.sso.error.alert.invalid_code.title" = "驗證碼無效。";
-"login.sso.error.alert.invalid_code.message" = "請核對您的公司單一登錄(SSO)存取碼，然後重試。";
 "login.sso.error.offline.alert.message" = "請檢查您的網路連線，然後重試。";
 "login.sso.error.alert.message" = "請與工作組管理員聯繫(錯誤 %@)。";
-"login.sso.error.alert.unknown.message" = "請稍後再重試。";
+
+"login.sso.error.alert.invalid_code.message" = "請核對您的公司單一登錄(SSO)存取碼，然後重試。";
 "login.sso.error.alert.invalid_status.message" = "請稍後重試 (錯誤：%@)。";
+"login.sso.error.alert.invalid_format.message.sso_only" = "請輸入有效的單一登入（SSO）登錄碼";
+"login.sso.error.alert.invalid_format.message.sso_and_email" = "請輸入有效的電子郵件信箱或單一登入（SSO）登錄碼";
+"login.sso.error.alert.domain_not_registered.message" = "該郵箱無法用於企業登錄，請輸入單一登入（SSO）登錄碼來繼續操作。";
+"login.sso.error.alert.domain_associated_with_wrong_server.message" = "此電子郵件已鏈接到不同的服務器，但應用程序只能一次連接到一個服務器。 請註銷此設備上的所有Wire賬號並嘗試重新登錄。";
+"login.sso.error.alert.unknown.message" = "請稍後再重試。";
+"login.sso.backend_switch.title" = "重定向中...";
+"login.sso.backend_switch.subtitle" = "您將被重定向到您的專屬企業服務。";
+"login.sso.backend_switch.information" = "只有當你確定這是你的組織登錄時，才提供憑證。";
+
 
 // Restore In Progress Loading Titles
 "registration.no_history.restore_backup.restoring" = "回復中...";
@@ -1404,8 +1530,8 @@
 "signin_logout.subheadline" = "您太久沒使用Wire。請重新登入。";
 "signin_logout.email.subheadline" = "您太久沒使用Wire。輸入您的電子郵件地址和密碼以繼續。";
 "signin_logout.phone.subheadline" = "您太久沒使用Wire。輸入您的電話號碼以繼續。";
-"signin_logout.sso.subheadline" = "您太久沒使用Wire。使用您的公司帳戶登錄以繼續。";
-"signin_logout.sso.buton" = "公司登錄";
+"signin_logout.sso.subheadline" = "您太久沒使用Wire。使用您的企業帳戶登錄以繼續。";
+"signin_logout.sso.buton" = "企業登錄";
 
 "signin.email.missing_password.subtitle" = "請輸入您的電郵地址及密碼以繼續。";
 "signin.phone.missing_password.subtitle" = "輸入您的電話號碼以繼續。";
@@ -1438,8 +1564,8 @@
 "error.name_and_email" = "請輸入您的全名和一個有效的電子郵件地址和密碼。";
 "error.full_name" = "請輸入您的全名";
 "error.email" = "請輸入有效的電子郵件信箱。";
-"error.input.too_long" = "輸入過長";
-"error.input.too_short" = "輸入太短";
+"error.input.too_long" = "請輸入短一點的使用者名稱";
+"error.input.too_short" = "請輸入長一點的使用者名稱";
 "error.email.invalid" = "請輸入有效的電子郵件信箱";
 "error.phone.invalid" = "請輸入有效的手機號碼";
 
@@ -1455,6 +1581,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "出了點問題，請再試一次";
 "error.user.needs_credentials" = "請檢查您提供的資料後重試。";
+"error.user.domain_blocked" = "這封電子郵件需要團隊邀請。 請與您組織的IT管理員聯繫，以接收邀請。";
 "error.user.invalid_credentials" = "請檢查您的資訊後再重試。";
 "error.user.account_pending_activation" = "您的帳號未被啟用，請完成啟動程序。";
 "error.user.network_error" = "您的網路連線似乎有問題，請稍候再試。";
@@ -1492,6 +1619,7 @@
 "error.conversation.cannot_remove" = "刪除參與者失敗";
 "error.conversation.too_many_members" = "對話人數已達上限";
 "error.conversation.offline" = "您的網路連線似乎有些問題，請確保網路正常運作。";
+"error.conversation.missing_legalhold_consent" = "Due to legal hold, only team members can be added to this conversation";
 
 "sketchpad.initial_hint" = "點擊顏色塊來改變筆刷大小";
 
@@ -1508,6 +1636,18 @@
 "force.update.title" = "必要更新";
 "force.update.message" = "您錯過了些新功能。\n快到App Store中下載最新版的Wire吧。";
 "force.update.ok_button" = "到App Store";
+
+//Jailbroken alert
+"jailbrokendevice.alert.title" = "發現這部裝置已越獄";
+"jailbrokendevice.alert.message" = "出於安全原因，Wire不能在此設備上使用，現有的所有Wire數據已被消除。";
+
+// Database Loading Failure alert
+"databaseloadingfailure.alert.title" = "Not Enough Storage";
+"databaseloadingfailure.alert.message" = "The database could not be loaded due to insufficient storage. Review your device storage usage and try again.";
+"databaseloadingfailure.alert.settings" = "前往設定";
+"databaseloadingfailure.alert.delete_database" = "Delete Database";
+"databaseloadingfailure.alert.delete_database.message" = "By deleting the database, all local data and messages for this account will be permanently deleted.";
+"databaseloadingfailure.alert.delete_database.continue" = "繼續";
 
 // Third Party
 "giphy.conversation.message" = "%@ · 來自giphy.com";
@@ -1556,26 +1696,23 @@
 
 "availability.message.cancel" = "取消";
 "availability.message.set_status" = "設定狀態";
-"availability.accessibility_label.change_status" = "Change Status";
+"availability.accessibility_label.change_status" = "更改狀態";
 "availability.accessibility_label.status" = "狀態";
 
 "availability.none" = "沒有狀態";
 "availability.available" = "在線";
 "availability.away" = "離開";
 "availability.busy" = "忙碌";
-"availability.available.placeholder" = "%@在線";
-"availability.away.placeholder" = "%@已離開";
-"availability.busy.placeholder" = "%@忙碌中";
 
-"availability.reminder.away.title" = "You are set to Away";
-"availability.reminder.away.message" = "You will appear as Away to other people. You will not receive notifications about any incoming calls or messages.";
-"availability.reminder.busy.title" = "You are set to Busy";
-"availability.reminder.busy.message" = "You will appear as Busy to other people. You will only receive notifications for mentions, replies, and calls in conversations that are not muted.";
-"availability.reminder.available.title" = "You are set to Available";
-"availability.reminder.available.message" = "You will appear as Available to other people. You will receive notifications for incoming calls and for messages according to the Notifications setting in each conversation.";
-"availability.reminder.none.title" = "No status set";
-"availability.reminder.none.message" = "You will receive notifications for incoming calls and for messages according to the Notifications setting in each conversation.";
-"availability.reminder.action.dont_remind_me" = "Do not display this information again";
+"availability.reminder.away.title" = "您設置為離開";
+"availability.reminder.away.message" = "您將對其他人顯示為離開狀態。您將不會收到任何電話或消息的通知。";
+"availability.reminder.busy.title" = "您設置為忙碌";
+"availability.reminder.busy.message" = "您將對其他人顯示為忙碌。 在未靜音的對話中，您只會收到有關提及，回復和來電的通知。";
+"availability.reminder.available.title" = "您設置為在線";
+"availability.reminder.available.message" = "您將顯示為對其他人在線。 根據每個對話中的「通知」設置，您將收到有關來電和消息的通知。";
+"availability.reminder.none.title" = "目前沒有設定狀態";
+"availability.reminder.none.message" = "根據每個對話中的「通知」設置，您將收到有關來電和消息的通知。";
+"availability.reminder.action.dont_remind_me" = "不再顯示這個訊息";
 "availability.reminder.action.ok" = "確認";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1597,15 +1734,22 @@
 "url_action.title" = "確認 URL 動作";
 "url_action.connect_to_bot.message" = "你想要連接到Bot嗎？";
 
-"url_action.switch_backend.title" = "Connect to server";
-"url_action.switch_backend.message" = "This configuration will connect the app to a third-party server:\n%@";
+"url_action.switch_backend.title" = "連線到伺服器";
+"url_action.switch_backend.message" = "此配置會將應用程序連接到第三方服務器：\n%@";
 
-"url_action.switch_backend.error.logged_in.title" = "Can’t switch servers";
-"url_action.switch_backend.error.logged_in" = "You are already logged in. To switch to this server, log out of all accounts and try again.";
+"url_action.switch_backend.error.logged_in.title" = "無法切換伺服器";
+"url_action.switch_backend.error.logged_in" = "您已經登錄。要切換到該服務器，請登出所有帳戶，然後重試。";
 
-"url_action.switch_backend.error.invalid_backend.title" = "The server is not responding";
-"url_action.switch_backend.error.invalid_backend" = "Please check your internet connection, verify the link and try again.";
+"url_action.switch_backend.error.invalid_backend.title" = "伺服器沒有回應";
+"url_action.switch_backend.error.invalid_backend" = "請檢查您的網路連接，然後再試一次。";
 
+// Placeholder: conversation name
+"url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
+"url_action.join_conversation.confirmation.confirm_button" = "加入";
+
+"url_action.join_conversation.error.title" = "You could not join the conversation";
+"url_action.join_conversation.error.converation_is_full" = "The conversation is full.";
+"url_action.join_conversation.error.link_is_invalid" = "The conversation link is invalid.";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire找不到這個人。";
@@ -1649,23 +1793,98 @@
 "registration.password.rules.with_requirements" = "使用%@，與%@。";
 
 // Legal Hold Deactivation
-"legal_hold.deactivated.title" = "Legal Hold Deactivated";
-"legal_hold.deactivated.message" = "Future messages will not be recorded.";
+"legal_hold.deactivated.title" = "合法保留已停用";
+"legal_hold.deactivated.message" = "之後的訊息都不會被紀錄";
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Share Extension
-"share_extension.voiceover.conversation_under_legal_hold" = "Under legal hold.";
-"share_extension.voiceover.conversation_secure" = "All clients verified.";
-"share_extension.voiceover.conversation_secure_with_ignored" = "Not all clients verified.";
+"share_extension.voiceover.conversation_under_legal_hold" = "在合法保留之下。";
+"share_extension.voiceover.conversation_secure" = "所有設備都已驗證。";
+"share_extension.voiceover.conversation_secure_with_ignored" = "沒有驗證所有設備。";
 
 // Legal hold - alert
-"legalhold_request.button.accessibility" = "Pending approval.";
-"legalhold_request.alert.title" = "Legal Hold Requested";
-"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and timed messages in all conversations.";
-"legalhold_request.alert.detail.enter_password" = "Enter your password to confirm.";
+"legalhold_request.button.accessibility" = "等待核准";
+"legalhold_request.alert.title" = "合法保留要求";
+"legalhold_request.alert.detail" = "設備將使用指紋記錄所有以後的消息：\n\n%@\n\n這包括所有對話中的已刪除，已編輯和定時的消息。";
+"legalhold_request.alert.detail.enter_password" = "請輸入您的密碼以便確認。";
 "legalhold_request.alert.error_wrong_password" = "密碼錯誤";
 
 // Legal hold activated
-"legalhold_active.alert.title" = "Legal Hold is Active";
+"legalhold_active.alert.title" = "合法保留生效";
 "legalhold_active.alert.learn_more" = "瞭解更多";
-"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and timed messages.\n\nYour conversation partners will be aware of the recording.";
+"legalhold_active.alert.message" = "您的帳戶的合法保留已被激活。 所有消息都將保留，以供將來訪問，包括刪除，編輯和定時消息。\n\n您的對話成員將被提醒記錄中。";
+
+// Account deleted alert
+"account_deleted_session_expired_alert.title" = "你的登入階段已過期。";
+"account_deleted_session_expired_alert.message" = "應用程序長時間未與服務器通信，或您的會話已被遠端拒絕。";
+
+"account_deleted_missing_passcode_alert.title" = "No device passcode";
+"account_deleted_missing_passcode_alert.message" = "In order to use Wire, please set a passcode in your device settings.";
+
+// Button cell state
+"button_message_cell.state.unselected" = "未選取";
+"button_message_cell.state.selected" = "已選擇";
+"button_message_cell.state.confirmed" = "已確認";
+
+"button_message_cell.generic_error" = "無法發送您的答案，請重試。";
+
+// Custom app lock
+
+"passcode.hint_label" = "密碼鎖";
+
+// Custom app lock - create passcode
+"create_passcode.textfield.placeholder" = "";
+"create_passcode.title_label" = "建立密碼鎖";
+"create_passcode.info_label" = "It will be used to unlock Wire. If you forget this passcode **it can not be recovered.**";
+"create_passcode.info_label_forced_applock" = "Create a passcode to unlock Wire. Please remember it, as **it can not be recovered.**";
+"create_passcode.create_button.title" = "建立密碼鎖";
+
+// Custom app lock - create passcode validation
+"create_passcode.validation.too_short" = "至少八個字符長";
+"create_passcode.validation.no_lowercase_char" = "一個小寫字母";
+"create_passcode.validation.no_uppercase_char" = "一個大寫字符";
+"create_passcode.validation.no_number" = "一個數字";
+"create_passcode.validation.no_special_char" = "一個特殊字元";
+
+// Custom app lock - unlock
+"unlock.textfield.placeholder" = "輸入您的通行密碼";
+"unlock.title_label" = "Enter passcode to unlock Wire";
+"unlock.wipe_button" = "重設為新設備使用";
+"unlock.error_label" = "錯誤的解鎖密碼";
+"unlock.submit_button.title" = "解除鎖定";
+
+// Custom app lock - warning screen
+"warning_screen.title_label" = "There was a change in Wire";
+"warning_screen.main_info.forced_applock" = "Your organization needs to lock your app when Wire is not in use to keep the team safe.";
+"warning_screen.info_label.forced_applock" = "Next time, unlock Wire the same way you unlock your phone.";
+"warning_screen.info_label.non_forced_applock" = "Your organization does not need app lock anymore. From now, you can access Wire without any obstacles.";
+
+// Wipe database
+
+"wipe_database.title_label" = "重設為新設備使用";
+"wipe_database.info_label" = "The data stored on this device can only be accessed with your passcode.\n\nIf you have forgotten your passcode, you can delete the database to log in again as a new device.\n\nBy deleting the database, ";
+"wipe_database.info_label.highlighted" = "all local data and messages for this account will be permanently deleted.";
+
+"wipe_database.button.title" = "I want to delete the database";
+
+// Wipe database alert
+
+"wipe_database.alert.description" = "確認刪除資料庫";
+"wipe_database.alert.message" = "Type 'Delete' to verify you want to delete all data in this device.";
+"wipe_database.alert.placeholder" = "輸入「Delete」";
+"wipe_database.alert.confirm" = "刪除";
+"wipe_database.alert.confirm_input" = "刪除";
+
+// Wipe database completion
+
+"wipe_database_completion.title" = "數據庫已刪除";
+"wipe_database_completion.subtitle" = "Your data and messages have been deleted. You can now log in again as a new device.";
+
+// MARK: - App lock module
+
+"appLockModule.message.faceID" = "請使用Face ID或密碼解鎖Wire";
+"appLockModule.message.touchID" = "請使用Touch ID或Passcode解鎖Wire";
+"appLockModule.message.passcode" = "用密碼解鎖Wire";
+"appLockModule.message.passcodeUnavailable" = "要解鎖Wire，請在設置中選擇打開密碼";
+"appLockModule.unlockButton.title" = "解鎖";
+"appLockModule.goToSettingsButton.title" = "前往設定";

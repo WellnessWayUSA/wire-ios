@@ -17,13 +17,15 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 protocol GroupDetailsUserDetailPresenter: class {
-    func presentDetails(for user: ZMUser)
+    func presentDetails(for user: UserType)
 }
 
 protocol GroupDetailsSectionControllerDelegate: GroupDetailsUserDetailPresenter {
-    func presentFullParticipantsList(for users: [UserType], in conversation: ZMConversation)
+    func presentFullParticipantsList(for users: [UserType], in conversation: GroupDetailsConversationType)
 }
 
 class GroupDetailsSectionController: NSObject, CollectionViewSectionController {
@@ -32,15 +34,15 @@ class GroupDetailsSectionController: NSObject, CollectionViewSectionController {
         return false
     }
 
-    var sectionTitle: String {
-        return ""
+    var sectionTitle: String? {
+        return nil
     }
 
     var sectionAccessibilityIdentifier: String {
         return "section_header"
     }
 
-    func prepareForUse(in collectionView : UICollectionView?) {
+    func prepareForUse(in collectionView: UICollectionView?) {
         collectionView?.register(SectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "SectionHeader")
     }
 
@@ -71,7 +73,7 @@ class GroupDetailsSectionController: NSObject, CollectionViewSectionController {
         fatal("Must be overridden")
     }
 
-    //MARK: - UICollectionViewDelegate
+    // MARK: - UICollectionViewDelegate
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         fatal("Must be overridden")

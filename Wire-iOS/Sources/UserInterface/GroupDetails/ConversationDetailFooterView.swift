@@ -17,13 +17,15 @@
 //
 
 import UIKit
+import WireCommonComponents
+import WireSystem
 
 /**
  * A footer view to use to display a bar of actions to perform for a conversation.
  */
 
 class ConversationDetailFooterView: UIView {
-    
+
     private let variant: ColorSchemeVariant
     let rightButton = IconButton()
     var leftButton: IconButton
@@ -40,7 +42,7 @@ class ConversationDetailFooterView: UIView {
             }
         }
     }
-    
+
     var rightIcon: StyleKitIcon? {
         get {
             return rightButton.icon(for: .normal)
@@ -52,23 +54,19 @@ class ConversationDetailFooterView: UIView {
             }
         }
     }
-    
-    override convenience init(frame: CGRect) {
-        self.init(mainButton: IconButton())
-    }
-    
-    internal init(mainButton: IconButton = IconButton()) {
+
+    init() {
         self.variant = ColorScheme.default.variant
-        self.leftButton = mainButton
+        self.leftButton = IconButton()
         super.init(frame: .zero)
         setupViews()
         createConstraints()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func setupViews() {
         let configureButton = { (button: IconButton) in
             self.containerView.addSubview(button)
@@ -83,7 +81,7 @@ class ConversationDetailFooterView: UIView {
         configureButton(leftButton)
         configureButton(rightButton)
 
-        leftButton.titleImageSpacing = 16
+        leftButton.setTitleImageSpacing(16)
         leftButton.titleLabel?.font = FontSpec(.small, .regular).font
         leftButton.addTarget(self, action: #selector(leftButtonTapped), for: .touchUpInside)
 
@@ -91,10 +89,10 @@ class ConversationDetailFooterView: UIView {
 
         backgroundColor = UIColor.from(scheme: .barBackground)
         addSubview(containerView)
-        
+
         setupButtons()
     }
-    
+
     private func createConstraints() {
         leftButton.translatesAutoresizingMaskIntoConstraints = false
         rightButton.translatesAutoresizingMaskIntoConstraints = false
@@ -121,11 +119,11 @@ class ConversationDetailFooterView: UIView {
     }
 
     // MARK: - Events
-    
+
     func setupButtons() {
         fatal("Should be overridden in subclasses")
     }
-    
+
     @objc func leftButtonTapped(_ sender: IconButton) {
         fatal("Should be overridden in subclasses")
     }

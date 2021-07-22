@@ -17,9 +17,11 @@
 //
 
 import Foundation
+import WireDataModel
+import WireSyncEngine
 
 /// The way the details are displayed.
-@objc public enum MessageDetailsDisplayMode: Int {
+enum MessageDetailsDisplayMode: Int {
     case reactions, receipts, combined
 }
 
@@ -39,7 +41,7 @@ protocol MessageDetailsDataSourceObserver: class {
  * The data source to present message details.
  */
 
-class MessageDetailsDataSource: NSObject, ZMMessageObserver, ZMUserObserver {
+final class MessageDetailsDataSource: NSObject, ZMMessageObserver, ZMUserObserver {
 
     /// The presented message.
     let message: ZMConversationMessage
@@ -161,7 +163,7 @@ class MessageDetailsDataSource: NSObject, ZMMessageObserver, ZMUserObserver {
     private func setupObservers() {
         if let userSession = ZMUserSession.shared() {
             let messageObserver = MessageChangeInfo.add(observer: self, for: message, userSession: userSession)
-            let userObserver = UserChangeInfo.add(userObserver: self, for: nil, userSession: userSession)
+            let userObserver = UserChangeInfo.add(userObserver: self, in: userSession)
             observationTokens = [messageObserver, userObserver]
         }
     }

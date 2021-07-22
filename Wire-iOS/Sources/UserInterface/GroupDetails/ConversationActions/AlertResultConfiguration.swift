@@ -16,6 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import UIKit
+
 protocol AlertResultConfiguration {
     static var title: String { get }
     static var all: [Self] { get }
@@ -31,7 +33,7 @@ extension AlertResultConfiguration {
 }
 
 extension ConversationActionController {
-    
+
     func request<T: AlertResultConfiguration>(_ result: T.Type, handler: @escaping (T) -> Void) {
         present(result.controller(handler))
     }

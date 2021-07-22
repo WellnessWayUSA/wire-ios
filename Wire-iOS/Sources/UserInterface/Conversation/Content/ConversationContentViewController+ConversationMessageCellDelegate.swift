@@ -17,16 +17,18 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 extension UIView {
     func targetView(for message: ZMConversationMessage!, dataSource: ConversationTableViewDataSource) -> UIView {
 
-        ///if the view is a tableView, search for a visible cell that contains the message and the cell is a SelectableView
+        /// if the view is a tableView, search for a visible cell that contains the message and the cell is a SelectableView
         guard let tableView: UITableView = self as? UITableView else {
             return self
         }
 
-        var actionView: UIView! = tableView
+        var actionView: UIView = tableView
 
         let section = dataSource.section(for: message)
 
@@ -46,9 +48,14 @@ extension UIView {
 extension ConversationContentViewController: ConversationMessageCellDelegate {
     // MARK: - MessageActionResponder
 
-    public func perform(action: MessageAction, for message: ZMConversationMessage!, view: UIView) {
+    func perform(action: MessageAction,
+                 for message: ZMConversationMessage!,
+                 view: UIView) {
         let actionView = view.targetView(for: message, dataSource: dataSource)
-        let shouldDismissModal = action != .delete && action != .copy
+
+        /// Do not dismiss Modal for forward since share VC is present in a popover
+        let shouldDismissModal = action != .delete && action != .copy &&
+            !(action == .forward && isIPadRegular())
 
         if messagePresenter.modalTargetController?.presentedViewController != nil &&
             shouldDismissModal {
@@ -65,11 +72,11 @@ extension ConversationContentViewController: ConversationMessageCellDelegate {
     }
 
     func conversationMessageWantsToOpenUserDetails(_ cell: UIView, user: UserType, sourceView: UIView, frame: CGRect) {
-        delegate.didTap?(onUserAvatar: user, view: sourceView, frame: frame)
+        delegate?.didTap(onUserAvatar: user, view: sourceView, frame: frame)
     }
 
     func conversationMessageShouldBecomeFirstResponderWhenShowingMenuForCell(_ cell: UIView) -> Bool {
-        return delegate.conversationContentViewController(self, shouldBecomeFirstResponderWhenShowMenuFromCell: cell)
+        return delegate?.conversationContentViewController(self, shouldBecomeFirstResponderWhenShowMenuFromCell: cell) ?? false
     }
 
     func conversationMessageWantsToOpenMessageDetails(_ cell: UIView, messageDetailsViewController: MessageDetailsViewController) {
@@ -77,11 +84,15 @@ extension ConversationContentViewController: ConversationMessageCellDelegate {
     }
 
     func conversationMessageWantsToOpenGuestOptionsFromView(_ cell: UIView, sourceView: UIView) {
-        delegate.conversationContentViewController(self, presentGuestOptionsFrom: sourceView)
+        delegate?.conversationContentViewController(self, presentGuestOptionsFrom: sourceView)
     }
 
-    func conversationMessageWantsToOpenParticipantsDetails(_ cell: UIView, selectedUsers: [ZMUser], sourceView: UIView) {
-        delegate.conversationContentViewController(self, presentParticipantsDetailsWithSelectedUsers: selectedUsers, from: sourceView)
+    func conversationMessageWantsToOpenParticipantsDetails(_ cell: UIView, selectedUsers: [UserType], sourceView: UIView) {
+        delegate?.conversationContentViewController(self, presentParticipantsDetailsWithSelectedUsers: selectedUsers, from: sourceView)
+    }
+
+    func conversationMessageShouldUpdate() {
+        dataSource.loadMessages(forceRecalculate: true)
     }
 
 }

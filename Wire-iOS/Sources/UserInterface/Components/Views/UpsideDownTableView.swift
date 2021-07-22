@@ -17,11 +17,12 @@
 //
 
 import Foundation
+import UIKit
 
-class UpsideDownTableView: UITableView {
+final class UpsideDownTableView: UITableView {
 
     /// The view that allow pan gesture to scroll the tableview
-    @objc weak var pannableView: UIView?
+    weak var pannableView: UIView?
 
     override init(frame: CGRect, style: UITableView.Style) {
         super.init(frame: frame, style: style)
@@ -35,7 +36,7 @@ class UpsideDownTableView: UITableView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    @objc public var correctedContentInset: UIEdgeInsets {
+    var correctedContentInset: UIEdgeInsets {
         get {
             let insets = super.contentInset
             return UIEdgeInsets(top: insets.bottom, left: insets.left, bottom: insets.top, right: insets.right)
@@ -49,7 +50,7 @@ class UpsideDownTableView: UITableView {
         }
     }
 
-    public var correctedScrollIndicatorInsets: UIEdgeInsets {
+    var correctedScrollIndicatorInsets: UIEdgeInsets {
         get {
             let insets = super.scrollIndicatorInsets
             return UIEdgeInsets(top: insets.bottom, left: insets.left, bottom: insets.top, right: insets.right)
@@ -64,7 +65,7 @@ class UpsideDownTableView: UITableView {
     }
 
     var lockContentOffset: Bool = false
-    
+
     override var contentOffset: CGPoint {
         get {
             return super.contentOffset
@@ -117,13 +118,15 @@ class UpsideDownTableView: UITableView {
         super.scrollToNearestSelectedRow(at: inverseScrollPosition(scrollPosition), animated: animated)
     }
 
-    override func scrollToRow(at indexPath: IndexPath, at scrollPosition: UITableView.ScrollPosition, animated: Bool) {
+    override func scrollToRow(at indexPath: IndexPath,
+                              at scrollPosition: UITableView.ScrollPosition,
+                              animated: Bool) {
         super.scrollToRow(at: indexPath, at: inverseScrollPosition(scrollPosition), animated: animated)
     }
 
     override func dequeueReusableCell(withIdentifier identifier: String, for indexPath: IndexPath) -> UITableViewCell {
         let cell = super.dequeueReusableCell(withIdentifier: identifier, for: indexPath)
-        
+
         cell.transform = CGAffineTransform(scaleX: 1, y: -1)
 
         return cell

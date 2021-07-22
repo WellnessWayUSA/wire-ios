@@ -16,10 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import UIKit
 import WireCommonComponents
 import Cartography
+import WireDataModel
 
 protocol EphemeralKeyboardViewControllerDelegate: class {
     func ephemeralKeyboardWantsToBeDismissed(_ keyboard: EphemeralKeyboardViewController)
@@ -30,7 +30,7 @@ protocol EphemeralKeyboardViewControllerDelegate: class {
     )
 }
 
-public extension ZMConversation {
+extension InputBarConversation {
 
     var destructionTimeout: MessageDestructionTimeoutValue? {
         switch messageDestructionTimeout {
@@ -42,24 +42,24 @@ public extension ZMConversation {
             return nil
         }
     }
-    
-    @objc var timeoutImage: UIImage? {
+
+    var timeoutImage: UIImage? {
         guard let value = self.destructionTimeout else { return nil }
         return timeoutImage(for: value)
     }
 
-    @objc var disabledTimeoutImage: UIImage? {
+    var disabledTimeoutImage: UIImage? {
         guard let value = self.destructionTimeout else { return nil }
         return timeoutImage(for: value, withColor: .lightGraphite)
     }
-    
+
     private func timeoutImage(for timeout: MessageDestructionTimeoutValue, withColor color: UIColor = UIColor.accent()) -> UIImage? {
-        if timeout.isYears    { return StyleKitIcon.timeoutYear.makeImage(size: 64, color: color) }
-        if timeout.isWeeks    { return StyleKitIcon.timeoutWeek.makeImage(size: 64, color: color) }
-        if timeout.isDays     { return StyleKitIcon.timeoutDay.makeImage(size: 64, color: color) }
-        if timeout.isHours    { return StyleKitIcon.timeoutHour.makeImage(size: 64, color: color) }
-        if timeout.isMinutes  { return StyleKitIcon.timeoutMinute.makeImage(size: 64, color: color) }
-        if timeout.isSeconds  { return StyleKitIcon.timeoutSecond.makeImage(size: 64, color: color) }
+        if timeout.isYears { return StyleKitIcon.timeoutYear.makeImage(size: 64, color: color) }
+        if timeout.isWeeks { return StyleKitIcon.timeoutWeek.makeImage(size: 64, color: color) }
+        if timeout.isDays { return StyleKitIcon.timeoutDay.makeImage(size: 64, color: color) }
+        if timeout.isHours { return StyleKitIcon.timeoutHour.makeImage(size: 64, color: color) }
+        if timeout.isMinutes { return StyleKitIcon.timeoutMinute.makeImage(size: 64, color: color) }
+        if timeout.isSeconds { return StyleKitIcon.timeoutSecond.makeImage(size: 64, color: color) }
         return nil
     }
 }
@@ -68,42 +68,42 @@ extension UIAlertController {
     enum AlertError: Error {
         case userRejected
     }
-    
+
     static func requestCustomTimeInterval(over controller: UIViewController,
-                                          with completion: @escaping (Result<TimeInterval>)->()) {
+                                          with completion: @escaping (Result<TimeInterval>) -> Void) {
         let alertController = UIAlertController(title: "Custom timer", message: nil, preferredStyle: .alert)
         alertController.addTextField { (textField: UITextField) in
             textField.keyboardType = .decimalPad
             textField.placeholder = "Time interval in seconds"
         }
-        let confirmAction = UIAlertAction(title: "OK", style: .default) { [weak alertController] action in
+        let confirmAction = UIAlertAction(title: "OK", style: .default) { [weak alertController] _ in
             guard let input = alertController?.textFields?.first,
                 let inputText = input.text,
                 let selectedTimeInterval = TimeInterval(inputText) else {
                     return
             }
-            
+
             completion(.success(selectedTimeInterval))
         }
-        
+
         alertController.addAction(confirmAction)
-        
+
         let cancelAction = UIAlertAction.cancel {
             completion(.failure(AlertError.userRejected))
         }
-        
+
         alertController.addAction(cancelAction)
         controller.present(alertController, animated: true) { [weak alertController] in
             guard let input = alertController?.textFields?.first else {
                 return
             }
-            
+
             input.becomeFirstResponder()
         }
     }
 }
 
-@objcMembers public final class EphemeralKeyboardViewController: UIViewController {
+final class EphemeralKeyboardViewController: UIViewController {
 
     weak var delegate: EphemeralKeyboardViewControllerDelegate?
 
@@ -117,13 +117,12 @@ extension UIAlertController {
     private let conversation: ZMConversation!
     private let picker = PickerView()
 
-
     /// Allow conversation argument is nil for testing
     ///
     /// - Parameter conversation: nil for testing only
     public init(conversation: ZMConversation!) {
         self.conversation = conversation
-        if DeveloperMenuState.developerMenuEnabled() {
+        if Bundle.developerModeEnabled {
             timeouts = MessageDestructionTimeoutValue.all + [nil]
         }
         else {
@@ -131,7 +130,7 @@ extension UIAlertController {
         }
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -152,7 +151,7 @@ extension UIAlertController {
     }
 
     private func setupViews() {
-        
+
         picker.delegate = self
         picker.dataSource = self
         picker.backgroundColor = .clear
@@ -188,33 +187,32 @@ extension UIAlertController {
 
     fileprivate func displayCustomPicker() {
         delegate?.ephemeralKeyboardWantsToBeDismissed(self)
-        
+
         UIAlertController.requestCustomTimeInterval(over: UIApplication.shared.topmostViewController(onlyFullScreen: true)!) { [weak self] result in
-            
+
             guard let `self` = self else {
                 return
             }
-            
+
             switch result {
             case .success(let value):
                 self.delegate?.ephemeralKeyboard(self, didSelectMessageTimeout: value)
             default:
                 break
             }
-            
+
         }
     }
 }
-
 
 /// This class is a workaround to make the selector color
 /// of a `UIPickerView` changeable. It relies on the height of the selector
 /// views, which means that the behaviour could break in future iOS updates.
 class PickerView: UIPickerView, UIGestureRecognizerDelegate {
 
-    var selectorColor: UIColor? = nil
+    var selectorColor: UIColor?
     var tapRecognizer: UIGestureRecognizer! = nil
-    var didTapViewClosure: (() -> Void)? = nil
+    var didTapViewClosure: (() -> Void)?
 
     init() {
         super.init(frame: .zero)
@@ -222,7 +220,7 @@ class PickerView: UIPickerView, UIGestureRecognizerDelegate {
         tapRecognizer.delegate = self
         addGestureRecognizer(tapRecognizer)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -271,7 +269,6 @@ class PickerView: UIPickerView, UIGestureRecognizerDelegate {
 
 }
 
-
 extension EphemeralKeyboardViewController: UIPickerViewDelegate, UIPickerViewDataSource {
 
     public func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
@@ -299,7 +296,7 @@ extension EphemeralKeyboardViewController: UIPickerViewDelegate, UIPickerViewDat
 
     public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         let timeout = timeouts[row]
-        
+
         if let actualTimeout = timeout {
             delegate?.ephemeralKeyboard(self, didSelectMessageTimeout: actualTimeout.rawValue)
         }
@@ -307,5 +304,5 @@ extension EphemeralKeyboardViewController: UIPickerViewDelegate, UIPickerViewDat
             displayCustomPicker()
         }
     }
-    
+
 }

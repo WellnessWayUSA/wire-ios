@@ -27,6 +27,9 @@ extension StyleKitIcon {
 
     public enum Size: ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral {
 
+        ///8pt
+        case nano
+        
         /// 16pt.
         case tiny
 
@@ -57,6 +60,7 @@ extension StyleKitIcon {
         /// The value to use to generate the icon.
         public var rawValue: CGFloat {
             switch self {
+            case .nano: return 8
             case .tiny: return 16
             case .small: return 20
             case .medium: return 24
@@ -66,5 +70,10 @@ extension StyleKitIcon {
         }
 
     }
+}
 
+public extension StyleKitIcon.Size {
+    var cgSize: CGSize {
+        return CGSize(width: rawValue, height: rawValue)
+    }
 }

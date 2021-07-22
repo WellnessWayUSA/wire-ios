@@ -19,14 +19,12 @@
 import Foundation
 import WireDataModel
 
-@objc(MockLegalHoldDataSource)
-class MockLegalHoldDataSource: NSObject {
-    var legalHoldRequest: LegalHoldRequest? = nil
+final class MockLegalHoldDataSource: NSObject {
+    var legalHoldRequest: LegalHoldRequest?
     var needsToAcknowledgeLegalHoldStatus: Bool = false
 }
 
 extension MockUser: SelfLegalHoldSubject {
-
 
     public var needsToAcknowledgeLegalHoldStatus: Bool {
         return legalHoldDataSource.needsToAcknowledgeLegalHoldStatus
@@ -54,7 +52,7 @@ extension MockUser: SelfLegalHoldSubject {
     public func userDidReceiveLegalHoldRequest(_ request: LegalHoldRequest) {
         legalHoldDataSource.legalHoldRequest = request
     }
-    
+
     public func legalHoldRequestWasCancelled() {
         legalHoldDataSource.legalHoldRequest = nil
     }

@@ -16,23 +16,23 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import UIKit
 import Cartography
+import WireDataModel
 
 // MARK: ArchivedListViewControllerDelegate
 
-@objc protocol ArchivedListViewControllerDelegate: class {
+protocol ArchivedListViewControllerDelegate: class {
     func archivedListViewControllerWantsToDismiss(_ controller: ArchivedListViewController)
     func archivedListViewController(_ controller: ArchivedListViewController, didSelectConversation conversation: ZMConversation)
 }
 
 // MARK: - ArchivedListViewController
 
-@objcMembers final class ArchivedListViewController: UIViewController {
-    
+final class ArchivedListViewController: UIViewController {
+
     override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
-    
+
     fileprivate var collectionView: UICollectionView!
     fileprivate let archivedNavigationBar = ArchivedNavigationBar(title: "archived_list.title".localized(uppercased: true))
     fileprivate let cellReuseIdentifier = "ConversationListCellArchivedIdentifier"
@@ -41,16 +41,16 @@ import Cartography
     fileprivate let layoutCell = ConversationListCell()
     fileprivate var actionController: ConversationActionController?
     fileprivate var startCallController: ConversationCallController?
-    
+
     weak var delegate: ArchivedListViewControllerDelegate?
-    
+
     required init() {
         super.init(nibName: nil, bundle: nil)
         viewModel.delegate = self
         createViews()
         createConstraints()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -65,7 +65,7 @@ import Cartography
         collectionView.reloadData()
         collectionView.collectionViewLayout.invalidateLayout()
     }
-    
+
     func createViews() {
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.minimumLineSpacing = 0
@@ -87,7 +87,7 @@ import Cartography
             self.delegate?.archivedListViewControllerWantsToDismiss(self)
         }
     }
-    
+
     func createConstraints() {
         constrain(view, archivedNavigationBar, collectionView) { view, navigationBar, collectionView in
             navigationBar.top == view.top + UIScreen.safeArea.top
@@ -106,7 +106,7 @@ import Cartography
         self.delegate?.archivedListViewControllerWantsToDismiss(self)
         return true
     }
-    
+
 }
 
 // MARK: - CollectionViewDelegate
@@ -116,7 +116,7 @@ extension ArchivedListViewController: UICollectionViewDelegate {
         guard let conversation = viewModel[indexPath.row] else { return }
         delegate?.archivedListViewController(self, didSelectConversation: conversation)
     }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let showSeparator = scrollView.contentOffset.y >= 16
         guard showSeparator != archivedNavigationBar.showSeparator else { return }
@@ -127,7 +127,7 @@ extension ArchivedListViewController: UICollectionViewDelegate {
 // MARK: - CollectionViewDataSource
 
 extension ArchivedListViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellReuseIdentifier, for: indexPath) as! ConversationListCell
         cell.conversation = viewModel[indexPath.row]
@@ -136,52 +136,56 @@ extension ArchivedListViewController: UICollectionViewDataSource, UICollectionVi
         cell.autoresizingMask = .flexibleWidth
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return viewModel.count
     }
-    
+
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return layoutCell.size(inCollectionViewSize: collectionView.bounds.size)
     }
-    
+
 }
 
 // MARK: - ArchivedListViewModelDelegate
 
 extension ArchivedListViewController: ArchivedListViewModelDelegate {
-    internal func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateArchivedConversationsWithChange change: ConversationListChangeInfo, applyChangesClosure: @escaping () -> ()) {
+    func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateArchivedConversationsWithChange change: ConversationListChangeInfo, applyChangesClosure: @escaping () -> Void) {
         applyChangesClosure()
         collectionView.reloadData()
         collectionView.collectionViewLayout.invalidateLayout()
     }
-    
+
     func archivedListViewModel(_ model: ArchivedListViewModel, didUpdateConversationWithChange change: ConversationChangeInfo) {
-        guard change.isArchivedChanged || change.conversationListIndicatorChanged || change.nameChanged ||
-            change.unreadCountChanged || change.connectionStateChanged || change.mutedMessageTypesChanged else { return }
-        for case let cell as ConversationListCell in collectionView.visibleCells where cell.conversation == change.conversation {
-            cell.updateAppearance()
-        }
+
+        // no-op, ConversationListCell extended ZMConversationObserver 
     }
-    
+
 }
 
 // MARK: - ConversationListCellDelegate
 
 extension ArchivedListViewController: ConversationListCellDelegate {
+    func indexPath(for cell: ConversationListCell) -> IndexPath? {
+        return collectionView.indexPath(for: cell)
+    }
 
-    func conversationListCellJoinCallButtonTapped(_ cell: ConversationListCell!) {
-        startCallController = ConversationCallController(conversation: cell.conversation, target: self)
+    func conversationListCellJoinCallButtonTapped(_ cell: ConversationListCell) {
+        guard let conversation = cell.conversation as? ZMConversation else { return }
+
+        startCallController = ConversationCallController(conversation: conversation, target: self)
         startCallController?.joinCall()
     }
-    
-    func conversationListCellOverscrolled(_ cell: ConversationListCell!) {
-        actionController = ConversationActionController(conversation: cell.conversation, target: self)
-        actionController?.presentMenu(from: cell)
+
+    func conversationListCellOverscrolled(_ cell: ConversationListCell) {
+        guard let conversation = cell.conversation as? ZMConversation else { return }
+
+        actionController = ConversationActionController(conversation: conversation, target: self, sourceView: cell)
+        actionController?.presentMenu(from: cell, context: .list)
     }
 
 }

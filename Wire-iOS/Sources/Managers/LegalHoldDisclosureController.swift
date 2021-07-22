@@ -17,12 +17,14 @@
 //
 
 import UIKit
+import WireSyncEngine
+import WireDataModel
 
 /**
  * An object that coordinates disclosing the legal hold state to the user.
  */
 
-@objc class LegalHoldDisclosureController: NSObject, ZMUserObserver {
+final class LegalHoldDisclosureController: NSObject, ZMUserObserver {
 
     enum DisclosureState: Equatable {
         /// No legal hold status is being disclosed.
@@ -65,9 +67,9 @@ import UIKit
 
     /// The block that presents view controllers when requested.
     let presenter: ViewControllerPresenter
-    
+
     /// UIAlertController currently presented
-    var presentedAlertController: UIAlertController? = nil
+    var presentedAlertController: UIAlertController?
 
     /// The current state of legal hold disclosure. Defaults to none.
     var currentState: DisclosureState = .none {
@@ -94,7 +96,7 @@ import UIKit
         NotificationCenter.default.addObserver(self, selector: #selector(applicationDidEnterForeground), name: UIApplication.didBecomeActiveNotification, object: nil)
 
         if let session = self.userSession {
-            userObserverToken = UserChangeInfo.add(observer: self, for: selfUser, userSession: session)
+            userObserverToken = UserChangeInfo.add(observer: self, for: selfUser, in: session)
         }
     }
 
@@ -148,7 +150,7 @@ import UIKit
     private func disclosePendingRequestIfPossible(_ request: LegalHoldRequest) {
         // Do not present alert if we already in process of accepting the request
         if case .acceptingRequest = currentState { return }
-        
+
         // If there is a current alert, replace it with the latest disclosure
         currentState = .warningAboutPendingRequest(request)
     }
@@ -186,10 +188,10 @@ import UIKit
     private func assignState(_ newValue: DisclosureState) {
         currentState = newValue
     }
-    
+
     private func presentAlertController(for state: DisclosureState) {
-        var alertController: UIAlertController? = nil
-        
+        var alertController: UIAlertController?
+
         switch state {
         case .warningAboutDisabled:
             alertController = LegalHoldAlertFactory.makeLegalHoldDeactivatedAlert(for: selfUser, suggestedStateChangeHandler: assignState)
@@ -202,7 +204,7 @@ import UIKit
         case .acceptingRequest, .none:
             break
         }
-        
+
         dismissAlertIfNeeded(presentedAlertController) {
             if let alertController = alertController {
                 self.presentedAlertController = alertController

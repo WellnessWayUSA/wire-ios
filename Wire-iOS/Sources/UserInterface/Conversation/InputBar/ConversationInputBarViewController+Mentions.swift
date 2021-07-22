@@ -17,32 +17,34 @@
 //
 
 import Foundation
+import WireDataModel
+import UIKit
 
 extension ConversationInputBarViewController {
     var isInMentionsFlow: Bool {
         return mentionsHandler != nil
     }
-    
+
     var canInsertMention: Bool {
         guard isInMentionsFlow, let mentionsView = mentionsView, mentionsView.users.count > 0 else {
             return false
         }
         return true
     }
-    
+
     func insertBestMatchMention() {
         guard canInsertMention, let mentionsView = mentionsView else {
             fatal("Cannot insert best mention")
         }
-        
+
         if let bestSuggestion = mentionsView.selectedUser {
             insertMention(for: bestSuggestion)
         }
     }
-    
+
     func insertMention(for user: UserType) {
         guard let handler = mentionsHandler else { return }
-        
+
         let text = inputBar.textView.attributedText ?? NSAttributedString(string: inputBar.textView.text)
 
         let (range, attributedText) = handler.replacement(forMention: user, in: text)
@@ -51,12 +53,13 @@ extension ConversationInputBarViewController {
         playInputHapticFeedback()
         dismissMentionsIfNeeded()
     }
-    
-    @objc func configureMentionButton() {
+
+    func configureMentionButton() {
         mentionButton.addTarget(self, action: #selector(ConversationInputBarViewController.mentionButtonTapped(sender:)), for: .touchUpInside)
     }
 
-    @objc func mentionButtonTapped(sender: Any) {
+    @objc
+    private func mentionButtonTapped(sender: Any) {
         guard !isInMentionsFlow else { return }
 
         let textView = inputBar.textView
@@ -75,26 +78,30 @@ extension ConversationInputBarViewController: UserSearchResultsViewControllerDel
 }
 
 extension ConversationInputBarViewController {
-    
-    @objc func dismissMentionsIfNeeded() {
+
+    func dismissMentionsIfNeeded() {
         mentionsHandler = nil
         mentionsView?.dismiss()
     }
 
     func triggerMentionsIfNeeded(from textView: UITextView, with selection: UITextRange? = nil) {
+        guard let conversation = conversation as? ZMConversation else { return }
+
         if let position = MentionsHandler.cursorPosition(in: textView, range: selection) {
             mentionsHandler = MentionsHandler(text: textView.text, cursorPosition: position)
         }
 
         if let handler = mentionsHandler, let searchString = handler.searchString(in: textView.text) {
             let participants = conversation.sortedActiveParticipants
-            mentionsView?.users = ZMUser.searchForMentions(in: participants, with: searchString)
+            mentionsView?.users = participants.searchForMentions(withQuery: searchString)
         } else {
             dismissMentionsIfNeeded()
         }
     }
 
-    @objc func registerForTextFieldSelectionChange() {
+    func registerForTextFieldSelectionChange() {
+        guard !ProcessInfo.processInfo.isRunningTests else { return }
+
         textfieldObserverToken = inputBar.textView.observe(\MarkdownTextView.selectedTextRange, options: [.new]) { [weak self] (textView: MarkdownTextView, change: NSKeyValueObservedChange<UITextRange?>) -> Void in
             let newValue = change.newValue ?? nil
             self?.triggerMentionsIfNeeded(from: textView, with: newValue)

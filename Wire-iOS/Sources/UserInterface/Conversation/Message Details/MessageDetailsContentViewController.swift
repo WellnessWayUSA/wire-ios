@@ -17,12 +17,13 @@
 //
 
 import UIKit
+import WireDataModel
 
 /**
  * Displays the list of users for a specified message detail content type.
  */
 
-class MessageDetailsContentViewController: UIViewController {
+final class MessageDetailsContentViewController: UIViewController {
 
     /// The type of the displayed content.
     enum ContentType {
@@ -93,6 +94,12 @@ class MessageDetailsContentViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         collectionView.map(updateFooterPosition)
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        coordinator.animate(alongsideTransition: { _ in
+            self.collectionView.collectionViewLayout.invalidateLayout()
+        })
     }
 
     private func configureSubviews() {
@@ -250,7 +257,7 @@ extension MessageDetailsContentViewController: UICollectionViewDataSource, UICol
         let description = cells[indexPath.item]
         let cell = collectionView.dequeueReusableCell(ofType: UserCell.self, for: indexPath)
 
-        cell.configure(with: description.user, subtitle: description.attributedSubtitle, conversation: conversation)
+        cell.configure(with: description.user, selfUser: SelfUser.current, subtitle: description.attributedSubtitle, conversation: conversation)
         cell.showSeparator = indexPath.item != (cells.endIndex - 1)
         cell.subtitleLabel.accessibilityLabel = description.accessibleSubtitleLabel
         cell.subtitleLabel.accessibilityValue = description.accessibleSubtitleValue
@@ -267,7 +274,7 @@ extension MessageDetailsContentViewController: UICollectionViewDataSource, UICol
         let user = cells[indexPath.item].user
         let cell = collectionView.cellForItem(at: indexPath) as! UserCell
 
-        let profileViewController = ProfileViewController(user: user, viewer: ZMUser.selfUser(), conversation: conversation)
+        let profileViewController = ProfileViewController(user: user, viewer: SelfUser.current, conversation: conversation)
         profileViewController.delegate = self
         profileViewController.viewControllerDismisser = self
 
@@ -280,20 +287,24 @@ extension MessageDetailsContentViewController: UICollectionViewDataSource, UICol
 
 }
 
-// MARK: - ProfileViewControllerDelegate
-
-extension MessageDetailsContentViewController: ProfileViewControllerDelegate, ViewControllerDismisser {
-
-    func dismiss(viewController: UIViewController, completion: (() -> ())?) {
+extension MessageDetailsContentViewController: ViewControllerDismisser {
+    func dismiss(viewController: UIViewController, completion: (() -> Void)?) {
         viewController.dismiss(animated: true, completion: nil)
     }
+}
 
+// MARK: - ProfileViewControllerDelegate
+
+extension MessageDetailsContentViewController: ProfileViewControllerDelegate {
     func profileViewController(_ controller: ProfileViewController?, wantsToNavigateTo conversation: ZMConversation) {
         dismiss(animated: true) {
-            ZClientViewController.shared()?.load(conversation, scrollTo: nil, focusOnView: true, animated: true)
+            ZClientViewController.shared?.load(conversation, scrollTo: nil, focusOnView: true, animated: true)
         }
     }
 
+    func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: String?, users: UserSet) {
+        // no-op
+    }
 }
 
 // MARK: - Adaptive Presentation

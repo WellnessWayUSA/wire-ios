@@ -16,16 +16,15 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Cartography
 
-@objc public protocol ModalTopBarDelegate: class {
+protocol ModalTopBarDelegate: class {
     func modelTopBarWantsToBeDismissed(_ topBar: ModalTopBar)
 }
 
-@objcMembers final public class ModalTopBar: UIView {
+final class ModalTopBar: UIView {
 
-    public let dismissButton = IconButton()
+    let dismissButton = IconButton()
 
     public let titleLabel: UILabel = {
         let label = UILabel()
@@ -63,7 +62,7 @@ import Cartography
 
     weak var delegate: ModalTopBarDelegate?
     private var contentTopConstraint: NSLayoutConstraint?
-    
+
     private var title: String? {
         didSet {
             titleLabel.text = title?.localizedUppercase
@@ -111,7 +110,7 @@ import Cartography
         self.subtitle = subtitle
         self.titleLabel.font = subtitle == nil ? .mediumSemiboldFont : .systemFont(ofSize: 11, weight: .semibold)
     }
-    
+
     fileprivate func configureViews() {
         backgroundColor = .from(scheme: .background)
         titleLabel.isHidden = true
@@ -158,7 +157,7 @@ import Cartography
         titleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 750), for: .horizontal)
         subtitleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 750), for: .horizontal)
     }
-    
+
     @objc fileprivate func dismissButtonTapped(_ sender: IconButton) {
         delegate?.modelTopBarWantsToBeDismissed(self)
     }

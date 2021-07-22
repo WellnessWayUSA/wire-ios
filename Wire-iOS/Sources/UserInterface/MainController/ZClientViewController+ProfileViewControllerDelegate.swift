@@ -17,21 +17,16 @@
 //
 
 import Foundation
+import WireDataModel
 
 extension ZClientViewController: ProfileViewControllerDelegate {
 
-    public func suggestedBackButtonTitle(for controller: ProfileViewController?) -> Any! {
-        // The Profile VC is presented in Model style and back button is not needed
-        return nil
+    func profileViewController(_ controller: ProfileViewController?, wantsToNavigateTo conversation: ZMConversation) {
+        select(conversation: conversation, focusOnView: true, animated: true)
     }
 
-
-    public func profileViewController(_ controller: ProfileViewController?, wantsToNavigateTo conversation: ZMConversation) {
-        select(conversation, focusOnView: true, animated: true)
-    }
-
-    public func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: Any!, users: Any!) {
-        //no-op. Profile viewer does not have function to create a group conversation.
+    func profileViewController(_ controller: ProfileViewController?, wantsToCreateConversationWithName name: String?, users: UserSet) {
+        // no-op. Profile viewer does not have function to create a group conversation.
     }
 
 }

@@ -16,6 +16,8 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import UIKit
+
 final class CollectionViewContainerCell: UICollectionViewCell {
     var collectionView: UICollectionView? {
         didSet {
@@ -27,7 +29,7 @@ final class CollectionViewContainerCell: UICollectionViewCell {
             collectionView.fitInSuperview()
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         accessibilityIdentifier = "topPeopleSection"

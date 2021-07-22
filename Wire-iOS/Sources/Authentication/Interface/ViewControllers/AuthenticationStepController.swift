@@ -46,6 +46,10 @@ class AuthenticationStepController: AuthenticationStepViewController {
 
     // MARK: - Views
 
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .compatibleDarkContent
+    }
+
     private var contentStack: CustomSpacingStackView!
 
     private var headlineLabel: UILabel!
@@ -91,7 +95,7 @@ class AuthenticationStepController: AuthenticationStepViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.Team.background
-        
+
         createViews()
         createConstraints()
         updateBackButton()
@@ -155,7 +159,7 @@ class AuthenticationStepController: AuthenticationStepViewController {
         }
 
         errorLabel = UILabel()
-        let errorInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 24 + AccessoryTextField.ConfirmButtonWidth)
+        let errorInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 24 + ValidatedTextField.ConfirmButtonWidth)
         errorLabelContainer = ContentInsetView(errorLabel, inset: errorInsets)
         errorLabel.textAlignment = .left
         errorLabel.numberOfLines = 0
@@ -185,7 +189,7 @@ class AuthenticationStepController: AuthenticationStepViewController {
     }
 
     private func updateHeadlineLabelFont() {
-        headlineLabel.font = self.view.frame.size.width > 320 ? AuthenticationStepController.headlineFont : AuthenticationStepController.headlineSmallFont
+        headlineLabel.font = self.view.frame.size.width > CGFloat.iPhone4Inch.width ? AuthenticationStepController.headlineFont : AuthenticationStepController.headlineSmallFont
     }
 
     func setSecondaryViewHidden(_ isHidden: Bool) {
@@ -273,7 +277,7 @@ class AuthenticationStepController: AuthenticationStepViewController {
     // MARK: - Back Button
 
     private func updateBackButton() {
-        guard navigationController?.viewControllers.count > 1 else {
+        guard navigationController?.viewControllers.count ?? 0 > 1 else {
             return
         }
 
@@ -354,6 +358,13 @@ class AuthenticationStepController: AuthenticationStepViewController {
 // MARK: - Event Handling
 
 extension AuthenticationStepController {
+
+    // MARK: - AuthenticationCoordinatedViewController
+
+    func displayError(_ error: Error) {
+        // no-op
+    }
+
     func executeErrorFeedbackAction(_ feedbackAction: AuthenticationErrorFeedbackAction) {
         switch feedbackAction {
         case .clearInputFields:
@@ -384,7 +395,7 @@ extension AuthenticationStepController {
             errorLabel.textColor = UIColor.Team.placeholderColor
             errorLabelContainer.isHidden = false
             showSecondaryView(for: nil)
-            
+
         case .error(let error, let showVisualFeedback)?:
             if !showVisualFeedback {
                 // If we do not want to show an error (eg if all the text was deleted,
@@ -428,5 +439,4 @@ extension AuthenticationStepController {
             secondaryViewsStackView.addArrangedSubview(view)
         }
     }
-
 }

@@ -21,23 +21,26 @@ import XCTest
 
 class MockConversationListBottomBarDelegate: NSObject, ConversationListBottomBarControllerDelegate {
     func conversationListBottomBar(_ bar: ConversationListBottomBarController, didTapButtonWithType buttonType: ConversationListButtonType) {
-        switch (buttonType) {
+        switch buttonType {
         case .archive:
             self.archiveButtonTapCount += 1
-        case .camera:
-            self.cameraButtonTapCount += 1
         case .startUI:
             self.startUIButtonCallCount += 1
+        case .list:
+            self.listButtonCallCount += 1
+        case .folder:
+            self.folderButtonTapCount += 1
         }
     }
 
     var startUIButtonCallCount: Int = 0
     var archiveButtonTapCount: Int = 0
-    var cameraButtonTapCount: Int = 0
+    var listButtonCallCount: Int = 0
+    var folderButtonTapCount: Int = 0
 }
 
 final class ConversationListBottomBarControllerTests: ZMSnapshotTestCase {
-    
+
     var sut: ConversationListBottomBarController!
     var mockDelegate: MockConversationListBottomBarDelegate!
 
@@ -48,19 +51,20 @@ final class ConversationListBottomBarControllerTests: ZMSnapshotTestCase {
         accentColor = .brightYellow
         mockDelegate = MockConversationListBottomBarDelegate()
         UIView.performWithoutAnimation({
-            self.sut = ConversationListBottomBarController(delegate: self.mockDelegate)
+            self.sut = ConversationListBottomBarController()
+            self.sut.delegate = self.mockDelegate
 
-            ///SUT has a priority 750 height constraint. fix its height first
+            // SUT has a priority 750 height constraint. fix its height first
             NSLayoutConstraint.activate([
                 sut.view.heightAnchor.constraint(equalToConstant: 56)
                 ])
         })
     }
-    
+
     override func tearDown() {
         sut = nil
         mockDelegate = nil
-        
+
         super.tearDown()
     }
 
@@ -106,9 +110,7 @@ final class ConversationListBottomBarControllerTests: ZMSnapshotTestCase {
         sut.startUIButton.sendActions(for: .touchUpInside)
 
         // then
-        XCTAssertEqual(mockDelegate.startUIButtonCallCount, 1)
         XCTAssertEqual(mockDelegate.archiveButtonTapCount, 0)
-        XCTAssertEqual(mockDelegate.cameraButtonTapCount, 0)
     }
 
     func testThatItCallsTheDelegateWhenTheArchivedButtonIsTapped() {
@@ -116,19 +118,22 @@ final class ConversationListBottomBarControllerTests: ZMSnapshotTestCase {
         sut.archivedButton.sendActions(for: .touchUpInside)
 
         // then
-        XCTAssertEqual(mockDelegate.startUIButtonCallCount, 0)
         XCTAssertEqual(mockDelegate.archiveButtonTapCount, 1)
-        XCTAssertEqual(mockDelegate.cameraButtonTapCount, 0)
     }
 
-    func testThatItCallsTheDelegateWhenTheCameraButtonIsTapped() {
+    func testThatItCallsTheDelegateWhenTheListButtonIsTapped() {
         // when
-        sut.cameraButton.sendActions(for: .touchUpInside)
+        sut.listButton.sendActions(for: .touchUpInside)
 
         // then
-        XCTAssertEqual(mockDelegate.startUIButtonCallCount, 0)
-        XCTAssertEqual(mockDelegate.archiveButtonTapCount, 0)
-        XCTAssertEqual(mockDelegate.cameraButtonTapCount, 1)
+        XCTAssertEqual(mockDelegate.listButtonCallCount, 1)
     }
 
+    func testThatItCallsTheDelegateWhenTheFolderButtonIsTapped() {
+        // when
+        sut.folderButton.sendActions(for: .touchUpInside)
+
+        // then
+        XCTAssertEqual(mockDelegate.folderButtonTapCount, 1)
+    }
 }

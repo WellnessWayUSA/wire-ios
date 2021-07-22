@@ -19,16 +19,14 @@
 import Foundation
 import SafariServices
 
-@objcMembers class BrowserViewController: SFSafariViewController {
+final class BrowserViewController: SFSafariViewController {
 
-    @objc var completion: (() -> Void)?
-    @objc var onDismiss: (() -> Void)?
+    var completion: (() -> Void)?
+    var onDismiss: (() -> Void)?
 
     // MARK: - Tint Color
 
     private var overrider = TintColorOverrider()
-    private var originalStatusBarStyle: UIStatusBarStyle = .default
-    private var originalStatusBarVisibility: Bool = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,18 +36,12 @@ import SafariServices
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        originalStatusBarStyle = UIApplication.shared.statusBarStyle
-        originalStatusBarVisibility = UIApplication.shared.isStatusBarHidden
         overrider.override()
-        UIApplication.shared.wr_setStatusBarStyle(.default, animated: true)
-        UIApplication.shared.wr_setStatusBarHidden(false, with: .fade)
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         overrider.restore()
-        UIApplication.shared.wr_setStatusBarStyle(originalStatusBarStyle, animated: true)
-        UIApplication.shared.wr_setStatusBarHidden(originalStatusBarVisibility, with: .fade)
     }
 
     override func dismiss(animated flag: Bool, completion defaultBlock: (() -> Void)? = nil) {
@@ -57,10 +49,6 @@ import SafariServices
             self.onDismiss?()
             defaultBlock?()
         }
-    }
-
-    override var prefersStatusBarHidden: Bool {
-        return false
     }
 
 }

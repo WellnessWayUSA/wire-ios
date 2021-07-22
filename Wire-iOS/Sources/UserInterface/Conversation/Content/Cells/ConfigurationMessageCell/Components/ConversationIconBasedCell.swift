@@ -17,6 +17,7 @@
 //
 
 import UIKit
+import WireDataModel
 
 class ConversationIconBasedCell: UIView {
 
@@ -33,9 +34,9 @@ class ConversationIconBasedCell: UIView {
     private var textLabelTrailingConstraint: NSLayoutConstraint!
     private var textLabelTopConstraint: NSLayoutConstraint!
     private var topContentViewTrailingConstraint: NSLayoutConstraint!
-    
-    weak var delegate: ConversationMessageCellDelegate? = nil
-    weak var message: ZMConversationMessage? = nil
+
+    weak var delegate: ConversationMessageCellDelegate?
+    weak var message: ZMConversationMessage?
 
     var isSelected: Bool = false
 
@@ -60,9 +61,9 @@ class ConversationIconBasedCell: UIView {
             }
         }
     }
-    
+
     private var trailingTextMargin: CGFloat {
-        return -UIView.conversationLayoutMargins.right * 2
+        return -conversationHorizontalMargins.right * 2
     }
 
     override init(frame: CGRect) {
@@ -89,7 +90,7 @@ class ConversationIconBasedCell: UIView {
 
         textLabel.linkTextAttributes = [
             NSAttributedString.Key.underlineStyle: NSUnderlineStyle().rawValue as NSNumber,
-            NSAttributedString.Key.foregroundColor: ZMUser.selfUser().accentColor
+            NSAttributedString.Key.foregroundColor: SelfUser.provider?.selfUser.accentColor ?? UIColor.accent()
         ]
 
         lineView.backgroundColor = .from(scheme: .separator)
@@ -111,10 +112,10 @@ class ConversationIconBasedCell: UIView {
         lineView.translatesAutoresizingMaskIntoConstraints = false
 
         topContentViewTrailingConstraint = topContentView.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: trailingTextMargin)
-        containerWidthConstraint = imageContainer.widthAnchor.constraint(equalToConstant: UIView.conversationLayoutMargins.left)
+        containerWidthConstraint = imageContainer.widthAnchor.constraint(equalToConstant: conversationHorizontalMargins.left)
         textLabelTrailingConstraint = textLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: trailingTextMargin)
         textLabelTopConstraint = textLabel.topAnchor.constraint(equalTo: topContentView.bottomAnchor)
-        
+
         // We want the content view to at least be below the image container
         let contentViewTopConstraint = bottomContentView.topAnchor.constraint(equalTo: imageContainer.bottomAnchor)
         contentViewTopConstraint.priority = .defaultLow
@@ -132,23 +133,23 @@ class ConversationIconBasedCell: UIView {
             imageView.heightAnchor.constraint(equalToConstant: 32),
             imageView.centerXAnchor.constraint(equalTo: imageContainer.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
-            
+
             // topContentView
             topContentView.topAnchor.constraint(equalTo: topAnchor),
             topContentView.leadingAnchor.constraint(equalTo: textLabel.leadingAnchor),
             topContentViewTrailingConstraint,
-            
+
             // textLabel
             textLabel.leadingAnchor.constraint(equalTo: imageContainer.trailingAnchor),
             textLabelTopConstraint,
             textLabelTrailingConstraint,
-        
+
             // lineView
             lineView.leadingAnchor.constraint(equalTo: textLabel.trailingAnchor, constant: 16),
             lineView.heightAnchor.constraint(equalToConstant: .hairline),
             lineView.trailingAnchor.constraint(equalTo: trailingAnchor),
             lineView.centerYAnchor.constraint(equalTo: imageContainer.centerYAnchor),
-            
+
             // bottomContentView
             bottomContentView.leadingAnchor.constraint(equalTo: textLabel.leadingAnchor),
             bottomContentView.topAnchor.constraint(greaterThanOrEqualTo: textLabel.bottomAnchor),
@@ -160,7 +161,7 @@ class ConversationIconBasedCell: UIView {
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        containerWidthConstraint.constant = UIView.conversationLayoutMargins.left
+        containerWidthConstraint.constant = conversationHorizontalMargins.left
         textLabelTrailingConstraint.constant = trailingTextMargin
         topContentViewTrailingConstraint.constant = trailingTextMargin
     }

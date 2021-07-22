@@ -16,12 +16,14 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
+import WireDataModel
+import UIKit
+import WireSyncEngine
 
-public final class UserConnectionView: UIView, Copyable {
-    
+final class UserConnectionView: UIView, Copyable {
+
     public convenience init(instance: UserConnectionView) {
         self.init(user: instance.user)
     }
@@ -38,14 +40,14 @@ public final class UserConnectionView: UIView, Copyable {
     private let secondLabel = UILabel()
     private let labelContainer = UIView()
     private let userImageView = UserImageView()
-    
+
     public var user: UserType {
         didSet {
             self.updateLabels()
             self.userImageView.user = self.user
         }
     }
-    
+
     public init(user: UserType) {
         self.user = user
         super.init(frame: .zero)
@@ -53,11 +55,11 @@ public final class UserConnectionView: UIView, Copyable {
         self.setup()
         self.createConstraints()
     }
-    
+
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func setup() {
         [firstLabel, secondLabel].forEach {
             $0.numberOfLines = 0
@@ -67,7 +69,7 @@ public final class UserConnectionView: UIView, Copyable {
         self.userImageView.accessibilityLabel = "user image"
         self.userImageView.size = .big
         self.userImageView.user = self.user
-        
+
         [self.labelContainer, self.userImageView].forEach(self.addSubview)
         [self.firstLabel, self.secondLabel].forEach(labelContainer.addSubview)
         self.updateLabels()
@@ -105,10 +107,10 @@ public final class UserConnectionView: UIView, Copyable {
     private var correlationLabelText: NSAttributedString? {
         return type(of: self).correlationFormatter.correlationText(
             for: user,
-            addressBookName: user.zmUser?.addressBookEntry?.cachedName
+            addressBookName: (user as? ZMUser)?.addressBookEntry?.cachedName
         )
     }
-    
+
     private func createConstraints() {
         constrain(self, self.labelContainer, self.userImageView) { selfView, labelContainer, userImageView in
             labelContainer.centerX == selfView.centerX

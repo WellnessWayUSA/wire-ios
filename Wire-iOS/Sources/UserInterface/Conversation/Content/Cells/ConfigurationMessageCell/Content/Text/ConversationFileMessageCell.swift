@@ -17,6 +17,7 @@
 //
 
 import UIKit
+import WireDataModel
 
 class ConversationFileMessageCell: RoundedView, ConversationMessageCell {
 
@@ -29,9 +30,9 @@ class ConversationFileMessageCell: RoundedView, ConversationMessageCell {
 
     private let fileTransferView = FileTransferView(frame: .zero)
     private let obfuscationView = ObfuscationView(icon: .paperclip)
-    
-    weak var delegate: ConversationMessageCellDelegate? = nil
-    weak var message: ZMConversationMessage? = nil
+
+    weak var delegate: ConversationMessageCellDelegate?
+    weak var message: ZMConversationMessage?
 
     var isSelected: Bool = false
 
@@ -76,7 +77,7 @@ class ConversationFileMessageCell: RoundedView, ConversationMessageCell {
             obfuscationView.leadingAnchor.constraint(equalTo: leadingAnchor),
             obfuscationView.topAnchor.constraint(equalTo: topAnchor),
             obfuscationView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            obfuscationView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            obfuscationView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 
@@ -107,12 +108,12 @@ class ConversationFileMessageCell: RoundedView, ConversationMessageCell {
 extension ConversationFileMessageCell: TransferViewDelegate {
     func transferView(_ view: TransferView, didSelect action: MessageAction) {
         guard let message = message else { return }
-        
+
         delegate?.perform(action: action, for: message, view: self)
     }
 }
 
-class ConversationFileMessageCellDescription: ConversationMessageCellDescription {
+final class ConversationFileMessageCellDescription: ConversationMessageCellDescription {
     typealias View = ConversationFileMessageCell
     let configuration: View.Configuration
 
@@ -127,11 +128,13 @@ class ConversationFileMessageCellDescription: ConversationMessageCellDescription
     weak var delegate: ConversationMessageCellDelegate?
     weak var actionController: ConversationMessageActionController?
 
-    let accessibilityIdentifier: String? = nil
+    var accessibilityIdentifier: String? {
+        return configuration.isObfuscated ? "ObfuscatedFileCell" : "FileCell"
+    }
     let accessibilityLabel: String? = nil
 
     init(message: ZMConversationMessage) {
         self.configuration = View.Configuration(message: message)
     }
-        
+
 }

@@ -1,4 +1,4 @@
- //
+//
 // Wire
 // Copyright (C) 2016 Wire Swiss GmbH
 //
@@ -16,16 +16,15 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import UIKit
 import Cartography
+ import WireDataModel
 
+private let smallLightFont = FontSpec(.small, .light).font!
+private let smallBoldFont = FontSpec(.small, .medium).font!
+private let normalBoldFont = FontSpec(.normal, .medium).font!
 
-fileprivate let smallLightFont = FontSpec(.small, .light).font!
-fileprivate let smallBoldFont = FontSpec(.small, .medium).font!
-fileprivate let normalBoldFont = FontSpec(.normal, .medium).font!
-
-@objcMembers public class AddressBookCorrelationFormatter: NSObject {
+final class AddressBookCorrelationFormatter: NSObject {
 
     let lightFont, boldFont: UIFont
     let color: UIColor
@@ -51,14 +50,13 @@ fileprivate let normalBoldFont = FontSpec(.normal, .medium).font!
         if let name = addressBookName, let addressBook = addressBookText(for: user, with: name) {
             return addressBook
         }
-        
+
         return nil
     }
-    
+
 }
 
-
-@objcMembers final class UserNameDetailViewModel: NSObject {
+final class UserNameDetailViewModel: NSObject {
 
     let title: NSAttributedString
 
@@ -114,8 +112,7 @@ fileprivate let normalBoldFont = FontSpec(.normal, .medium).font!
     }
 }
 
-
-@objcMembers final class UserNameDetailView: UIView {
+final class UserNameDetailView: UIView {
 
     let subtitleLabel = UILabel()
     let correlationLabel = UILabel()
@@ -125,7 +122,7 @@ fileprivate let normalBoldFont = FontSpec(.normal, .medium).font!
         setupViews()
         createConstraints()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

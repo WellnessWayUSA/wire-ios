@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import UIKit
+import WireSyncEngine
 
 protocol CallInfoViewControllerDelegate: class {
     func infoViewController(_ viewController: CallInfoViewController, perform action: CallAction)
@@ -42,8 +44,6 @@ extension CallInfoViewControllerInput {
             disableIdleTimer == other.disableIdleTimer &&
             canToggleMediaType == other.canToggleMediaType &&
             isMuted == other.isMuted &&
-            isTerminating == other.isTerminating &&
-            canAccept == other.canAccept &&
             mediaState == other.mediaState &&
             appearance == other.appearance &&
             isVideoCall == other.isVideoCall &&
@@ -52,7 +52,11 @@ extension CallInfoViewControllerInput {
             isConstantBitRate == other.isConstantBitRate &&
             title == other.title &&
             cameraType == other.cameraType &&
-            networkQuality == other.networkQuality
+            networkQuality == other.networkQuality &&
+            userEnabledCBR == other.userEnabledCBR &&
+            callState.isEqual(toCallState: other.callState) &&
+            videoGridPresentationMode == other.videoGridPresentationMode &&
+            allowPresentationModeUpdates == other.allowPresentationModeUpdates
     }
 }
 
@@ -72,28 +76,30 @@ final class CallInfoViewController: UIViewController, CallActionsViewDelegate, C
         }
     }
 
-    init(configuration: CallInfoViewControllerInput) {
-        self.configuration = configuration        
+    init(configuration: CallInfoViewControllerInput,
+         selfUser: UserType,
+         userSession: ZMUserSession? = ZMUserSession.shared()) {
+        self.configuration = configuration
         statusViewController = CallStatusViewController(configuration: configuration)
-        accessoryViewController = CallAccessoryViewController(configuration: configuration)
-        backgroundViewController = BackgroundViewController(user: ZMUser.selfUser(), userSession: ZMUserSession.shared())
+        accessoryViewController = CallAccessoryViewController(configuration: configuration, selfUser: selfUser)
+        backgroundViewController = BackgroundViewController(user: selfUser, userSession: userSession)
         super.init(nibName: nil, bundle: nil)
         accessoryViewController.delegate = self
         actionsView.delegate = self
     }
-    
+
     @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
         createConstraints()
         updateNavigationItem()
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateState()
@@ -106,7 +112,7 @@ final class CallInfoViewController: UIViewController, CallActionsViewDelegate, C
         view.addSubview(stackView)
         stackView.alignment = .center
         stackView.distribution = .fill
-        stackView.spacing = DeviceNativeBoundsSize.nativeScreenBoundOfThisDevice == .iPhone3_5Inch ? 6 : 16
+        stackView.spacing = 16
 
         addChild(statusViewController)
         [statusViewController.view, accessoryViewController.view, actionsView].forEach(stackView.addArrangedSubview)
@@ -127,7 +133,7 @@ final class CallInfoViewController: UIViewController, CallActionsViewDelegate, C
 
         backgroundViewController.view.fitInSuperview()
     }
-    
+
     private func updateNavigationItem() {
         let minimizeItem = UIBarButtonItem(
             icon: .downArrow,
@@ -158,19 +164,19 @@ final class CallInfoViewController: UIViewController, CallActionsViewDelegate, C
             navigationItem.titleView = label
         }
     }
-    
+
     // MARK: - Actions + Delegates
-    
-    @objc func minimizeCallOverlay(_ sender: UIBarButtonItem) {
+
+    @objc
+    private func minimizeCallOverlay(_ sender: UIBarButtonItem) {
         delegate?.infoViewController(self, perform: .minimizeOverlay)
     }
 
     func callActionsView(_ callActionsView: CallActionsView, perform action: CallAction) {
         delegate?.infoViewController(self, perform: action)
     }
-    
+
     func callAccessoryViewControllerDidSelectShowMore(viewController: CallAccessoryViewController) {
         delegate?.infoViewController(self, perform: .showParticipantsList)
     }
-
 }

@@ -2,47 +2,109 @@ opt_out_usage
 default_platform(:ios)
 
 platform :ios do
-
     desc "Fetch dependencies"
     lane :prepare do |options|
+        xcode_version = options[:xcode_version]
+        # Saving `Carthage bootstrap` running time by reusing the Cathage artifacts.
+        # When the Cathage framworks is not pre-built(e.g. in feature branch), this option can save the time of building.
+        # When cache_carthage = YES, 
+        # copy Carthage folder form ~/tmp/cache/Carthage before running setup.sh and 
+        # copy it back after at the end of this lane
+        cache_carthage = options[:cache_carthage]
+
+        if !xcode_version.nil? 
+            xcversion(version: xcode_version)
+        end
+
         build_type = options[:build_type]
         # Delete configurations in case we switch to different branch or repo
         sh "rm -rf ../Configuration"
         if build_type.nil? 
             sh "cd .. && ./setup.sh"
         else
+            override_folder = options[:override_folder]
+            if override_folder.nil? 
+                override_folder = "CI configuration"
+            end
+
+
+            config_repo = options[:config_repo]
+            if config_repo.nil? 
+                config_repo = "https://github.com/wireapp/wire-ios-build-configuration.git"
+            end
+
+
+            config_branch = options[:config_branch]
+            if config_branch.nil? 
+                config_branch = "master"
+            end
+
             build = Build.new(options: options)
             # We need to update the AVS version before running setup script
             build.update_avs_version()
-            sh "cd .. && ./setup.sh --override_with wire-ios-build-assets/CI\ configuration/#{build_type}"
+
+            if cache_carthage == "Yes"
+                sh "cd .. && cp -R ~/tmp/cache/Carthage ./Carthage || echo ⚠️ Carthage cache not exist, skip copying"
+            end
+
+            sh "cd .. && ./setup.sh -c #{config_repo} -b #{config_branch} -o \'wire-ios-build-assets/#{override_folder}/#{build_type}\'"
             # Adding extra information to the icon must be done after we check them out in setup script
             build.process_icon()
+
+            if cache_carthage == "Yes"
+                sh "rm -rf ~/tmp/cache/Carthage"
+                sh "cd .. && cp -R ./Carthage ~/tmp/cache/Carthage"
+            end
         end
     end
 
 
     desc "Build for testing"
-    lane :build do
+    lane :build do |options|
+        xcode_version = options[:xcode_version]
+
+        if !xcode_version.nil? 
+            xcversion(version: xcode_version)
+        end
+
+        build = Build.new(options: options)
+
         run_tests(
             scheme: "Wire-iOS",
+            skip_detect_devices: true,
             configuration: "Debug",
             build_for_testing: true,
-            devices: ["iPhone 7"],
-            code_coverage: true,
+            sdk:"iphonesimulator",
             derived_data_path: "DerivedData",
             buildlog_path: "build",
             output_directory: "build",
-            output_types: "junit"
+            output_types: "junit",
+            xcargs: "BUILD_NUMBER=#{build.build_number}"
         )
     end
 
     desc "Test without building"
-    lane :test do
+    lane :test do |options|
+        xcode_version = options[:xcode_version]
+
+        ios_version = "14.4"
+        if !xcode_version.nil? 
+            xcversion(version: xcode_version)
+
+            if xcode_version == "11.4"
+                ios_version = "13.4"
+            elsif xcode_version == "11.4.1"
+                ios_version = "13.4.1"
+            end
+        end
+
         run_tests(
             scheme: "Wire-iOS",
+            skip_detect_devices: true,
             configuration: "Debug",
             test_without_building: true,
-            devices: ["iPhone 7"],
+            sdk:"iphonesimulator",
+            destination: "platform=iOS Simulator,name=iPhone 8,OS=#{ios_version}",
             code_coverage: true,
             derived_data_path: "DerivedData",
             buildlog_path: "test",
@@ -51,14 +113,20 @@ platform :ios do
         )
     end
 
-    desc "Build for release to AppStore or Hockey/S3"
+    desc "Build for release to AppStore or App Center/S3"
     lane :build_for_release do |options|
+        xcode_version = options[:xcode_version]
+
+        if !xcode_version.nil? 
+            xcversion(version: xcode_version)
+        end
+
         build = Build.new(options: options)
 
         if build.for_simulator
             Dir.chdir("..") do
                 # Build the app for simulator
-                sh "xcodebuild -scheme 'Wire-iOS' -configuration 'Debug' -sdk 'iphonesimulator' -derivedDataPath DerivedData -quiet clean build BUILD_NUMBER=#{build.build_number}"
+                sh "xcodebuild -scheme 'Wire-iOS' -configuration 'Debug' -sdk 'iphonesimulator' -derivedDataPath DerivedData -quiet build BUILD_NUMBER=#{build.build_number}"
 
                 # make a "fake" .ipa package that QA will use for installing to simulator
                 sh "mkdir -p debug/Payload"
@@ -84,6 +152,32 @@ platform :ios do
         end
     end
 
+    desc "Build for release to AppStore without symbols"
+    lane :build_for_release_without_symbols do |options|
+        xcode_version = options[:xcode_version]
+
+        if !xcode_version.nil? 
+            xcversion(version: xcode_version)
+        end
+
+        build = Build.new(options: options)
+
+        build_app(
+            scheme: "Wire-iOS",
+            configuration: build.configuration,
+            export_method: build.export_method,
+            export_options: {"iCloudContainerEnvironment": "Production"},
+            derived_data_path: "DerivedData",
+            archive_path: build.archive_path(with_filename: true),
+            buildlog_path: build.build_path,
+            output_directory: build.artifact_path(with_filename: false),
+            output_name: build.filename,
+            include_bitcode: false,
+            include_symbols: false,
+            xcargs: "BUILD_NUMBER=#{build.build_number}"
+        )
+    end
+
     desc "Upload to AppStore"
     lane :upload_app_store do |options|
         build = Build.new(options: options)
@@ -103,19 +197,63 @@ platform :ios do
         )
     end
 
+    desc "Create a new version but not submit for review. Usage: Create release_note.txt in fastlane/metadata/en-US & de-DE folders. Then call $fastlane create_version app_version:X.XX"
+    lane :create_version do |options|
+        deliver(
+            app_version: options[:app_version],
+            submit_for_review: false,
+            automatic_release: false,
+            skip_metadata: false,
+            skip_screenshots: true,
+            skip_binary_upload: true,
+            skip_app_version_update: false,
+            force: true
+        )
+    end
+
+    desc "Submit for review with release note. Usage: Create release_note.txt in fastlane/metadata/en-US & de-DE folders. Then call $fastlane submit_review app_version:X.XX"
+    lane :submit_review do |options|
+        deliver(
+            app_version: options[:app_version],
+            submit_for_review: true,
+            automatic_release: false,
+            skip_metadata: false,
+            skip_screenshots: true,
+            skip_binary_upload: true,
+            skip_app_version_update: false,
+            force: true,
+            submission_information: {
+                add_id_info_serves_ads: false,
+                add_id_info_uses_idfa: false
+            }
+        )
+    end
+
     desc "Upload to S3 (Automation builds)"
     lane :upload_s3 do |options|
         build = Build.new(options: options)
+        s3_subfolder = options[:s3_subfolder]
+
+        if s3_subfolder.nil? 
+            s3_path = "s3://#{ENV['S3_BUCKET']}/ios/"
+            sh "echo upload to s3 default folder "
+        else 
+            s3_path = "s3://#{ENV['S3_BUCKET']}/ios/#{s3_subfolder}/"
+            sh "echo upload to s3 subfolder: #{s3_subfolder}"
+        end
+
+
 
         if build.appstore_build
             sh "cd ../#{build.archive_path(with_filename: false)} && tar -czf #{build.filename}.xcarchive.tgz #{build.filename}.xcarchive"
         end
         
-        sh "cd .. && aws s3 cp --recursive --exclude '*'  --include '*.ipa' --include '*.xcarchive.tgz' artifacts/ s3://#{ENV['S3_BUCKET']}/ios/"
+        sh "cd .. && aws s3 cp --recursive --exclude '*'  --include '*.ipa' --include '*.xcarchive.tgz' artifacts/ #{s3_path}"
     end
 
+
     desc "Upload for internal use"
-    lane :upload_hockey do |options|
+    lane :upload_app_center do |options|
         build = Build.new(options: options)
         changelog = ""
 
@@ -131,30 +269,40 @@ platform :ios do
                 pretty: "* [%an] %s",
             )
         end
-        hockey(
-          api_token: ENV["HOCKEY_APP_TOKEN"],
-          public_identifier: build.hockey_app_id,
-          ipa: "#{build.artifact_path(with_filename: true)}.ipa",
-          notes: changelog,
-          notify: "0"
+
+        app_name = options[:app_name]
+        if app_name.nil? 
+            app_name = build.app_name
+        end
+
+        
+        appcenter_upload(
+          api_token: ENV["APPCENTER_API_TOKEN"],
+          owner_name: ENV["APPCENTER_OWNER_NAME"],
+          app_name: app_name,
+          file: "#{build.artifact_path(with_filename: true)}.ipa",
+          release_notes: changelog,
+          notify_testers: true,
+          mandatory_update: false,
+          dsym: "#{build.artifact_path(with_filename: true)}.app.dSYM.zip"
         )
     end
 
     desc "Upload dSYMs for AppStore crash tracking"
-    lane :upload_hockey_appstore do |options|
+    lane :upload_app_center_appstore do |options|
         build = Build.new(options: options)
 
         if !build.appstore_build
             UI.user_error! "This step is only relevant for AppStore builds"
         end
 
-        hockey(
-          api_token: ENV["HOCKEY_APP_TOKEN"],
-          public_identifier: build.hockey_app_id,
+        appcenter_upload(
+          api_token: ENV["APPCENTER_API_TOKEN"],
+          owner_name: ENV["APPCENTER_OWNER_NAME"],
+          app_name: build.app_name,
           dsym: "#{build.artifact_path(with_filename: true)}.app.dSYM.zip",
           upload_dsym_only: true,
-          release_type: "1",
-          notify: "0"
+          notify_testers: true
         )
     end
 
@@ -165,9 +313,6 @@ platform :ios do
         codecov = "./codecov -J '^Wire$' -D ../DerivedData"
 
         if ENV["BUILD_REASON"] == "PullRequest"
-            if ENV["CODECOV_TOKEN"].nil?
-                UI.user_error! "codecov.io token missing for current repository. Set it in CODECOV_TOKEN environment variable"
-            end
 
             if ENV["BUILD_SOURCEBRANCH"].nil?
                 UI.user_error! "Source branch env variable missing. Set BUILD_SOURCEBRANCH to fix it"
@@ -175,11 +320,10 @@ platform :ios do
 
             pull_request_number = ENV["BUILD_SOURCEBRANCH"].split("/")[2] # For PRs the branch is in format "refs/pull/1/merge"
 
-            codecov << " -t #{ENV["CODECOV_TOKEN"]} -P #{pull_request_number}"
+            codecov << " -P #{pull_request_number}"
         end
 
         sh codecov
-
     end
 end
 
@@ -235,6 +379,14 @@ class Build
 
     def appstore_build
         @build_type == "AppStore"
+    end
+
+    def development_build
+        @build_type == "Development"
+    end
+
+    def internal_build
+        @build_type == "Internal"
     end
 
     def avs_build
@@ -372,24 +524,19 @@ class Build
         end
     end
 
-    # Hockey
-
-    def hockey_app_id
-        case @build_type
-        when "Playground"
-            ENV["HOCKEY_IOS_PLAYGROUND_ID"]
-        when "Development"
-            ENV["HOCKEY_IOS_DEV_ID"]
-        when "Internal"
-            ENV["HOCKEY_IOS_INT_ID"]
-        when "AppStore"
-            ENV["HOCKEY_IOS_APPSTORE_ID"]
-        when "AVS"
-            ENV["HOCKEY_IOS_AVS_ID"]
-        when "RC"
-            ENV["HOCKEY_IOS_RELEASE_ID"]
-        else
-            UI.user_error! "Unknown build type: #{@build_type}"
+    def app_name
+        if playground_build
+            "Wire-iOS-Playground"
+        elsif avs_build
+            "Wire-iOS-AVS"
+        elsif development_build
+            "Wire-iOS-Development"
+        elsif internal_build
+            "Wire-iOS-Internal"
+        elsif appstore_build
+            "Wire-iOS-App-Store"
+        elsif rc_build
+            "Wire-iOS-Release-Candidate"
         end
     end
 

@@ -31,12 +31,12 @@ class LaunchImageViewController: UIViewController {
     func showLoadingScreen() {
         shouldShowLoadingScreenOnViewDidLoad = true
         loadingScreenLabel.isHidden = false
-        activityIndicator.startAnimation(nil)
+        activityIndicator.startAnimation()
     }
 
     /// Convenience method for hiding all the animation related functionality
     func hideLoadingScreen() {
-        activityIndicator.stopAnimation(nil)
+        activityIndicator.stopAnimation()
         loadingScreenLabel.isHidden = true
     }
 
@@ -74,9 +74,7 @@ class LaunchImageViewController: UIViewController {
     }
 
     private func createConstraints() {
-        [contentView, loadingScreenLabel, activityIndicator].forEach() {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
+        [contentView, loadingScreenLabel, activityIndicator].prepareForLayout()
 
         var constraints: [NSLayoutConstraint] = []
 

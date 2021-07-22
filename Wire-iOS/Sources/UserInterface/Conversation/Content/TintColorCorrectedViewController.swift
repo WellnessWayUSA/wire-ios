@@ -21,12 +21,12 @@ import SafariServices
 
 class TintColorOverrider: NSObject {
     private var windowTintColor: UIColor?
-    
+
     func override() {
         windowTintColor = UIApplication.shared.delegate?.window??.tintColor
         UIApplication.shared.delegate?.window??.tintColor = UIColor.from(scheme: .textForeground, variant: .light)
     }
-    
+
     func restore() {
         UIApplication.shared.delegate?.window??.tintColor = windowTintColor
     }
@@ -38,16 +38,14 @@ class TintColorOverrider: NSObject {
 
 class TintColorCorrectedViewController: UIViewController {
     private var overrider = TintColorOverrider()
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         overrider.override()
-        UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         overrider.restore()
-        UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
     }
 }

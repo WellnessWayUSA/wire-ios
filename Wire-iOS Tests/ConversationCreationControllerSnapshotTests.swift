@@ -16,63 +16,58 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
+import SnapshotTesting
 import XCTest
 @testable import Wire
 
-final class ConversationCreationControllerSnapshotTests: CoreDataSnapshotTestCase {
-    
+final class ConversationCreationControllerSnapshotTests: XCTestCase {
+
     var sut: ConversationCreationController!
-    
+
     override func setUp() {
         super.setUp()
-        sut = ConversationCreationController()
         accentColor = .violet
+        ColorScheme.default.variant = .light
     }
-    
+
     override func tearDown() {
         sut = nil
         ColorScheme.default.variant = .light
         super.tearDown()
     }
 
-    func testForEditingTextField() {
-
-        sut.loadViewIfNeeded()
-        sut.beginAppearanceTransition(false, animated: false)
-        sut.endAppearanceTransition()
-
-        sut.viewDidAppear(false)
-
-        verify(view: sut.view)
+    private func createSut(isTeamMember: Bool) {
+        let mockSelfUser = MockUserType.createSelfUser(name: "Alice", inTeam:
+            isTeamMember ? UUID() : nil)
+        sut = ConversationCreationController(preSelectedParticipants: nil, selfUser: mockSelfUser)
     }
-    
-    func testTeamGroupOptionsCollapsed() {
-        teamTest {
-            self.sut.loadViewIfNeeded()
-            self.sut.viewDidAppear(false)
 
-            verify(view: self.sut.view)
-        }
+    func testForEditingTextField() {
+        createSut(isTeamMember: false)
+
+        verify(matching: sut)
+    }
+
+    func testTeamGroupOptionsCollapsed() {
+        createSut(isTeamMember: true)
+
+        verify(matching: sut)
     }
 
     func testTeamGroupOptionsCollapsed_dark() {
+        createSut(isTeamMember: true)
+
         ColorScheme.default.variant = .dark
 
-        teamTest {
-            self.sut.loadViewIfNeeded()
-            self.sut.viewDidAppear(false)
-
-            sut.view.backgroundColor = .black
-            verify(view: self.sut.view)
-        }
+        sut.view.backgroundColor = .black
+        verify(matching: sut)
     }
 
     func testTeamGroupOptionsExpanded() {
-        teamTest {
-            self.sut.loadViewIfNeeded()
-            self.sut.optionsExpanded = true
-            
-            verify(view: self.sut.view)
-        }
+        createSut(isTeamMember: true)
+
+        sut.optionsExpanded = true
+
+        verify(matching: sut)
     }
 }

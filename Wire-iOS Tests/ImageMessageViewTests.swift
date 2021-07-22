@@ -19,58 +19,54 @@
 import XCTest
 @testable import Wire
 
-class ImageMessageViewTests: ZMSnapshotTestCase {
+final class ImageMessageViewTests: XCTestCase {
     var sut: ImageMessageView!
+    var mockSelfUser: MockUserType!
 
     override func setUp() {
         super.setUp()
+
+        mockSelfUser = MockUserType.createSelfUser(name: "Tarja Turunen")
+        mockSelfUser.accentColorValue = .vividRed
+
         sut = ImageMessageView()
+        sut.widthAnchor.constraint(equalToConstant: 320).isActive = true
     }
 
     override func tearDown() {
         sut = nil
+        mockSelfUser = nil
         super.tearDown()
     }
 
-
     func testThatItRendersSmallImage() {
         // GIVEN & WHEN
-        sut.message = MockMessageFactory.imageMessage(with: self.image(inTestBundleNamed: "unsplash_small.jpg"))
+        sut.message = MockMessageFactory.imageMessage(sender: mockSelfUser,
+                                                      with: image(inTestBundleNamed: "unsplash_small.jpg"))
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
-    
+
     func testThatItRendersPortraitImage() {
         // GIVEN & WHEN
-        sut.message = MockMessageFactory.imageMessage(with: self.image(inTestBundleNamed: "unsplash_burger.jpg"))
+        sut.message = MockMessageFactory.imageMessage(sender: mockSelfUser,
+                                                      with: image(inTestBundleNamed: "unsplash_burger.jpg"))
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
-    
+
     func testThatItRendersLandscapeImage() {
         // GIVEN & WHEN
-        sut.message = MockMessageFactory.imageMessage(with: self.image(inTestBundleNamed: "unsplash_matterhorn.jpg"))
+        sut.message = MockMessageFactory.imageMessage(sender: mockSelfUser,
+                                                      with: image(inTestBundleNamed: "unsplash_matterhorn.jpg"))
         // THEN
-        self.verify(view: sut.snapshotView())
+        verify(matching: sut)
     }
-    
+
     func testThatItShowsLoadingIndicator() {
         // GIVEN & WHEN
-        sut.message = MockMessageFactory.pendingImageMessage()
+        sut.message = MockMessageFactory.pendingImageMessage(sender: mockSelfUser)
         // THEN
-        self.verify(view: sut.snapshotView())
-    }
-    
-}
-
-
-fileprivate extension ImageMessageView {
-    func snapshotView() -> UIView {
-        widthAnchor.constraint(equalToConstant: 320).isActive = true
-        layer.speed = 0
-        setNeedsLayout()
-        layoutIfNeeded()
-        return self
+        verify(matching: sut)
     }
 }
-

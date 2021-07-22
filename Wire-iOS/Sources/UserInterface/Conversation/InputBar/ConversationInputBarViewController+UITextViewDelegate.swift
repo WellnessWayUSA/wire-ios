@@ -17,6 +17,8 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 // MARK: SplitViewController reveal
 
@@ -34,7 +36,9 @@ extension ConversationInputBarViewController {
 }
 
 extension ConversationInputBarViewController: UITextViewDelegate {
-    public func textViewDidChange(_ textView: UITextView) {
+    func textViewDidChange(_ textView: UITextView) {
+        guard let conversation = conversation as? ZMConversation else { return }
+
         // In case the conversation isDeleted
         if conversation.managedObjectContext == nil {
             return
@@ -46,12 +50,12 @@ extension ConversationInputBarViewController: UITextViewDelegate {
         updateRightAccessoryView()
     }
 
-    public func textView(_ textView: UITextView, shouldInteractWith textAttachment: NSTextAttachment, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
+    func textView(_ textView: UITextView, shouldInteractWith textAttachment: NSTextAttachment, in characterRange: NSRange, interaction: UITextItemInteraction) -> Bool {
         return textAttachment.image == nil
     }
 
     var isMentionsViewKeyboardCollapsed: Bool {
-        /// press tab or enter to insert mention if iPhone keyboard is collapsed
+        // Press tab or enter to insert mention if iPhone keyboard is collapsed
         if let isKeyboardCollapsed = mentionsView?.isKeyboardCollapsed {
             return isKeyboardCollapsed
         } else {
@@ -78,7 +82,7 @@ extension ConversationInputBarViewController: UITextViewDelegate {
             text.containsCharacters(from: CharacterSet.newlinesAndTabulation),
             canInsertMention,
             UIDevice.current.type == .iPad || isMentionsViewKeyboardCollapsed {
-            
+
             insertBestMatchMention()
             return false
         }
@@ -100,10 +104,8 @@ extension ConversationInputBarViewController: UITextViewDelegate {
 
     public func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
         guard mode != .audioRecord else { return true }
-        guard delegate?.responds(to:  #selector(ConversationInputBarViewControllerDelegate.conversationInputBarViewControllerShouldBeginEditing(_:))) == true else { return true }
-
         triggerMentionsIfNeeded(from: textView)
-        return delegate?.conversationInputBarViewControllerShouldBeginEditing?(self) ?? true
+        return delegate?.conversationInputBarViewControllerShouldBeginEditing(self) ?? true
     }
 
     public func textViewDidBeginEditing(_ textView: UITextView) {
@@ -113,26 +115,16 @@ extension ConversationInputBarViewController: UITextViewDelegate {
     }
 
     public func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
-        guard delegate?.responds(to: #selector(ConversationInputBarViewControllerDelegate.conversationInputBarViewControllerShouldEndEditing(_:))) == true else { return true }
-
-        return delegate?.conversationInputBarViewControllerShouldEndEditing?(self) ?? true
+        return delegate?.conversationInputBarViewControllerShouldEndEditing(self) ?? true
     }
 
     public func textViewDidEndEditing(_ textView: UITextView) {
         if textView.text.count > 0 {
             conversation.setIsTyping(false)
         }
-        
-        guard let textView = textView as? MarkdownTextView else { preconditionFailure("Invalid textView class") }
 
-        ZMUserSession.shared()?.enqueueChanges {
-            let (text, mentions) = textView.preparedText
-            self.conversation.draftMessage = DraftMessage(
-                text: text,
-                mentions: mentions,
-                quote: self.quotedMessage as? ZMMessage
-            )
-        }
+        guard let textView = textView as? MarkdownTextView else { preconditionFailure("Invalid textView class") }
+        let draft = draftMessage(from: textView)
+        delegate?.conversationInputBarViewControllerDidComposeDraft(message: draft)
     }
 }
-

@@ -16,13 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import WireDataModel
-
 
 extension Analytics {
 
-    @objc(tagStorableEvent:) public func tag(_ storableEvent: StorableTrackingEvent) {
+    func tag(_ storableEvent: StorableTrackingEvent) {
         tagEvent(storableEvent.name, attributes: storableEvent.attributes)
     }
 

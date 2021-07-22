@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -49,7 +49,8 @@ extension SLComposeServiceViewController {
 
         DispatchQueue.global(qos: .userInitiated).async {
 
-            guard let attachments = self.appendLinkFromTextIfNeeded(), let (attachmentType, attachment) = attachments.main else {
+            guard let attachments = self.appendLinkFromTextIfNeeded(),
+                  let (attachmentType, attachment) = attachments.main else {
                 completeTask(nil, nil)
                 return
             }
@@ -68,7 +69,8 @@ extension SLComposeServiceViewController {
                     completeTask(image, defaultDisplayMode.combine(with: preferredDisplayMode) ?? .video)
                 }
 
-            case .rawFile:
+            case .rawFile,
+                 .fileUrl:
                 let fallbackIcon = self.fallbackIcon(forAttachment: attachment, ofType: .rawFile)
                 completeTask(.placeholder(fallbackIcon), defaultDisplayMode.combine(with: .placeholder))
             case .url:
@@ -146,7 +148,8 @@ extension SLComposeServiceViewController {
             return .movie
         case .image:
             return .photo
-        case .walletPass:
+        case .walletPass,
+             .fileUrl:
             return .document
         case .rawFile:
             if item.hasItemConformingToTypeIdentifier(kUTTypeAudio as String) {

@@ -19,12 +19,13 @@
 import UIKit
 import Social
 import WireShareEngine
-import Cartography
 import MobileCoreServices
 import WireDataModel
 import WireCommonComponents
 import WireLinkPreview
+import LocalAuthentication
 
+typealias Completion = () -> ()
 private let zmLog = ZMSLog(tag: "UI")
 
 /// The delay after which a progess view controller will be displayed if all messages are not yet sent.
@@ -36,7 +37,7 @@ private enum LocalAuthenticationStatus {
     case granted
 }
 
-class ShareExtensionViewController: SLComposeServiceViewController {
+final class ShareExtensionViewController: SLComposeServiceViewController {
 
     // MARK: - Elements
 
@@ -71,15 +72,26 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         return imageView
     }()
 
-    var netObserver = ShareExtensionNetworkObserver()
-
     fileprivate var postContent: PostContent?
     fileprivate var sharingSession: SharingSession? = nil
-    fileprivate var extensionActivity: ExtensionActivity? = nil
-    fileprivate var currentAccount: Account? = nil
-    fileprivate var localAuthenticationStatus: LocalAuthenticationStatus = .disabled
+    
+    /// stores extensionContext?.attachments
+    fileprivate var attachments: [AttachmentType: [NSItemProvider]] = [:]
+    
+    fileprivate var currentAccount: Account? = nil {
+        didSet {
+            localAuthenticationStatus = .denied
+        }
+    }
+
+    fileprivate var localAuthenticationStatus: LocalAuthenticationStatus = .denied
     private var observer: SendableBatchObserver? = nil
     private weak var progressViewController: SendingProgressViewController? = nil
+    
+    var dispatchQueue: DispatchQueue = DispatchQueue.main
+    let stateAccessoryView = ConversationStateAccessoryView()
+    
+    lazy var unlockViewController = UnlockViewController()
 
     // MARK: - Host App State
 
@@ -101,10 +113,6 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         setupObserver()
     }
 
-    deinit {
-        StorageStack.reset()
-    }
-
     private func setupObserver() {
         NotificationCenter.default.addObserver(self, selector: #selector(extensionHostDidEnterBackground), name: .NSExtensionHostDidEnterBackground, object: nil)
     }
@@ -113,13 +121,12 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         super.viewDidLoad()
         currentAccount = accountManager?.selectedAccount
         ExtensionBackupExcluder.exclude()
-        CrashReporter.setupHockeyIfNeeded()
-        navigationController?.view.backgroundColor = .white
+        CrashReporter.setupAppCenterIfNeeded()
         updateAccount(currentAccount)
-        let activity = ExtensionActivity(attachments: extensionContext?.attachments.sorted)
-        sharingSession?.analyticsEventPersistence.add(activity.openedEvent())
-        extensionActivity = activity
-        NetworkStatus.add(netObserver)
+        
+        if let sortedAttachments = extensionContext?.attachments.sorted {
+            attachments = sortedAttachments
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -127,6 +134,7 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         self.postContent = PostContent(attachments: extensionContext?.attachments ?? [])
         self.setupNavigationBar()
         self.appendTextToEditor()
+        appendFileTextToEditor()
         self.updatePreview()
         self.placeholder = "share_extension.input.placeholder".localized
     }
@@ -136,7 +144,7 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         guard let item = navigationController?.navigationBar.items?.first else { return }
         item.rightBarButtonItem?.action = #selector(appendPostTapped)
         item.rightBarButtonItem?.title = "share_extension.send_button.title".localized
-        item.titleView = UIImageView(image: WireStyleKit.imageOfLogo(color: .black).downscaling(to: iconSize))
+        item.titleView = UIImageView(image: WireStyleKit.imageOfLogo(color: UIColor.Wire.primaryLabel).downscaling(to: iconSize))
     }
 
     private var authenticatedAccounts: [Account] {
@@ -149,12 +157,20 @@ class ShareExtensionViewController: SLComposeServiceViewController {
             let hostBundleIdentifier = Bundle.main.hostBundleIdentifier,
             let accountIdentifier = account?.userIdentifier
             else { return }
+        let configuration = AppLockRules.fromBundle()
+        let appLockConfig = AppLockController.Config(
+            isAvailable: true,
+            isForced: configuration.forceAppLock,
+            timeout: configuration.appLockTimeout,
+            requireCustomPasscode: configuration.useBiometricsOrCustomPasscode
+        )
 
         sharingSession = try SharingSession(
             applicationGroupIdentifier: applicationGroupIdentifier,
             accountIdentifier: accountIdentifier,
             hostBundleIdentifier: hostBundleIdentifier,
-            environment: BackendEnvironment.shared
+            environment: BackendEnvironment.shared,
+            appLockConfig: appLockConfig
         )
     }
 
@@ -200,7 +216,7 @@ class ShareExtensionViewController: SLComposeServiceViewController {
 
     /// If there is a URL attachment, copy the text of the URL attachment into the text field
     private func appendTextToEditor() {
-        guard let urlItems = extensionActivity?.attachments[.url] else {
+        guard let urlItems = attachments[.url] else {
             return
         }
 
@@ -214,11 +230,36 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         }
     }
 
+
+    /// If there is a File URL attachment, copy the filename of the URL attachment into the text field
+    private func appendFileTextToEditor() {
+        guard let urlItems = attachments[.fileUrl] else {
+            return
+        }
+
+        urlItems.first?.loadItem(forTypeIdentifier: kUTTypeFileURL as String, options: nil, completionHandler: { (url, error) in
+            error?.log(message: "Unable to fetch URL for type URL")
+            guard let url = url as? URL, url.isFileURL else { return }
+
+            let filename = url.lastPathComponent
+            let separator = self.textView.text.isEmpty ? "" : "\n"
+
+            DispatchQueue.main.async {
+                self.textView.text = self.textView.text + separator + filename
+                self.textView.delegate?.textViewDidChange?(self.textView)
+            }
+
+        })
+    }
+
     /// Invoked when the user wants to post.
-    @objc func appendPostTapped() {
+    @objc
+    private func appendPostTapped() {
+        guard let sharingSession = sharingSession else { return }
+
         navigationController?.navigationBar.items?.first?.rightBarButtonItem?.isEnabled = false
         
-        postContent?.send(text: contentText, sharingSession: sharingSession!) { [weak self] progress in
+        postContent?.send(text: contentText, sharingSession: sharingSession) { [weak self] progress in
             guard let `self` = self, let postContent = self.postContent else { return }
 
             switch progress {
@@ -238,45 +279,35 @@ class ShareExtensionViewController: SLComposeServiceViewController {
                 self.progressViewController?.progress = progress
 
             case .done:
-                self.storeTrackingData {
-                    UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: {
-                        self.view.alpha = 0
-                        self.navigationController?.view.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    }, completion: { _ in
-                        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
-                    })
-                }
+                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseIn, animations: {
+                    self.view.alpha = 0
+                    self.navigationController?.view.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                }, completion: { _ in
+                    self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+                })
 
             case .conversationDidDegrade((let users, let strategyChoice)):
-                self.extensionActivity?.markConversationDidDegrade()
-                self.conversationDidDegrade(
-                    change: ConversationDegradationInfo(conversation: postContent.target!, users: users),
-                    callback: strategyChoice
-                )
+                if let conversation = postContent.target {
+                    self.conversationDidDegrade(
+                        change: ConversationDegradationInfo(conversation: conversation, users: users),
+                        callback: strategyChoice)
+                }
             case .timedOut:
                 self.popConfigurationViewController()
                 
-                let title = "share_extension.timeout.title".localized
-                let message = "share_extension.timeout.message".localized
-                let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
-                self.present(alert, animated: true, completion: nil)
+                let alert = UIAlertController.alertWithOKButton(title: "share_extension.timeout.title".localized, message: "share_extension.timeout.message".localized)
+                
+                self.present(alert, animated: true)
+                
+            case .error(let error):
+                if let errorDescription = (error as? UnsentSendableError )?.errorDescription {
+                    let alert = UIAlertController.alertWithOKButton(title: nil, message: errorDescription)
+                    
+                    self.present(alert, animated: true) {
+                        self.popConfigurationViewController()
+                    }
+                }
             }
-        }
-    }
-
-    override func cancel() {
-        if let event = extensionActivity?.cancelledEvent() {
-            sharingSession?.analyticsEventPersistence.add(event)
-        }
-        super.cancel()
-    }
-
-    private func storeTrackingData(completion: @escaping () -> Void) {
-        extensionActivity?.hasText = !contentText.isEmpty
-        extensionActivity?.sentEvent { [weak self] event in
-            self?.sharingSession?.analyticsEventPersistence.add(event)
-            completion()
         }
     }
 
@@ -302,10 +333,10 @@ class ShareExtensionViewController: SLComposeServiceViewController {
                     self.preview?.image = image
                     self.preview?.displayMode = displayMode
                 case .placeholder(let iconType):
-                    self.preview?.setIcon(iconType, size: .medium, color: UIColor.black.withAlphaComponent(0.7))
+                    self.preview?.setIcon(iconType, size: .medium, color: UIColor.Wire.secondaryLabel)
 
                 case .remoteURL(let url):
-                    self.preview?.setIcon(.browser, size: .medium, color: UIColor.black.withAlphaComponent(0.7))
+                    self.preview?.setIcon(.browser, size: .medium, color: UIColor.Wire.secondaryLabel)
                     self.fetchWebsitePreview(for: url)
                 }
 
@@ -318,12 +349,20 @@ class ShareExtensionViewController: SLComposeServiceViewController {
     /// Fetches the preview image for the given website.
     private func fetchWebsitePreview(for url: URL) {
         sharingSession?.downloadLinkPreviews(inText: url.absoluteString, excluding: []) { previews in
-            if let imageData = previews.first?.imageData.first {
-                let image = UIImage(data: imageData)
-                DispatchQueue.main.async {
-                    self.preview?.displayMode = .link
-                    self.preview?.image = image
-                }
+            let previewImage: UIImage?
+
+            /// size the image to fill the image view
+            if let imageData = previews.first?.imageData.first,
+               let image = UIImage(data: imageData),
+               let requiredSize = self.preview?.frame.size.shortestLength {
+                previewImage = image.downsized(shorterSizeLength: requiredSize)
+            } else {
+                previewImage = nil
+            }
+
+            DispatchQueue.main.async {
+                self.preview?.displayMode = .link
+                self.preview?.image = previewImage
             }
         }
     }
@@ -354,10 +393,9 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         pushConfigurationViewController(notSignedInViewController)
     }
     
-    func updateState(conversation: Conversation?) {
+    func updateState(conversation: WireShareEngine.Conversation?) {
         conversationItem.value = conversation?.name ?? "share_extension.conversation_selection.empty.value".localized
         postContent?.target = conversation
-        extensionActivity?.conversation = conversation
     }
     
     func updateAccount(_ account: Account?) {
@@ -378,9 +416,9 @@ class ShareExtensionViewController: SLComposeServiceViewController {
             try recreateSharingSession(account: account)
         } catch let error as SharingSession.InitializationError {
             guard error == .loggedOut else { return }
-            let alert = UIAlertController(title: "share_extension.logged_out.title".localized,
-                                          message: "share_extension.logged_out.message".localized, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "share_extension.general.ok".localized, style: .default, handler: nil))
+            
+            let alert = UIAlertController.alertWithOKButton(title: "share_extension.logged_out.title".localized, message: "share_extension.logged_out.message".localized)
+
             self.present(alert, animated: true)
             return
         } catch { //any other error
@@ -393,23 +431,19 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         
         guard account != currentAccount else { return }
         postContent?.target = nil
-        extensionActivity?.conversation = nil
     }
     
     private func presentChooseAccount() {
-        requireLocalAuthenticationIfNeeded(with: { [weak self] (status) in
-            if let status = status, status != .denied {
-                self?.showChooseAccount()
-            }
-        })
+        showChooseAccount()
     }
     
     private func presentChooseConversation() {
-        requireLocalAuthenticationIfNeeded(with: { [weak self] (status) in
-            if let status = status, status != .denied {
-                self?.showChooseConversation()
-            }
-        })
+        requireLocalAuthenticationIfNeeded { [weak self] in
+            guard let `self` = self,
+                self.localAuthenticationStatus == .granted else { return }
+            
+            self.showChooseConversation()
+        }
     }
     
     func showChooseConversation() {
@@ -442,36 +476,6 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         
         pushConfigurationViewController(accountSelectionViewController)
     }
-
-    /// @param callback confirmation; called when authentication evaluation is completed.
-    fileprivate func requireLocalAuthenticationIfNeeded(with callback: @escaping (LocalAuthenticationStatus?)->()) {
-        
-        // I need to store the current authentication in order to avoid future authentication requests in the same Share Extension session
-        
-        guard AppLock.isActive else {
-            localAuthenticationStatus = .disabled
-            callback(localAuthenticationStatus)
-            return
-        }
-        
-        guard localAuthenticationStatus != .granted else {
-            callback(localAuthenticationStatus)
-            return
-        }
-        
-        AppLock.evaluateAuthentication(description: "share_extension.privacy_security.lock_app.description".localized) { [weak self] (success, error) in
-            DispatchQueue.main.async {
-                if let success = success, success {
-                    self?.localAuthenticationStatus = .granted
-                } else {
-                    self?.localAuthenticationStatus = .denied
-                    zmLog.error("Local authentication error: \(String(describing: error?.localizedDescription))")
-                }
-                callback(self?.localAuthenticationStatus)
-            }
-        }
-    }
-    
     
     private func conversationDidDegrade(change: ConversationDegradationInfo, callback: @escaping DegradationStrategyChoice) {
         let title = titleForMissingClients(causedBy: change)
@@ -493,8 +497,107 @@ class ShareExtensionViewController: SLComposeServiceViewController {
         let users = change.users
         let template = users.count > 1 ? "meta.degraded.degradation_reason_message.plural" : "meta.degraded.degradation_reason_message.singular"
     
-        let allUsers = (users.map(\.displayName) as NSArray).componentsJoined(by: ", ") as NSString
+        let allUsers = (users.compactMap(\.name) as NSArray).componentsJoined(by: ", ") as NSString
         return String.localizedStringWithFormat(template.localized, allUsers)
     }
 
+}
+
+// MARK: - Authentication
+
+extension ShareExtensionViewController {
+    
+    /// @param completion; called when authentication evaluation is completed.
+    private func requireLocalAuthenticationIfNeeded(with completion: @escaping Completion) {
+        guard
+            let sharingSession = sharingSession,
+            sharingSession.appLockController.isActive || sharingSession.encryptMessagesAtRest
+        else {
+            localAuthenticationStatus = .granted
+            completion()
+            return
+        }
+        
+        guard localAuthenticationStatus == .denied || sharingSession.isDatabaseLocked else {
+            completion()
+            return
+        }
+
+        let appLock = sharingSession.appLockController
+        let description = "share_extension.privacy_security.lock_app.description".localized
+        let passcodePreference: AppLockPasscodePreference
+
+        if sharingSession.encryptMessagesAtRest {
+            passcodePreference = .deviceOnly
+        } else if appLock.requireCustomPasscode {
+            passcodePreference = .customOnly
+        } else {
+            passcodePreference = .deviceThenCustom
+        }
+
+        appLock.evaluateAuthentication(passcodePreference: passcodePreference, description: description) { [weak self] result, context in
+            guard let `self` = self else { return }
+
+            DispatchQueue.main.async {
+                if case .granted = result, let context = context as? LAContext {
+                  try? self.sharingSession?.unlockDatabase(with: context)
+                }
+
+                self.authenticationEvaluated(with: result, completion: completion)
+            }
+        }
+    }
+
+    private func authenticationEvaluated(with result: AppLockAuthenticationResult, completion:  @escaping Completion) {
+        switch result {
+        case .granted:
+            localAuthenticationStatus = .granted
+            completion()
+        case .needCustomPasscode:
+            let isCustomPasscodeSet = sharingSession?.appLockController.isCustomPasscodeSet ?? false
+            if !isCustomPasscodeSet {
+                let alert = UIAlertController(title: "", message: "share_extension.unlock.alert.message".localized, alertAction: .ok(style: .cancel))
+                self.present(alert, animated: true, completion: nil)
+                
+                localAuthenticationStatus = .denied
+                completion()
+            } else {
+                requestCustomPasscode { [weak self] status in
+                    guard let `self` = self else { return }
+                    
+                    self.localAuthenticationStatus = status
+                    completion()
+                }
+            }
+        default:
+            localAuthenticationStatus = .denied
+            completion()
+        }
+    }
+    
+    private func requestCustomPasscode(with callback: @escaping (_ status: LocalAuthenticationStatus) -> ()) {
+        presentUnlockScreen { [weak self] customPasscode in
+            guard let `self` = self else { return }
+            
+            guard
+                let passcode = customPasscode,
+                !passcode.isEmpty,
+                let appLock = self.sharingSession?.appLockController,
+                appLock.evaluateAuthentication(customPasscode: passcode) == .granted
+            else {
+                self.unlockViewController.showWrongPasscodeMessage()
+                callback(.denied)
+                return
+            }
+
+            self.popConfigurationViewController()
+            callback(.granted)
+        }
+    }
+    
+    private func presentUnlockScreen(with callback: @escaping (_ password: String?) -> ()) {
+        pushConfigurationViewController(unlockViewController)
+        
+        unlockViewController.callback = callback        
+    }
 }

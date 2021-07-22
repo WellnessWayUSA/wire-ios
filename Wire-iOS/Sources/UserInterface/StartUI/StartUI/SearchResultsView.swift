@@ -17,49 +17,52 @@
 //
 
 import Foundation
+import UIKit
 
-@objcMembers class SearchResultsView : UIView {
-    
-    let accessoryViewMargin : CGFloat = 16.0
+final class SearchResultsView: UIView {
+
+    let accessoryViewMargin: CGFloat = 16.0
     let emptyResultContainer = UIView()
-    let collectionView : UICollectionView
-    let collectionViewLayout : UICollectionViewFlowLayout
+
+    @objc
+    let collectionView: UICollectionView
+    let collectionViewLayout: UICollectionViewFlowLayout
     let accessoryContainer = UIView()
-    var lastLayoutBounds : CGRect = CGRect.zero
+    var lastLayoutBounds: CGRect = CGRect.zero
     var accessoryContainerHeightConstraint: NSLayoutConstraint?
-    var accessoryViewBottomOffsetConstraint : NSLayoutConstraint?
+    var accessoryViewBottomOffsetConstraint: NSLayoutConstraint?
     weak var parentViewController: UIViewController?
-    
+
     init() {
         collectionViewLayout = UICollectionViewFlowLayout()
         collectionViewLayout.scrollDirection = .vertical
         collectionViewLayout.minimumInteritemSpacing = 12
         collectionViewLayout.minimumLineSpacing = 0
-        
+
         collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: collectionViewLayout)
         collectionView.backgroundColor = UIColor.clear
         collectionView.allowsMultipleSelection = true
         collectionView.keyboardDismissMode = .onDrag
         collectionView.bounces = true
         collectionView.alwaysBounceVertical = true
-        
+
         super.init(frame: CGRect.zero)
 
         addSubview(collectionView)
         addSubview(accessoryContainer)
-        addSubview(emptyResultContainer)        
+        addSubview(emptyResultContainer)
         createConstraints()
-        
+
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(keyboardFrameDidChange(notification:)),
                                                name: UIResponder.keyboardWillChangeFrameNotification,
                                                object: nil)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func createConstraints() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         emptyResultContainer.translatesAutoresizingMaskIntoConstraints = false
@@ -85,26 +88,26 @@ import Foundation
             accessoryContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
             accessoryContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
             accessoryContainerHeightConstraint!,
-            accessoryViewBottomOffsetConstraint!,
+            accessoryViewBottomOffsetConstraint!
         ])
     }
-    
+
     override func layoutSubviews() {
         if !lastLayoutBounds.equalTo(bounds) {
             collectionView.collectionViewLayout.invalidateLayout()
         }
-        
+
         lastLayoutBounds = bounds
-        
+
         super.layoutSubviews()
     }
-    
-    var accessoryView : UIView? {
+
+    var accessoryView: UIView? {
         didSet {
             guard oldValue != accessoryView else { return }
-            
+
             oldValue?.removeFromSuperview()
-            
+
             if let accessoryView = accessoryView {
                 accessoryContainer.addSubview(accessoryView)
                 accessoryView.translatesAutoresizingMaskIntoConstraints = false
@@ -124,13 +127,13 @@ import Foundation
             updateContentInset()
         }
     }
-    
-    var emptyResultView : UIView? {
+
+    var emptyResultView: UIView? {
         didSet {
             guard oldValue != emptyResultView else { return }
-            
+
             oldValue?.removeFromSuperview()
-            
+
             if let emptyResultView = emptyResultView {
                 emptyResultContainer.addSubview(emptyResultView)
                 emptyResultView.translatesAutoresizingMaskIntoConstraints = false
@@ -146,20 +149,23 @@ import Foundation
             emptyResultContainer.setNeedsLayout()
         }
     }
-    
-    @objc func keyboardFrameDidChange(notification: Notification) {
+
+    @objc
+    private func keyboardFrameDidChange(notification: Notification) {
         if let parentViewController = parentViewController, parentViewController.isContainedInPopover() {
             return
         }
-        
-        let firstResponder = UIResponder.wr_currentFirst()
+
+        let firstResponder = UIResponder.currentFirst
         let inputAccessoryHeight = firstResponder?.inputAccessoryView?.bounds.size.height ?? 0
-        
-        UIView.animate(withKeyboardNotification: notification, in: self, animations: { (keyboardFrameInView) in
+
+        UIView.animate(withKeyboardNotification: notification, in: self, animations: { [weak self] (keyboardFrameInView) in
+            guard let weakSelf = self else { return }
+
             let keyboardHeight = keyboardFrameInView.size.height - inputAccessoryHeight
-            self.accessoryViewBottomOffsetConstraint?.constant = -keyboardHeight
-            self.layoutIfNeeded()
-        }, completion: nil)
+            weakSelf.accessoryViewBottomOffsetConstraint?.constant = -keyboardHeight
+            weakSelf.layoutIfNeeded()
+        })
     }
 
     private func updateContentInset() {
@@ -177,5 +183,5 @@ import Foundation
         }
 
     }
-    
+
 }

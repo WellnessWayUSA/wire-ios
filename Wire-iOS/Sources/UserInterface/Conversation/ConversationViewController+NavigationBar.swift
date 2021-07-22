@@ -18,23 +18,15 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 // MARK: - Update left navigator bar item when size class changes
 extension ConversationViewController {
 
-    override open func willTransition(to newCollection: UITraitCollection,
-                                      with coordinator: UIViewControllerTransitionCoordinator) {
-        super.willTransition(to: newCollection, with: coordinator)
-        self.updateLeftNavigationBarItems()
-    }
-
-}
-
-public extension ConversationViewController {
-    @objc func addCallStateObserver() -> Any? {
+    func addCallStateObserver() -> Any? {
         return conversation.voiceChannel?.addCallStateObserver(self)
     }
-    
+
     var audioCallButton: UIBarButtonItem {
         let button = UIBarButtonItem(icon: .phone, target: self, action: #selector(ConversationViewController.voiceCallItemTapped(_:)))
         button.accessibilityIdentifier = "audioCallBarButton"
@@ -69,7 +61,10 @@ public extension ConversationViewController {
 
     var backButton: UIBarButtonItem {
         let hasUnreadInOtherConversations = self.conversation.hasUnreadMessagesInOtherConversations
-        let arrowIcon: StyleKitIcon = hasUnreadInOtherConversations ? .backArrowWithDot : .backArrow
+        let arrowIcon: StyleKitIcon = view.isRightToLeft
+            ? (hasUnreadInOtherConversations ? .forwardArrowWithDot : .forwardArrow)
+            : (hasUnreadInOtherConversations ? .backArrowWithDot : .backArrow)
+
         let icon: StyleKitIcon = (self.parent?.wr_splitViewController?.layoutSize == .compact) ? arrowIcon : .hamburger
         let action = #selector(ConversationViewController.onBackButtonPressed(_:))
         let button = UIBarButtonItem(icon: icon, target: self, action: action)
@@ -80,70 +75,32 @@ public extension ConversationViewController {
             button.tintColor = UIColor.accent()
             button.accessibilityValue = "conversation_list.voiceover.unread_messages.hint".localized
         }
-        
+
         return button
     }
 
-    @objc var collectionsBarButtonItem: UIBarButtonItem {
+    var collectionsBarButtonItem: UIBarButtonItem {
         let showingSearchResults = (self.collectionController?.isShowingSearchResults ?? false)
         let action = #selector(ConversationViewController.onCollectionButtonPressed(_:))
         let button = UIBarButtonItem(icon: showingSearchResults ? .activeSearch : .search, target: self, action: action)
         button.accessibilityIdentifier = "collection"
         button.accessibilityLabel = "conversation.action.search".localized
-        
+
         if showingSearchResults {
             button.tintColor = UIColor.accent()
         }
-        
+
         return button
     }
 
-    @objc func rightNavigationItems(forConversation conversation: ZMConversation) -> [UIBarButtonItem] {
-        guard !conversation.isReadOnly, conversation.activeParticipants.count != 0 else { return [] }
-
-        if conversation.canJoinCall {
-            return [joinCallButton]
-        } else if conversation.isCallOngoing {
-            return []
-        } else if conversation.canStartVideoCall {
-            return [audioCallButton, videoCallButton]
-        } else {
-            return [audioCallButton]
-        }
-    }
-
-    @objc func leftNavigationItems(forConversation conversation: ZMConversation) -> [UIBarButtonItem] {
-        var items: [UIBarButtonItem] = []
-
-        if self.parent?.wr_splitViewController?.layoutSize != .regularLandscape {
-            items.append(backButton)
+    var shouldShowCollectionsButton: Bool {
+        guard
+            SecurityFlags.forceEncryptionAtRest.isEnabled == false,
+            session.encryptMessagesAtRest == false
+        else {
+            return false
         }
 
-        if self.shouldShowCollectionsButton() {
-            items.append(collectionsBarButtonItem)
-        }
-
-        return items
-    }
-
-    @objc func updateRightNavigationItemsButtons() {
-        if UIApplication.isLeftToRightLayout {
-            navigationItem.rightBarButtonItems = rightNavigationItems(forConversation: conversation)
-        } else {
-            navigationItem.rightBarButtonItems = leftNavigationItems(forConversation: conversation)
-        }
-    }
-
-    /// Update left navigation bar items
-    @objc func updateLeftNavigationBarItems() {
-        if UIApplication.isLeftToRightLayout {
-            navigationItem.leftBarButtonItems = leftNavigationItems(forConversation: conversation)
-        } else {
-            navigationItem.leftBarButtonItems = rightNavigationItems(forConversation: conversation)
-        }
-    }
-
-    private func shouldShowCollectionsButton() -> Bool {
         switch self.conversation.conversationType {
         case .group: return true
         case .oneOnOne:
@@ -157,7 +114,45 @@ public extension ConversationViewController {
         }
     }
 
-    @objc func voiceCallItemTapped(_ sender: UIBarButtonItem) {
+    func rightNavigationItems(forConversation conversation: ZMConversation) -> [UIBarButtonItem] {
+        guard !conversation.isReadOnly, conversation.localParticipants.count != 0 else { return [] }
+
+        if conversation.canJoinCall {
+            return [joinCallButton]
+        } else if conversation.isCallOngoing {
+            return []
+        } else if conversation.canStartVideoCall {
+            return [audioCallButton, videoCallButton]
+        } else {
+            return [audioCallButton]
+        }
+    }
+
+    func leftNavigationItems(forConversation conversation: ZMConversation) -> [UIBarButtonItem] {
+        var items: [UIBarButtonItem] = []
+
+        if self.parent?.wr_splitViewController?.layoutSize != .regularLandscape {
+            items.append(backButton)
+        }
+
+        if shouldShowCollectionsButton {
+            items.append(collectionsBarButtonItem)
+        }
+
+        return items
+    }
+
+    func updateRightNavigationItemsButtons() {
+        navigationItem.rightBarButtonItems = rightNavigationItems(forConversation: conversation)
+    }
+
+    /// Update left navigation bar items
+    func updateLeftNavigationBarItems() {
+        navigationItem.leftBarButtonItems = leftNavigationItems(forConversation: conversation)
+    }
+
+    @objc
+    func voiceCallItemTapped(_ sender: UIBarButtonItem) {
         endEditing()
         startCallController.startAudioCall(started: ConversationInputBarViewController.endEditingMessage)
     }
@@ -171,36 +166,32 @@ public extension ConversationViewController {
         startCallController.joinCall()
     }
 
-    @objc func onCollectionButtonPressed(_ sender: AnyObject!) {
+    @objc
+    private func onCollectionButtonPressed(_ sender: AnyObject!) {
         if self.collectionController == .none {
             let collections = CollectionsViewController(conversation: conversation)
             collections.delegate = self
 
             collections.onDismiss = { [weak self] _ in
-
-                guard let `self` = self, let collectionController = self.collectionController else {
+                guard let weakSelf = self else {
                     return
                 }
 
-                collectionController.dismiss(animated: true, completion: {
-                    UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
-                })
+                weakSelf.collectionController?.dismiss(animated: true)
             }
-            self.collectionController = collections
+            collectionController = collections
         } else {
-            self.collectionController?.refetchCollection()
+            collectionController?.refetchCollection()
         }
 
         collectionController?.shouldTrackOnNextOpen = true
 
         let navigationController = KeyboardAvoidingViewController(viewController: self.collectionController!).wrapInNavigationController()
 
-        ZClientViewController.shared()?.present(navigationController, animated: true, completion: {
-            UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
-        })
+        ZClientViewController.shared?.present(navigationController, animated: true)
     }
 
-    @objc internal func dismissCollectionIfNecessary() {
+    @objc func dismissCollectionIfNecessary() {
         if let collectionController = self.collectionController {
             collectionController.dismiss(animated: false)
         }
@@ -208,12 +199,12 @@ public extension ConversationViewController {
 }
 
 extension ConversationViewController: CollectionsViewControllerDelegate {
-    public func collectionsViewController(_ viewController: CollectionsViewController, performAction action: MessageAction, onMessage message: ZMConversationMessage) {
+    func collectionsViewController(_ viewController: CollectionsViewController, performAction action: MessageAction, onMessage message: ZMConversationMessage) {
         switch action {
         case .forward:
             viewController.dismissIfNeeded(animated: true) {
                 self.contentViewController.scroll(to: message) { cell in
-                    self.contentViewController.showForwardFor(message: message, fromCell: cell)
+                    self.contentViewController.showForwardFor(message: message, from: cell)
                 }
             }
 
@@ -239,7 +230,7 @@ extension ConversationViewController: CollectionsViewControllerDelegate {
 
 extension ConversationViewController: WireCallCenterCallStateObserver {
 
-    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: ZMUser, timestamp: Date?, previousCallState: CallState?) {
+    public func callCenterDidChange(callState: CallState, conversation: ZMConversation, caller: UserType, timestamp: Date?, previousCallState: CallState?) {
         updateRightNavigationItemsButtons()
     }
 
@@ -248,28 +239,12 @@ extension ConversationViewController: WireCallCenterCallStateObserver {
 extension ZMConversation {
 
     /// Whether there is an incoming or inactive incoming call that can be joined.
-    @objc var canJoinCall: Bool {
+    var canJoinCall: Bool {
         return voiceChannel?.state.canJoinCall ?? false
     }
 
     var canStartVideoCall: Bool {
-        guard !isCallOngoing else { return false }
-
-        if self.conversationType == .oneOnOne {
-            return true
-        }
-
-        if self.conversationType == .group &&
-            ZMUser.selfUser().isTeamMember &&
-            isConversationEligibleForVideoCalls {
-            return true
-        }
-
-        return false
-    }
-
-    var isConversationEligibleForVideoCalls: Bool {
-        return self.activeParticipants.count <= ZMConversation.maxVideoCallParticipants
+        return !isCallOngoing
     }
 
     var isCallOngoing: Bool {
@@ -278,14 +253,14 @@ extension ZMConversation {
 }
 
 extension CallState {
-    
+
     var canJoinCall: Bool {
         switch self {
         case .incoming: return true
         default: return false
         }
     }
-    
+
     var isCallOngoing: Bool {
         switch self {
         case .none, .incoming: return false

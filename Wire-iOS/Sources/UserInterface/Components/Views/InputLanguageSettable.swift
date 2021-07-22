@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import UIKit
 
 protocol InputLanguageSettable {
     var language: String? {get set}
@@ -26,25 +27,18 @@ protocol InputLanguageSettable {
 extension TextView: InputLanguageSettable {
 
     var originalTextInputMode: UITextInputMode? {
-        get {
-            return super.textInputMode
-        }
+        return super.textInputMode
     }
 
-    @objc var overriddenTextInputMode: UITextInputMode? {
-        get {
-            guard let language = language, language.count > 0 else {
-                return super.textInputMode
-            }
-
-            for textInputMode: UITextInputMode in UITextInputMode.activeInputModes {
-                if textInputMode.primaryLanguage == language {
-                    return textInputMode
-                }
-            }
-
+    var overriddenTextInputMode: UITextInputMode? {
+        guard let language = language, language.count > 0 else {
             return super.textInputMode
         }
+
+        for textInputMode in UITextInputMode.activeInputModes where textInputMode.primaryLanguage == language {
+            return textInputMode
+        }
+
+        return super.textInputMode
     }
 }
-

@@ -17,8 +17,10 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
-public protocol ShareDestination: Hashable {
+protocol ShareDestination: Hashable {
     var displayName: String { get }
     var securityLevel: ZMConversationSecurityLevel { get }
     var showsGuestIcon: Bool { get }
@@ -26,26 +28,26 @@ public protocol ShareDestination: Hashable {
     var avatarView: UIView? { get }
 }
 
-public protocol Shareable {
+protocol Shareable {
     associatedtype I: ShareDestination
     func share<I>(to: [I])
     func previewView() -> UIView?
 }
 
-public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource, TokenFieldDelegate, UIViewControllerTransitioningDelegate {
-    public let destinations: [D]
-    public let shareable: S
+final class ShareViewController<D: ShareDestination & NSObjectProtocol, S: Shareable>: UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate {
+    let destinations: [D]
+    let shareable: S
     private(set) var selectedDestinations: Set<D> = Set() {
         didSet {
             sendButton.isEnabled = self.selectedDestinations.count > 0
         }
     }
-    
+
     var tokenFieldTopConstraint: NSLayoutConstraint?
     var tokenFieldShareablePreviewSpacingConstraint: NSLayoutConstraint?
     var shareablePreviewTopConstraint: NSLayoutConstraint?
 
-    public var showPreview: Bool {
+    var showPreview: Bool {
         didSet {
             shareablePreviewWrapper?.isHidden = !showPreview
 
@@ -65,25 +67,25 @@ public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContr
         }
     }
 
-    public let allowsMultipleSelection: Bool
-    public var onDismiss: ((ShareViewController, Bool)->())?
-    internal var bottomConstraint: NSLayoutConstraint?
-    
-    public init(shareable: S, destinations: [D], showPreview: Bool = true, allowsMultipleSelection: Bool = true) {
+    let allowsMultipleSelection: Bool
+    var onDismiss: ((ShareViewController, Bool) -> Void)?
+    var bottomConstraint: NSLayoutConstraint?
+
+    init(shareable: S, destinations: [D], showPreview: Bool = true, allowsMultipleSelection: Bool = true) {
         self.destinations = destinations
         self.filteredDestinations = destinations
         self.shareable = shareable
         self.showPreview = showPreview
         self.allowsMultipleSelection = allowsMultipleSelection
         super.init(nibName: nil, bundle: nil)
-        self.transitioningDelegate = self
-        
+        transitioningDelegate = self
+
         let messagePreviewAppearance = MessagePreviewView.appearance(whenContainedInInstancesOf: [ShareViewController.self])
         messagePreviewAppearance.colorSchemeVariant = .light
 
         let messageThumbnailPreviewAppearance = MessageThumbnailPreviewView.appearance(whenContainedInInstancesOf: [ShareViewController.self])
         messageThumbnailPreviewAppearance.colorSchemeVariant = .light
-        
+
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(keyboardFrameWillChange(notification:)),
                                                name: UIResponder.keyboardWillChangeFrameNotification,
@@ -93,11 +95,12 @@ public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContr
                                                name: UIResponder.keyboardDidChangeFrameNotification,
                                                object: nil)
 
-        self.createViews()
-        self.createConstraints()
+        createViews()
+        createConstraints()
     }
-    
-    required public init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -116,15 +119,15 @@ public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContr
         view.backgroundColor = UIColor.from(scheme: .separator)
         return view
     }()
-    
-    override public var preferredStatusBarStyle: UIStatusBarStyle {
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
-    
+
     // MARK: - Search
-    
+
     private var filteredDestinations: [D] = []
-    
+
     private var filterString: String? = .none {
         didSet {
             if let filterString = filterString, !filterString.isEmpty {
@@ -136,37 +139,39 @@ public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContr
             else {
                 self.filteredDestinations = self.destinations
             }
-            
+
             self.destinationsTableView.reloadData()
         }
     }
-    
+
     // MARK: - Actions
-    
-    @objc public func onCloseButtonPressed(sender: AnyObject?) {
-        self.onDismiss?(self, false)
+
+    @objc
+    func onCloseButtonPressed(sender: AnyObject?) {
+        onDismiss?(self, false)
     }
-    
-    @objc public func onSendButtonPressed(sender: AnyObject?) {
+
+    @objc
+    func onSendButtonPressed(sender: AnyObject?) {
         if self.selectedDestinations.count > 0 {
             self.shareable.share(to: Array(self.selectedDestinations))
             self.onDismiss?(self, true)
         }
     }
-    
+
     // MARK: - UITableViewDataSource & UITableViewDelegate
 
-    public func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-    
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.filteredDestinations.count
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return filteredDestinations.count
     }
-    
-    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ShareDestinationCell<D>.reuseIdentifier) as! ShareDestinationCell<D>
-        
+
         let destination = self.filteredDestinations[indexPath.row]
         cell.destination = destination
         cell.allowsMultipleSelection = self.allowsMultipleSelection
@@ -176,67 +181,77 @@ public class ShareViewController<D: ShareDestination, S: Shareable>: UIViewContr
         }
         return cell
     }
-    
-    public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let destination = self.filteredDestinations[indexPath.row]
-        
-        self.tokenField.addToken(forTitle: destination.displayName, representedObject: destination)
-        
+
+        tokenField.addToken(forTitle: destination.displayName, representedObject: destination)
+
         self.selectedDestinations.insert(destination)
-        
+
         if !self.allowsMultipleSelection {
             self.onSendButtonPressed(sender: nil)
         }
     }
-    
-    public func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         let destination = self.filteredDestinations[indexPath.row]
-        
+
         guard let token = self.tokenField.token(forRepresentedObject: destination) else {
             return
         }
         self.tokenField.removeToken(token)
-        
+
         self.selectedDestinations.remove(destination)
     }
-     
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         self.topSeparatorView.scrollViewDidScroll(scrollView: scrollView)
     }
 
-    // MARK: - TokenFieldDelegate
-
-    public func tokenField(_ tokenField: TokenField, changedTokensTo tokens: [Token]) {
-        self.selectedDestinations = Set(tokens.map { $0.representedObject as! D })
-        self.destinationsTableView.reloadData()
-    }
-    
-    public func tokenField(_ tokenField: TokenField, changedFilterTextTo text: String) {
-        self.filterString = text
-    }
-    
     // MARK: - UIViewControllerTransitioningDelegate
-    
-    public func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+
+    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return BlurEffectTransition(visualEffectView: blurView, crossfadingViews: [containerView], reverse: false)
     }
-    
-    public func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+
+    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         return BlurEffectTransition(visualEffectView: blurView, crossfadingViews: [containerView], reverse: true)
     }
-    
-    @objc func keyboardFrameWillChange(notification: Notification) {
-        let firstResponder = UIResponder.wr_currentFirst()
-        let inputAccessoryHeight = firstResponder?.inputAccessoryView?.bounds.size.height ?? 0
-        
-        UIView.animate(withKeyboardNotification: notification, in: self.view, animations: { (keyboardFrameInView) in
+
+    @objc
+    private func keyboardFrameWillChange(notification: Notification) {
+        let inputAccessoryHeight = UIResponder.currentFirst?.inputAccessoryView?.bounds.size.height ?? 0
+
+        UIView.animate(withKeyboardNotification: notification, in: self.view, animations: {[weak self] (keyboardFrameInView) in
+            guard let weakSelf = self else { return }
+
             let keyboardHeight = keyboardFrameInView.size.height - inputAccessoryHeight
-            self.bottomConstraint?.constant = keyboardHeight == 0 ? -self.view.safeAreaInsetsOrFallback.bottom : CGFloat(0)
-            self.view.layoutIfNeeded()
-        }, completion: nil)
+            weakSelf.bottomConstraint?.constant = keyboardHeight == 0 ? -weakSelf.view.safeAreaInsetsOrFallback.bottom : CGFloat(0)
+            weakSelf.view.layoutIfNeeded()
+        })
     }
 
-    @objc func keyboardFrameDidChange(notification: Notification) {
+    @objc
+    private func keyboardFrameDidChange(notification: Notification) {
         updatePopoverFrame()
     }
+}
+
+// MARK: - TokenFieldDelegate
+
+extension ShareViewController: TokenFieldDelegate {
+    func tokenField(_ tokenField: TokenField, changedTokensTo tokens: [Token<NSObjectProtocol>]) {
+        selectedDestinations = Set(tokens.map { $0.representedObject.value as! D })
+        destinationsTableView.reloadData()
+    }
+
+    func tokenField(_ tokenField: TokenField, changedFilterTextTo text: String) {
+        filterString = text
+    }
+
+    func tokenFieldDidConfirmSelection(_ controller: TokenField) {
+        // no-op
+    }
+
 }

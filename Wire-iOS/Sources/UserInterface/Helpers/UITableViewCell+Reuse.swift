@@ -16,28 +16,31 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import UIKit
 
 // MARK: Cell Registration
 
-extension UITableViewCell {
-    @objc static var zm_reuseIdentifier: String {
-    	return NSStringFromClass(self) + "_ReuseIdentifier"
+extension NSObject {
+    static var zm_reuseIdentifier: String {
+        return NSStringFromClass(self) + "_ReuseIdentifier"
     }
-    
-    @objc static func register(in tableView: UITableView) {
+}
+
+extension UITableViewCell {
+    static func register(in tableView: UITableView) {
         tableView.register(self, forCellReuseIdentifier: zm_reuseIdentifier)
     }
 }
 
 extension UICollectionViewCell {
-    @objc static var zm_reuseIdentifier: String {
-        return NSStringFromClass(self) + "_ReuseIdentifier"
-    }
-    
     static func register(in collectionView: UICollectionView) {
         collectionView.register(self, forCellWithReuseIdentifier: zm_reuseIdentifier)
+    }
+}
+
+extension UITableViewHeaderFooterView {
+    static func register(in tableView: UITableView) {
+        tableView.register(self, forHeaderFooterViewReuseIdentifier: zm_reuseIdentifier)
     }
 }
 
@@ -52,5 +55,9 @@ extension UICollectionView {
 extension UITableView {
     func dequeueReusableCell<T: UITableViewCell>(ofType cellType: T.Type, for indexPath: IndexPath) -> T {
         return dequeueReusableCell(withIdentifier: T.zm_reuseIdentifier, for: indexPath) as! T
+    }
+
+    func dequeueReusableHeaderFooter<T: UITableViewHeaderFooterView>(ofType headerFooterType: T.Type) -> T {
+        return dequeueReusableHeaderFooterView(withIdentifier: T.zm_reuseIdentifier) as! T
     }
 }

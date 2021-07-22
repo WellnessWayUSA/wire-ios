@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import UIKit
 
 /**
  * The aspect ratio of the video view.
@@ -61,7 +62,7 @@ extension Optional where Wrapped == PreviewDisplayMode {
  * An image view used to preview the content of a post.
  */
 
-class PreviewImageView: UIImageView {
+final class PreviewImageView: UIImageView {
 
     private let detailsContainer = UIView()
     private let videoBadgeImageView = UIImageView()

@@ -17,8 +17,8 @@
 //
 
 import UIKit
+import WireSyncEngine
 
-@objcMembers
 final class ConnectRequestCell: UITableViewCell {
 
     var acceptBlock: (() -> Void)?
@@ -26,8 +26,10 @@ final class ConnectRequestCell: UITableViewCell {
 
     private var connectRequestViewController: IncomingConnectionViewController?
 
-    var user: ZMUser! {
+    var user: UserType! {
         didSet {
+            guard let user = user else { return }
+
             connectRequestViewController?.view.removeFromSuperview()
 
             let incomingConnectionViewController = IncomingConnectionViewController(userSession: ZMUserSession.shared(), user: user)
@@ -48,7 +50,7 @@ final class ConnectRequestCell: UITableViewCell {
             view.translatesAutoresizingMaskIntoConstraints = false
             view.pinToSuperview(axisAnchor: .centerX)
             view.fitInSuperview()
-            view.widthAnchor.constraint(lessThanOrEqualToConstant: 420)
+            view.widthAnchor.constraint(lessThanOrEqualToConstant: 420).isActive = true
 
             connectRequestViewController = incomingConnectionViewController
         }

@@ -17,36 +17,45 @@
 //
 
 import Foundation
+import WireSystem
+import WireCommonComponents
+import WireSyncEngine
 
 private let zmLog = ZMSLog(tag: "Analytics")
 
-fileprivate let ZMEnableConsoleLog = "ZMEnableAnalyticsLog"
+private let ZMEnableConsoleLog = "ZMEnableAnalyticsLog"
 
-@objcMembers class AnalyticsProviderFactory: NSObject {
-    @objc public static let shared = AnalyticsProviderFactory(userDefaults: .shared()!)
-    @objc public static let ZMConsoleAnalyticsArgumentKey = "-ConsoleAnalytics"
+final class AnalyticsProviderFactory: NSObject {
+    static let shared = AnalyticsProviderFactory(userDefaults: .shared()!)
+    static let ZMConsoleAnalyticsArgumentKey = "-ConsoleAnalytics"
 
-    @objc public var useConsoleAnalytics: Bool = false
+    var useConsoleAnalytics: Bool = false
 
     private let userDefaults: UserDefaults
 
-    @objc public init(userDefaults: UserDefaults) {
+    init(userDefaults: UserDefaults) {
         self.userDefaults = userDefaults
     }
-  
-    public func analyticsProvider() -> AnalyticsProvider? {
-        if self.useConsoleAnalytics || UserDefaults.standard.bool(forKey: ZMEnableConsoleLog) {
+
+    func analyticsProvider() -> AnalyticsProvider? {
+        if useConsoleAnalytics || UserDefaults.standard.bool(forKey: ZMEnableConsoleLog) {
             zmLog.info("Creating analyticsProvider: AnalyticsConsoleProvider")
             return AnalyticsConsoleProvider()
-        }
-        else if UseAnalytics.boolValue || AutomationHelper.sharedHelper.useAnalytics {
+        } else if AutomationHelper.sharedHelper.useAnalytics {
             // Create & return valid provider, when available.
-            return nil
-        }
-        else {
+            guard
+                let appKey = Bundle.countlyAppKey,
+                let url = BackendEnvironment.shared.countlyURL
+            else {
+                zmLog.error("Could not create Countly provider. Make sure COUNTLY_APP_KEY in .xcconfig is set and countlyURL exists in backend environment.")
+                return nil
+            }
+
+            return AnalyticsCountlyProvider(countlyAppKey: appKey, serverURL: url)
+
+        } else {
             zmLog.info("Creating analyticsProvider: no provider")
             return nil
         }
     }
 }
-

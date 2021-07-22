@@ -17,27 +17,30 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension Notification.Name {
     static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name("ColorSchemeControllerDidApplyColorSchemeChange")
 }
 
-@objc extension NSNotification {
-    public static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name.colorSchemeControllerDidApplyColorSchemeChange
+extension NSNotification {
+    static let colorSchemeControllerDidApplyColorSchemeChange = Notification.Name.colorSchemeControllerDidApplyColorSchemeChange
 }
 
-class ColorSchemeController: NSObject {
+final class ColorSchemeController: NSObject {
 
     var userObserverToken: Any?
 
     override init() {
         super.init()
 
-        if let session = ZMUserSession.shared() {
-            userObserverToken = UserChangeInfo.add(userObserver:self, for: ZMUser.selfUser(), userSession: session)
+        // When SelfUser.provider is nil, e.g. running tests, do not set up UserChangeInfo observer
+        if let session = ZMUserSession.shared(),
+           SelfUser.provider != nil {
+            userObserverToken = UserChangeInfo.add(observer: self, for: SelfUser.current, in: session)
         }
 
-        NotificationCenter.default.addObserver(self, selector: #selector(settingsColorSchemeDidChange(notification:)), name: .SettingsColorSchemeChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(settingsColorSchemeDidChange), name: .SettingsColorSchemeChanged, object: nil)
 
     }
 
@@ -45,14 +48,9 @@ class ColorSchemeController: NSObject {
         NotificationCenter.default.post(name: .colorSchemeControllerDidApplyColorSchemeChange, object: self)
     }
 
-    @objc func settingsColorSchemeDidChange(notification: Notification?) {
-        let colorScheme = ColorScheme.default
-        switch Settings.shared().colorScheme {
-        case .light:
-            colorScheme.variant = .light
-        case .dark:
-            colorScheme.variant = .dark
-        }
+    @objc
+    private func settingsColorSchemeDidChange() {
+        ColorScheme.default.variant = Settings.shared.colorSchemeVariant
 
         NSAttributedString.invalidateMarkdownStyle()
 

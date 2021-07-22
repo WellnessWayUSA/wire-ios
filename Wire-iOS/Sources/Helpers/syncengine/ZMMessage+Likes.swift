@@ -16,34 +16,33 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
+import WireDataModel
 
-
-public extension ZMConversationMessage {
+extension ZMConversationMessage {
 
     var canBeLiked: Bool {
-        guard let conversation = self.conversation else {
+        guard let conversation = conversationLike else {
             return false
         }
 
-        let participatesInConversation = conversation.activeParticipants.contains(ZMUser.selfUser())
+        let participatesInConversation = conversation.localParticipantsContain(user: SelfUser.current)
         let sentOrDelivered = deliveryState.isOne(of: .sent, .delivered, .read)
         let likableType = isNormal && !isKnock
         return participatesInConversation && sentOrDelivered && likableType && !isObfuscated && !isEphemeral
     }
 
     var liked: Bool {
+        get {
+            return likers.contains { $0.isSelfUser }
+        }
+
         set {
             if newValue {
                 ZMMessage.addReaction(.like, toMessage: self)
-            }
-            else {
+            } else {
                 ZMMessage.removeReaction(onMessage: self)
             }
-        }
-        get {
-            return likers().contains(.selfUser())
         }
     }
 
@@ -53,7 +52,7 @@ public extension ZMConversationMessage {
             }.reduce(0, +) > 0
     }
 
-    func likers() -> [ZMUser] {
+    var likers: [UserType] {
         return usersReaction.filter { (reaction, _) -> Bool in
             reaction == MessageReaction.like.unicodeValue
             }.map { (_, users) in
@@ -61,36 +60,28 @@ public extension ZMConversationMessage {
             }.first ?? []
     }
 
-    var sortedLikers: [ZMUser] {
-        return likers().sorted { $0.displayName < $1.displayName }
+    var sortedLikers: [UserType] {
+        return likers.sorted { $0.name < $1.name }
     }
 
     var sortedReadReceipts: [ReadReceipt] {
-        return readReceipts.sorted { $0.user.displayName < $1.user.displayName }
+        return readReceipts.sorted { $0.userType.name < $1.userType.name }
     }
 
 }
 
-public extension Message {
+extension Message {
 
-    @objc static func setLikedMessage(_ message: ZMConversationMessage, liked: Bool) {
+    static func setLikedMessage(_ message: ZMConversationMessage, liked: Bool) {
         return message.liked = liked
     }
 
-    @objc static func isLikedMessage(_ message: ZMConversationMessage) -> Bool {
+    static func isLikedMessage(_ message: ZMConversationMessage) -> Bool {
         return message.liked
     }
 
-    @objc static func hasReactions(_ message: ZMConversationMessage) -> Bool {
+    static func hasReactions(_ message: ZMConversationMessage) -> Bool {
         return message.hasReactions()
     }
 
-    @objc static func hasLikers(_ message: ZMConversationMessage) -> Bool {
-        return !message.likers().isEmpty
-    }
-
-    @objc class func messageCanBeLiked(_ message: ZMConversationMessage) -> Bool {
-        return message.canBeLiked
-    }
-    
 }

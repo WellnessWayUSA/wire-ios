@@ -17,11 +17,12 @@
 //
 
 import Foundation
+import UIKit
 
 typealias AuthenticationSecondaryViewDescription = SecondaryViewDescription & AuthenticationActionable
 
-typealias ValueSubmitted = (Any) -> ()
-typealias ValueValidated = (ValueValidation?) -> ()
+typealias ValueSubmitted = (Any) -> Void
+typealias ValueValidated = (ValueValidation?) -> Void
 
 enum ValueValidation {
     case info(String)

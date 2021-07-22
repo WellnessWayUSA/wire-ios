@@ -16,15 +16,18 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
+import WireSyncEngine
+import UIKit
 
-extension ZMConversation {
+extension ConversationLike where Self: SwiftConversationLike {
     var botCanBeAdded: Bool {
-        return self.conversationType != .oneOnOne && self.team != nil && self.allowGuests
+        return conversationType != .oneOnOne &&
+               teamType != nil &&
+               allowGuests
     }
 }
 
-public struct Service {
+struct Service {
     let serviceUser: ServiceUser
     var serviceUserDetails: ServiceDetails?
     var provider: ServiceProvider?
@@ -51,23 +54,28 @@ final class ServiceDetailViewController: UIViewController {
         case addService(ZMConversation), removeService(ZMConversation), openConversation
     }
 
-    public var service: Service {
+    var service: Service {
         didSet {
             self.detailView.service = service
         }
     }
-    
+
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return wr_supportedInterfaceOrientations
     }
 
-    public let completion: Completion?
-    public let variant: ServiceDetailVariant
-    public weak var viewControllerDismisser: ViewControllerDismisser?
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+
+    let completion: Completion?
+    let variant: ServiceDetailVariant
+    weak var viewControllerDismisser: ViewControllerDismisser?
 
     private let detailView: ServiceDetailView
-    private let actionButton: RestrictedButton
+    private let actionButton: Button
     private let actionType: ActionType
+    private let selfUser: UserType
 
     /// init method with ServiceUser, destination conversation and customized UI.
     ///
@@ -76,25 +84,30 @@ final class ServiceDetailViewController: UIViewController {
     ///   - destinationConversation: the destination conversation of the serviceUser
     ///   - actionType: Enum ActionType to choose the actiion add or remove the service user
     ///   - variant: color variant
+    ///   - selfUser: self user, for inject mock user for testing
+    ///   - completion: completion handler
     init(serviceUser: ServiceUser,
          actionType: ActionType,
          variant: ServiceDetailVariant,
+         selfUser: UserType = ZMUser.selfUser(),
          completion: Completion? = nil) {
         self.service = Service(serviceUser: serviceUser)
         self.completion = completion
+        self.selfUser = selfUser
+
         detailView = ServiceDetailView(service: service, variant: variant.colorScheme)
 
         switch actionType {
         case let .addService(conversation):
-            actionButton = RestrictedButton.createAddServiceButton()
-            actionButton.isHidden = ZMUser.selfUser().isGuest(in: conversation)
+            actionButton = Button.createAddServiceButton()
+            actionButton.isHidden = !selfUser.canAddService(to: conversation)
         case let .removeService(conversation):
-            actionButton = RestrictedButton.createDestructiveServiceButton()
-            actionButton.isHidden = ZMUser.selfUser().isGuest(in: conversation)
+            actionButton = Button.createDestructiveServiceButton()
+            actionButton.isHidden = !selfUser.canRemoveService(from: conversation)
         case .openConversation:
-            actionButton = RestrictedButton.openServiceConversationButton()
+            actionButton = Button.openServiceConversationButton()
+            actionButton.isHidden = !selfUser.canCreateService
         }
-        actionButton.requiredPermissions = .member
 
         self.variant = variant
         self.actionType = actionType
@@ -137,9 +150,7 @@ final class ServiceDetailViewController: UIViewController {
     }
 
     private func createConstraints() {
-        [detailView, actionButton].forEach() {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-        }
+        [detailView, actionButton].prepareForLayout()
 
         detailView.fitInSuperview(with: EdgeInsets(margin: 16), exclude: [.top, .bottom])
 
@@ -152,7 +163,6 @@ final class ServiceDetailViewController: UIViewController {
             ])
     }
 
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
@@ -162,13 +172,13 @@ final class ServiceDetailViewController: UIViewController {
         self.navigationItem.rightBarButtonItem?.accessibilityIdentifier = "close"
     }
 
-    @objc(backButtonTapped:)
-    public func backButtonTapped(_ sender: AnyObject!) {
+    @objc
+    func backButtonTapped(_ sender: AnyObject!) {
         self.navigationController?.popViewController(animated: true)
     }
 
-    @objc(dismissButtonTapped:)
-    public func dismissButtonTapped(_ sender: AnyObject!) {
+    @objc
+    func dismissButtonTapped(_ sender: AnyObject!) {
         self.navigationController?.dismiss(animated: true, completion: { [weak self] in
             self?.completion?(nil)
         })
@@ -182,54 +192,57 @@ final class ServiceDetailViewController: UIViewController {
             let serviceUser = self.service.serviceUser
             switch type {
             case let .addService(conversation):
-                conversation.add(serviceUser: serviceUser, in: userSession) { error in
-                    if let error = error {
-                        completion?(.failure(error: error))
-                    } else {
-                        Analytics.shared().tag(ServiceAddedEvent(service: serviceUser, conversation: conversation, context: .startUI))
+                conversation.add(serviceUser: serviceUser, in: userSession) { result in
+
+                    switch result {
+                    case .success:
+                        Analytics.shared.tag(ServiceAddedEvent(service: serviceUser, conversation: conversation, context: .startUI))
                         completion?(.success(conversation: conversation))
+                    case .failure(let error):
+                        completion?(.failure(error: (error as? AddBotError) ?? AddBotError.general))
                     }
                 }
             case let .removeService(conversation):
-                guard let user = serviceUser as? ZMUser else { return }
-                self.presentRemoveDialogue(for: user, from: conversation, dismisser: self.viewControllerDismisser)
+                self.presentRemoveDialogue(for: serviceUser, from: conversation, dismisser: self.viewControllerDismisser)
             case .openConversation:
                 if let existingConversation = ZMConversation.existingConversation(in: userSession.managedObjectContext, service: serviceUser, team: ZMUser.selfUser().team) {
                     completion?(.success(conversation: existingConversation))
                 } else {
-                    userSession.startConversation(with: serviceUser) { result in
+                    serviceUser.createConversation(in: userSession, completionHandler: { (result) in
                         if case let .success(conversation) = result {
-                            Analytics.shared().tag(ServiceAddedEvent(service: serviceUser, conversation: conversation, context: .startUI))
+                            Analytics.shared.tag(ServiceAddedEvent(service: serviceUser, conversation: conversation, context: .startUI))
                         }
-                        completion?(result)
-                    }
+
+                        switch result {
+                        case .success(let conversation):
+                            completion?(.success(conversation: conversation))
+                        case .failure(let error):
+                            completion?(.failure(error: (error as? AddBotError) ?? AddBotError.general))
+                        }
+                    })
                 }
             }
         }
     }
 }
 
-fileprivate extension RestrictedButton {
+fileprivate extension Button {
 
-    static func openServiceConversationButton() -> RestrictedButton {
-        return RestrictedButton(style: .full, title: "peoplepicker.services.open_conversation.item".localized)
+    static func openServiceConversationButton() -> Button {
+        return Button(style: .full, title: "peoplepicker.services.open_conversation.item".localized)
     }
 
-    static func createAddServiceButton() -> RestrictedButton {
-        return RestrictedButton(style: .full, title: "peoplepicker.services.add_service.button".localized)
+    static func createAddServiceButton() -> Button {
+        return Button(style: .full, title: "peoplepicker.services.add_service.button".localized)
     }
 
-    static func createServiceConversationButton() -> RestrictedButton {
-        return RestrictedButton(style: .full, title: "peoplepicker.services.create_conversation.item".localized)
-    }
-
-    static func createDestructiveServiceButton() -> RestrictedButton {
-        let button = RestrictedButton(style: .full, title: "participants.services.remove_integration.button".localized)
+    static func createDestructiveServiceButton() -> Button {
+        let button = Button(style: .full, title: "participants.services.remove_integration.button".localized)
         button.setBackgroundImageColor(.vividRed, for: .normal)
         return button
     }
 
-    convenience init(style: ButtonStyle, title:String) {
+    convenience init(style: ButtonStyle, title: String) {
         self.init(style: style)
         setTitle(title, for: .normal)
     }

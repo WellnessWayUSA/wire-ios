@@ -16,12 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
-
+import UIKit
 
 /// This class is a drop-in replacement for UILabel which can be copied.
-class CopyableLabel: UILabel {
+final class CopyableLabel: UILabel {
 
     private let dimmedAlpha: CGFloat = 0.4
     private let dimmAnimationDuration: TimeInterval = 0.33
@@ -31,7 +30,7 @@ class CopyableLabel: UILabel {
         isUserInteractionEnabled = true
         addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(longPressed)))
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

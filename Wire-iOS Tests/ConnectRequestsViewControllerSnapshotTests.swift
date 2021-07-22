@@ -18,35 +18,57 @@
 
 import XCTest
 @testable import Wire
+import SnapshotTesting
+import WireDataModel
 
+final class ConnectRequestsViewControllerSnapshotTests: XCTestCase {
 
-final class ConnectRequestsViewControllerSnapshotTests: CoreDataSnapshotTestCase {
-    
     var sut: ConnectRequestsViewController!
-    var mockConversation: ZMConversation!
+    var mockConnectionRequest: SwiftMockConversation!
 
     override func setUp() {
         super.setUp()
+
+        UIColor.setAccentOverride(.vividRed)
+
         sut = ConnectRequestsViewController()
 
         sut.loadViewIfNeeded()
 
-        mockConversation = otherUserConversation
+        mockConnectionRequest = SwiftMockConversation()
+        let mockUser = MockUserType.createSelfUser(name: "Bruno")
+        mockUser.accentColorValue = .brightOrange
+        mockUser.handle = "bruno"
+        mockConnectionRequest.connectedUserType = mockUser
 
-        sut.connectionRequests = [mockConversation!]
+        sut.connectionRequests = [mockConnectionRequest]
         sut.reload()
 
         sut.view.frame = CGRect(origin: .zero, size: CGSize.iPhoneSize.iPhone4_7)
     }
-    
+
     override func tearDown() {
         sut = nil
-        mockConversation = nil
-        
+        mockConnectionRequest = nil
+
         super.tearDown()
     }
 
-    func testForInitState(){
-        verifyInIPhoneSize(view: sut.view)
+    func testForOneRequest() {
+        verify(matching: sut)
+    }
+
+    func testForTwoRequests() {
+        let otherUser = MockUserType.createConnectedUser(name: "Bill")
+        otherUser.accentColorValue = .brightYellow
+        otherUser.handle = "bill"
+
+        let secondConnectionRequest = SwiftMockConversation()
+        secondConnectionRequest.connectedUserType = otherUser
+
+        sut.connectionRequests = [secondConnectionRequest, mockConnectionRequest]
+        sut.reload(animated: false)
+
+        verify(matching: sut)
     }
 }

@@ -20,8 +20,9 @@
 
 
 
-"share_extension.general.ok" = "OK";
-"share_extension.conversation_selection.account" = "Account:";
+"general.ok" = "OK";
+
+"share_extension.conversation_selection.account" = "Konto:";
 "share_extension.conversation_selection.title" = "Rozmowa:";
 "share_extension.send_button.title" = "Wyślij";
 "share_extension.conversation_selection.empty.value" = "Wybierz";
@@ -31,11 +32,26 @@
 "share_extension.no_internet_connection.title" = "Brak połączenia z Internetem";
 "share_extension.not_signed_in.title" = "Musisz się zalogować zanim coś udostępnisz";
 "share_extension.not_signed_in.close_button" = "Zamknij";
-"share_extension.timeout.title" = "The connection has timed out.";
-"share_extension.timeout.message" = "Check your Internet connection and try again. The attachments were saved in the conversation.";
+
+// Custom app lock - unlock
+"share_extension.unlock.title_label" = "Enter passcode to unlock Wire";
+"share_extension.unlock.submit_button.title" = "unlock";
+"share_extension.unlock.textfield.placeholder" = "Enter your passcode";
+"share_extension.unlock.hint_label" = "Passcode";
+"share_extension.unlock.error_label" = "Wrong passcode";
+"share_extension.unlock.alert.message" = "Open Wire to create a passcode";
+"share_extension.unlock.reveal_passcode" = "Reveal passcode";
+
+"share_extension.timeout.title" = "Przekroczono limit czasu połączenia.";
+"share_extension.timeout.message" = "Sprawdź swoje połączenie internetowe i spróbuj ponownie. Załączniki zostały zapisane w konwersacji.";
+
+"content.file.too_big" = "Możesz wysyłać pliki do %@";
+"content.file.unsupported_attachment" = "Unsupported attachment";
+"share_extension.error.conversation_does_not_exist.message" = "Please select a conversation for sharing";
+
 "share_extension.privacy_security.lock_app.description" = "Odblokuj Wire";
-"share_extension.logged_out.title" = "You've been logged out from this account.";
-"share_extension.logged_out.message" = "Please choose another account.";
+"share_extension.logged_out.title" = "Zostałeś wylogowany z tego konta.";
+"share_extension.logged_out.message" = "Proszę, wybierz inne konto.";
 
 "conversation.displayname.emptygroup" = "Pusta grupa konwersacji";
 "meta.degraded.degradation_reason_message.singular" = "%@ rozpoczął korzystanie z nowego urządzenia.";

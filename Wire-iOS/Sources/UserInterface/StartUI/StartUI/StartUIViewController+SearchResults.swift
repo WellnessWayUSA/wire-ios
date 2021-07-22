@@ -17,64 +17,89 @@
 //
 
 import Foundation
+import WireSyncEngine
+import UIKit
+import WireSystem
 
-class StartUIView : UIView { }
+final class StartUIView: UIView { }
+
+extension StartUIViewController {
+    private func presentProfileViewController(for bareUser: UserType,
+                                              at indexPath: IndexPath?) {
+        _ = searchHeaderViewController.tokenField.resignFirstResponder()
+
+        guard let indexPath = indexPath,
+            let cell = searchResultsViewController.searchResultsView.collectionView.cellForItem(at: indexPath) else { return }
+
+        profilePresenter.presentProfileViewController(for: bareUser, in: self, from: view.convert(cell.bounds, from: cell), onDismiss: {
+            if self.isIPadRegular() {
+                let indexPaths = self.searchResultsViewController.searchResultsView.collectionView.indexPathsForVisibleItems
+                self.searchResultsViewController.searchResultsView.collectionView.reloadItems(at: indexPaths)
+            } else if self.profilePresenter.keyboardPersistedAfterOpeningProfile {
+                    _ = self.searchHeaderViewController.tokenField.becomeFirstResponder()
+                    self.profilePresenter.keyboardPersistedAfterOpeningProfile = false
+            }
+        })
+    }
+}
 
 extension StartUIViewController: SearchResultsViewControllerDelegate {
-    public func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
-                                            didTapOnUser user: UserType,
-                                            indexPath: IndexPath,
-                                            section: SearchResultsViewControllerSection) {
-        
+
+    func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
+                                     didTapOnUser user: UserType,
+                                     indexPath: IndexPath,
+                                     section: SearchResultsViewControllerSection) {
+
         if !user.isConnected && !user.isTeamMember {
-            self.presentProfileViewController(for: user, at: indexPath)
-        } else if let unboxed = user.zmUser {
-            delegate.startUI(self, didSelect: [unboxed])
+            presentProfileViewController(for: user, at: indexPath)
+        } else {
+            delegate?.startUI(self, didSelect: user)
         }
     }
-    
-    public func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
-                                            didDoubleTapOnUser user: UserType,
-                                            indexPath: IndexPath) {
-    
-        guard let unboxedUser = user.zmUser, unboxedUser.isConnected, !unboxedUser.isBlocked else {
+
+    func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
+                                     didDoubleTapOnUser user: UserType,
+                                     indexPath: IndexPath) {
+
+        guard user.isConnected, !user.isBlocked else {
             return
         }
-        
-        self.delegate.startUI(self, didSelect: [unboxedUser])
+
+        delegate?.startUI(self, didSelect: user)
     }
-    
-    public func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
-                                            didTapOnConversation conversation: ZMConversation) {
-        if conversation.conversationType == .group || conversation.conversationType == .oneOnOne {
-            self.delegate.startUI?(self, didSelect: conversation)
-        }
+
+    func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
+                                     didTapOnConversation conversation: ZMConversation) {
+        guard conversation.conversationType == .group || conversation.conversationType == .oneOnOne else { return }
+
+        delegate?.startUI(self, didSelect: conversation)
     }
-    
-    public func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
-                                            didTapOnSeviceUser user: ServiceUser) {
+
+    func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
+                                     didTapOnSeviceUser user: ServiceUser) {
 
         let detail = ServiceDetailViewController(serviceUser: user,
                                                  actionType: .openConversation,
                                                  variant: ServiceDetailVariant(colorScheme: .dark, opaque: false)) { [weak self] result in
-            guard let `self` = self else { return }
+            guard let weakSelf = self else { return }
+
             if let result = result {
                 switch result {
                 case .success(let conversation):
-                    self.delegate.startUI?(self, didSelect: conversation)
+                    weakSelf.delegate?.startUI(weakSelf, didSelect: conversation)
                 case .failure(let error):
-                    error.displayAddBotError(in: self)
+                    error.displayAddBotError(in: weakSelf)
                 }
             } else {
-                self.navigationController?.dismiss(animated: true, completion: nil)
+                weakSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
         }
-        
-        self.navigationController?.pushViewController(detail, animated: true)
+
+        navigationController?.pushViewController(detail, animated: true)
     }
-    
-    public func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
-                                            wantsToPerformAction action: SearchResultsViewControllerAction) {
+
+    func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController,
+                                     wantsToPerformAction action: SearchResultsViewControllerAction) {
         switch action {
         case .createGroup:
             openCreateGroupController()
@@ -82,15 +107,14 @@ extension StartUIViewController: SearchResultsViewControllerDelegate {
             createGuestRoom()
         }
     }
-    
+
     func openCreateGroupController() {
         let controller = ConversationCreationController()
         controller.delegate = self
-        
+
         if self.traitCollection.horizontalSizeClass == .compact {
             let avoiding = KeyboardAvoidingViewController(viewController: controller)
             self.navigationController?.pushViewController(avoiding, animated: true) {
-                UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
             }
         }
         else {
@@ -99,46 +123,54 @@ extension StartUIViewController: SearchResultsViewControllerDelegate {
             self.present(embeddedNavigationController, animated: true)
         }
     }
-    
+
     func createGuestRoom() {
         guard let userSession = ZMUserSession.shared() else {
             fatal("No user session present")
         }
-        
-        GuestRoomEvent.created.track()
-        self.showLoadingView = true
-        userSession.performChanges {
-            let conversation = ZMConversation.insertGroupConversation(intoUserSession: userSession,
-                                                                      withParticipants: [],
+
+        isLoadingViewVisible = true
+
+        userSession.perform { [weak self] in
+            guard let weakSelf = self else { return }
+
+            if let conversation = ZMConversation.insertGroupConversation(session: userSession,
+                                                                      participants: [],
                                                                       name: "general.guest-room-name".localized,
-                                                                      in: ZMUser.selfUser().team,
-                                                                      allowGuests: true)
-            self.delegate.startUI?(self, didSelect: conversation)
+                                                                      team: ZMUser.selfUser().team) {
+                weakSelf.delegate?.startUI(weakSelf, didSelect: conversation)
+            }
         }
     }
 }
 
 extension StartUIViewController: ConversationCreationControllerDelegate {
-    func dismiss(controller: ConversationCreationController) {
+    func dismiss(controller: ConversationCreationController, completion: (() -> Void)? = nil) {
         if traitCollection.horizontalSizeClass == .compact {
             navigationController?.popToRootViewController(animated: true) {
-                UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
+                completion?()
             }
-        }
-        else {
-            controller.navigationController?.dismiss(animated: true)
+        } else {
+            controller.navigationController?.dismiss(animated: true, completion: completion)
         }
     }
-    
+
     func conversationCreationController(_ controller: ConversationCreationController,
                                         didSelectName name: String,
-                                        participants: Set<ZMUser>,
+                                        participants: UserSet,
                                         allowGuests: Bool,
                                         enableReceipts: Bool) {
-        dismiss(controller: controller)
-        delegate.startUI(self, createConversationWith: participants, name: name, allowGuests: allowGuests, enableReceipts: enableReceipts)
+        dismiss(controller: controller) { [weak self] in
+            guard let weakSelf = self else { return }
+
+            weakSelf.delegate?.startUI(weakSelf,
+                                       createConversationWith: participants,
+                                       name: name,
+                                       allowGuests: allowGuests,
+                                       enableReceipts: enableReceipts)
+        }
     }
-    
+
 }
 
 extension StartUIViewController: EmptySearchResultsViewDelegate {
@@ -146,6 +178,8 @@ extension StartUIViewController: EmptySearchResultsViewDelegate {
         switch action {
         case .openManageServices:
             URL.manageTeam(source: .onboarding).openInApp(above: self)
+        case .openSearchSupportPage:
+            URL.wr_searchSupport.open()
         }
     }
 }

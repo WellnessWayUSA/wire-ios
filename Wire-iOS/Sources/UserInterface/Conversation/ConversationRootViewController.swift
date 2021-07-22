@@ -16,11 +16,11 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-import Foundation
-import Cartography
+import UIKit
+import WireSyncEngine
 
 // This class wraps the conversation content view controller in order to display the navigation bar on the top
-@objcMembers open class ConversationRootViewController: UIViewController {
+final class ConversationRootViewController: UIViewController {
 
     let navBarContainer: UINavigationBarContainer
     fileprivate var contentView = UIView()
@@ -30,18 +30,20 @@ import Cartography
     /// for NetworkStatusViewDelegate
     var shouldAnimateNetworkStatusView = false
 
-    fileprivate let networkStatusViewController: NetworkStatusViewController
+    fileprivate let networkStatusViewController: NetworkStatusViewController = NetworkStatusViewController()
 
-    @objc open fileprivate(set) weak var conversationViewController: ConversationViewController?
+    fileprivate(set) weak var conversationViewController: ConversationViewController?
 
-    public init(conversation: ZMConversation, message: ZMConversationMessage?, clientViewController: ZClientViewController) {
-        let conversationController = ConversationViewController()
-        conversationController.session = ZMUserSession.shared()
-        conversationController.conversation = conversation
-        conversationController.visibleMessage = message
-        conversationController.zClientViewController = clientViewController
+    init(conversation: ZMConversation,
+         message: ZMConversationMessage?,
+         clientViewController: ZClientViewController) {
 
-        networkStatusViewController = NetworkStatusViewController()
+        let conversationController = ConversationViewController(session: ZMUserSession.shared()!,
+                                                                conversation: conversation,
+                                                                visibleMessage: message as? ZMMessage,
+                                                                zClientViewController: clientViewController)
+
+        conversationViewController = conversationController
 
         let navbar = UINavigationBar()
         navbar.isTranslucent = false
@@ -50,6 +52,7 @@ import Cartography
         navbar.shadowImage = UIImage()
         navbar.barTintColor = UIColor.from(scheme: .barBackground)
         navbar.tintColor = UIColor.from(scheme: .textForeground)
+        navbar.barStyle = ColorScheme.default.variant == .dark ? .black : .default
 
         navBarContainer = UINavigationBarContainer(navbar)
 
@@ -57,20 +60,20 @@ import Cartography
 
         networkStatusViewController.delegate = self
 
-        self.addChild(conversationController)
-        self.contentView.addSubview(conversationController.view)
+        addChild(conversationController)
+        contentView.addSubview(conversationController.view)
         conversationController.didMove(toParent: self)
 
-        conversationViewController = conversationController
+        conversation.refreshDataIfNeeded()
 
         configure()
     }
 
-    public required init?(coder aDecoder: NSCoder) {
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    open func configure() {
+    func configure() {
         guard let conversationViewController = self.conversationViewController else {
             return
         }
@@ -81,54 +84,56 @@ import Cartography
         self.view.addSubview(self.contentView)
         self.addToSelf(networkStatusViewController)
 
-        networkStatusViewController.createConstraintsInParentController(bottomView: navBarContainer.view, controller: self)
+        [contentView,
+         conversationViewController.view,
+         networkStatusViewController.view
+        ].disableAutoresizingMaskTranslation()
 
-        constrain(navBarContainer.view, view, contentView, conversationViewController.view) {
-            navBarContainer, view, contentView, conversationViewControllerView in
+        NSLayoutConstraint.activate([
+            networkStatusViewController.view.topAnchor.constraint(equalTo: self.safeTopAnchor),
+            networkStatusViewController.view.leftAnchor.constraint(equalTo: view.leftAnchor),
+            networkStatusViewController.view.rightAnchor.constraint(equalTo: view.rightAnchor),
 
-            navBarContainer.left == view.left
-            navBarContainer.right == view.right
+            navBarContainer.view.topAnchor.constraint(equalTo: networkStatusViewController.view.bottomAnchor),
+            navBarContainer.view.leftAnchor.constraint(equalTo: view.leftAnchor),
+            navBarContainer.view.rightAnchor.constraint(equalTo: view.rightAnchor),
 
-            contentView.left == view.left
-            contentView.right == view.right
-            contentView.top == navBarContainer.bottom
+            contentView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            contentView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            contentView.topAnchor.constraint(equalTo: navBarContainer.view.bottomAnchor),
+            contentView.bottomAnchor.constraint(equalTo: self.safeBottomAnchor),
 
-            conversationViewControllerView.edges == contentView.edges
-        }
-        
-        contentView.bottomAnchor.constraint(equalTo: self.safeBottomAnchor).isActive = true
-        
+            conversationViewController.view.topAnchor.constraint(equalTo: contentView.topAnchor),
+            conversationViewController.view.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            conversationViewController.view.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+            conversationViewController.view.rightAnchor.constraint(equalTo: contentView.rightAnchor)
+        ])
+
         navBarContainer.navigationBar.pushItem(conversationViewController.navigationItem, animated: false)
     }
 
-    override open func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        delay(0.4) {
-            UIApplication.shared.wr_updateStatusBarForCurrentControllerAnimated(true)
-        }
 
         shouldAnimateNetworkStatusView = true
     }
 
-    open override var prefersStatusBarHidden: Bool {
-        return false
+    private var child: UIViewController? {
+        return conversationViewController?.contentViewController
     }
 
-    open override var preferredStatusBarStyle: UIStatusBarStyle {
-        switch ColorScheme.default.variant {
-        case .light:
-            return .default
-        case .dark:
-            return .lightContent
-        }
+    override var childForStatusBarStyle: UIViewController? {
+        return child
     }
-    
-    @objc (scrollToMessage:)
+
+    override var childForStatusBarHidden: UIViewController? {
+        return child
+    }
+
     func scroll(to message: ZMConversationMessage) {
         conversationViewController?.scroll(to: message)
     }
 }
-
 
 extension ConversationRootViewController: NetworkStatusBarDelegate {
     var bottomMargin: CGFloat {
@@ -141,3 +146,14 @@ extension ConversationRootViewController: NetworkStatusBarDelegate {
     }
 }
 
+extension ZMConversation {
+
+    /// Check if the conversation data is out of date, and in case update it.
+    /// This in an opportunistic update of the data, with an on-demand strategy.
+    /// Whenever the conversation is opened by the user, we check if anything is missing.
+    fileprivate func refreshDataIfNeeded() {
+        ZMUserSession.shared()?.enqueue {
+            self.markToDownloadRolesIfNeeded()
+        }
+    }
+}

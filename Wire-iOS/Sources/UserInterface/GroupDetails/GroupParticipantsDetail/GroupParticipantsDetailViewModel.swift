@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireDataModel
 
 fileprivate extension String {
     var isValidQuery: Bool {
@@ -24,77 +25,87 @@ fileprivate extension String {
     }
 }
 
-fileprivate extension ZMUser {
-    private func name(in conversation: ZMConversation) -> String {
-        return conversation.activeParticipants.contains(self)
-            ? displayName(in: conversation)
-            : displayName
-    }
-}
+typealias GroupParticipantsDetailConversation = GroupDetailsConversationType & StableRandomParticipantsProvider
 
-class GroupParticipantsDetailViewModel: NSObject, SearchHeaderViewControllerDelegate, ZMConversationObserver {
+final class GroupParticipantsDetailViewModel: NSObject, SearchHeaderViewControllerDelegate, ZMConversationObserver {
 
     private var internalParticipants: [UserType]
     private var filterQuery: String?
-    
+
     let selectedParticipants: [UserType]
-    let conversation: ZMConversation
-    var participantsDidChange: (() -> Void)? = nil
-    
+    let conversation: GroupParticipantsDetailConversation
+    var participantsDidChange: (() -> Void)?
+
     fileprivate var token: NSObjectProtocol?
 
-    var indexOfFirstSelectedParticipant: Int? {
-        guard let first = selectedParticipants.first as? ZMUser else { return nil }
-        return internalParticipants.firstIndex {
-            ($0 as? ZMUser)?.remoteIdentifier == first.remoteIdentifier
-        }
-    }
-    
-    var participants = [UserType]() {
-        didSet { participantsDidChange?() }
+    var indexPathOfFirstSelectedParticipant: IndexPath? {
+        guard let user = selectedParticipants.first as? ZMUser else { return nil }
+        guard let row = (internalParticipants.firstIndex {
+            ($0 as? ZMUser)?.remoteIdentifier == user.remoteIdentifier
+        }) else { return nil }
+        let section = user.isGroupAdmin(in: conversation) ? 0 : 1
+        return IndexPath(row: row, section: section)
     }
 
-    init(participants: [UserType], selectedParticipants: [UserType], conversation: ZMConversation) {
-        internalParticipants = participants
+    var participants = [UserType]() {
+        didSet {
+            computeParticipantGroups()
+            participantsDidChange?()
+        }
+    }
+    var admins = [UserType]()
+    var members = [UserType]()
+
+    init(selectedParticipants: [UserType],
+         conversation: GroupParticipantsDetailConversation) {
+        internalParticipants = conversation.sortedOtherParticipants
         self.conversation = conversation
-        self.selectedParticipants = selectedParticipants.sorted { $0.displayName < $1.displayName }
-        
+        self.selectedParticipants = selectedParticipants.sorted { $0.name < $1.name }
+
         super.init()
-        token = ConversationChangeInfo.add(observer: self, for: conversation)
+
+        if let conversation = conversation as? ZMConversation {
+            token = ConversationChangeInfo.add(observer: self, for: conversation)
+        }
+
         computeVisibleParticipants()
     }
-    
-    func isUserSelected(_ user: UserType) -> Bool {
-        guard let id = (user as? ZMUser)?.remoteIdentifier else { return false }
-        return selectedParticipants.contains { ($0 as? ZMUser)?.remoteIdentifier == id}
-    }
-    
+
     private func computeVisibleParticipants() {
-        guard let query = filterQuery, query.isValidQuery else { return participants = internalParticipants }
+        guard let query = filterQuery,
+            query.isValidQuery else {
+                return participants = internalParticipants
+        }
         participants = (internalParticipants as NSArray).filtered(using: filterPredicate(for: query)) as! [UserType]
     }
-    
+
+    private func computeParticipantGroups() {
+        admins = participants.filter({$0.isGroupAdmin(in: conversation)})
+        members = participants.filter({!$0.isGroupAdmin(in: conversation)})
+    }
+
     private func filterPredicate(for query: String) -> NSPredicate {
+        let trimmedQuery = query.trim()
         var predicates = [
-            NSPredicate(format: "name contains[cd] %@", query),
-            NSPredicate(format: "handle contains[cd] %@", query)
+            NSPredicate(format: "name contains[cd] %@", trimmedQuery),
+            NSPredicate(format: "handle contains[cd] %@", trimmedQuery)
         ]
 
         if query.hasPrefix("@") {
-            predicates.append(.init(format: "handle contains[cd] %@", String(query.dropFirst())))
+            predicates.append(.init(format: "handle contains[cd] %@", String(trimmedQuery.dropFirst())))
         }
-        
+
         return NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
     }
-    
+
     func conversationDidChange(_ changeInfo: ConversationChangeInfo) {
         guard changeInfo.participantsChanged else { return }
         internalParticipants = conversation.sortedOtherParticipants
         computeVisibleParticipants()
     }
-    
+
     // MARK: - SearchHeaderViewControllerDelegate
-    
+
     func searchHeaderViewController(
         _ searchHeaderViewController: SearchHeaderViewController,
         updatedSearchQuery query: String
@@ -102,7 +113,7 @@ class GroupParticipantsDetailViewModel: NSObject, SearchHeaderViewControllerDele
         filterQuery = query
         computeVisibleParticipants()
     }
-    
+
     func searchHeaderViewControllerDidConfirmAction(_ searchHeaderViewController: SearchHeaderViewController) {
         // no-op
     }

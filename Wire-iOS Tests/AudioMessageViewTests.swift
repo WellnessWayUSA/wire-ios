@@ -20,51 +20,25 @@ import XCTest
 @testable import Wire
 
 extension MockMessage: AudioTrack {
-    public var artworkURL: URL! {
-        get {
-            return .none
-        }
-    }
 
     public var title: String? {
-        get {
-            return .none
-        }
-    }
-    public var author: String? {
-        get {
-            return .none
-        }
+        return .none
     }
 
-    public var artwork: UIImage? {
-        get {
-            return .none
-        }
+    public var author: String? {
+        return .none
     }
 
     public var duration: TimeInterval {
-        get {
-            return 9999
-        }
+        return 9999
     }
 
     public var streamURL: URL? {
-        get {
-            return .none
-        }
+        return .none
     }
 
     public var previewStreamURL: URL? {
-        get {
-            return .none
-        }
-    }
-
-    public var externalURL: URL? {
-        get {
-            return .none
-        }
+        return .none
     }
 
     public var failedToLoad: Bool {
@@ -75,20 +49,15 @@ extension MockMessage: AudioTrack {
             // no-op
         }
     }
-
-    public func fetchArtwork() {
-        // no-op
-    }
-
 }
 
 final class AudioMessageViewTests: XCTestCase {
-    
+
     var sut: AudioMessageView!
-    
+    var mediaPlaybackManager: MediaPlaybackManager!
+
     override func setUp() {
         super.setUp()
-        sut = AudioMessageView()
 
         let url = Bundle(for: type(of: self)).url(forResource: "audio_sample", withExtension: "m4a")!
 
@@ -98,15 +67,17 @@ final class AudioMessageViewTests: XCTestCase {
             $0.backingFileMessageData.fileURL = url
         })
 
-        let mediaPlayBackManager = MediaPlaybackManager(name: "conversationMedia")
-        sut.audioTrackPlayer = mediaPlayBackManager?.audioTrackPlayer
+        mediaPlaybackManager = MediaPlaybackManager(name: "conversationMedia")
+        sut = AudioMessageView(mediaPlaybackManager: mediaPlaybackManager)
 
-        sut.audioTrackPlayer?.load(audioMessage, sourceMessage: audioMessage, completionHandler: nil)
+        sut.audioTrackPlayer?.load(audioMessage, sourceMessage: audioMessage)
         sut.configure(for: audioMessage, isInitial: true)
     }
-    
+
     override func tearDown() {
         sut = nil
+        mediaPlaybackManager = nil
+
         super.tearDown()
     }
 

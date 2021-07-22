@@ -17,8 +17,9 @@
 //
 
 import UIKit
+import WireCommonComponents
 
-@objcMembers final class ConversationListAccessoryView: UIView {
+final class ConversationListAccessoryView: UIView {
     var icon: ConversationStatusIcon? = nil {
         didSet {
             if icon != oldValue {
@@ -30,9 +31,14 @@ import UIKit
             }
         }
     }
-    
-    let mediaPlaybackManager: MediaPlaybackManager
-    
+
+    var activeMediaPlayer: MediaPlayer? {
+        let mediaManager = mediaPlaybackManager ?? AppDelegate.shared.mediaPlaybackManager
+        return mediaManager?.activeMediaPlayer
+    }
+
+    let mediaPlaybackManager: MediaPlaybackManager?
+
     let badgeView = RoundedBadge(view: UIView())
     let transparentIconView = UIImageView()
     let textLabel = UILabel()
@@ -42,32 +48,32 @@ import UIKit
     var expandTransparentIconViewWidthConstraint: NSLayoutConstraint!
     let defaultViewWidth: CGFloat = 28
     let activeCallWidth: CGFloat = 20
-    
-    @objc init(mediaPlaybackManager: MediaPlaybackManager) {
+
+    init(mediaPlaybackManager: MediaPlaybackManager? = nil) {
         self.mediaPlaybackManager = mediaPlaybackManager
         super.init(frame: .zero)
-        
+
         badgeView.accessibilityIdentifier = "action_button"
-                
+
         textLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         textLabel.setContentCompressionResistancePriority(UILayoutPriority.defaultHigh, for: .vertical)
         textLabel.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .horizontal)
         textLabel.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .vertical)
         textLabel.textAlignment = .center
         textLabel.font = FontSpec(.medium, .semibold).font!
-        
+
         transparentIconView.contentMode = .center
         transparentIconView.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .horizontal)
         transparentIconView.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .vertical)
         transparentIconView.setContentCompressionResistancePriority(UILayoutPriority.defaultHigh, for: .horizontal)
         transparentIconView.setContentCompressionResistancePriority(UILayoutPriority.defaultHigh, for: .vertical)
-        
+
         iconView.contentMode = .center
         iconView.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .horizontal)
         iconView.setContentHuggingPriority(UILayoutPriority.defaultHigh, for: .vertical)
         iconView.setContentCompressionResistancePriority(UILayoutPriority.defaultHigh, for: .horizontal)
         iconView.setContentCompressionResistancePriority(UILayoutPriority.defaultHigh, for: .vertical)
-        
+
         [badgeView, transparentIconView].forEach(addSubview)
 
         createConstraints()
@@ -102,16 +108,16 @@ import UIKit
         )
         badgeView.fitInSuperview()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private var viewForState: UIView? {
         let iconSize: StyleKitIcon.Size = 12
-        
+
         guard let icon = icon else { return nil }
-        
+
         switch icon {
         case .pendingConnection:
             iconView.setIcon(.clock, size: iconSize, color: .white)
@@ -129,7 +135,7 @@ import UIKit
             accessibilityValue = "conversation_list.voiceover.status.missed_call".localized
             return iconView
         case .playingMedia:
-            if let mediaPlayer = self.mediaPlaybackManager.activeMediaPlayer, mediaPlayer.state == .playing {
+            if let mediaPlayer = activeMediaPlayer, mediaPlayer.state == .playing {
                 iconView.setIcon(.pause, size: iconSize, color: .white)
                 accessibilityValue = "conversation_list.voiceover.status.pause_media".localized
             }
@@ -177,48 +183,48 @@ import UIKit
             badgeView.updateCollapseConstraints(isCollapsed: isCollapsed)
         }
     }
-    
-    public func updateForIcon() {
+
+    func updateForIcon() {
         self.badgeView.containedView.subviews.forEach { $0.removeFromSuperview() }
-        self.badgeView.backgroundColor = UIColor(white: 0, alpha: 0.16)
+        self.badgeView.backgroundColor = .blackAlpha16
 
         self.badgeView.isHidden = false
         self.transparentIconView.isHidden = true
-        
+
         self.expandTransparentIconViewWidthConstraint.constant = defaultViewWidth
         self.expandWidthConstraint.constant = defaultViewWidth
-        
+
         self.textLabel.textColor = UIColor.from(scheme: .textForeground, variant: .dark)
-        
+
         guard let icon = icon else {
             self.badgeView.isHidden = true
             self.transparentIconView.isHidden = true
-            
+
             updateCollapseConstraints(isCollapsed: true)
             return
         }
-        
+
         switch icon {
         case .activeCall(false):
             self.badgeView.isHidden = true
             self.transparentIconView.isHidden = false
             self.transparentIconView.setIcon(.phone, size: 18, color: .white)
-            
+
             self.expandTransparentIconViewWidthConstraint.constant = activeCallWidth
             self.expandWidthConstraint.constant = activeCallWidth
 
         case .activeCall(true): // "Join" button
             self.badgeView.backgroundColor = .strongLimeGreen
-            
+
         case .typing:
             self.badgeView.isHidden = true
             self.transparentIconView.isHidden = false
             self.transparentIconView.setIcon(.pencil, size: 12, color: .white)
-            
-        case .unreadMessages(_), .mention:
+
+        case .unreadMessages, .mention:
             self.textLabel.textColor = UIColor.from(scheme: .textForeground, variant: .light)
             self.badgeView.backgroundColor = UIColor.from(scheme: .textBackground, variant: .light)
-            
+
         case .unreadPing,
              .reply,
              .missedCall:
@@ -228,7 +234,7 @@ import UIKit
         default:
             self.transparentIconView.image = .none
         }
-        
+
         updateCollapseConstraints(isCollapsed: false)
 
         if let view = self.viewForState {

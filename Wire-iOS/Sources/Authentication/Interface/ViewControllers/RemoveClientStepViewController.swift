@@ -17,12 +17,15 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
+import WireSyncEngine
 
 final class RemoveClientStepViewController: UIViewController, AuthenticationCoordinatedViewController {
 
     var authenticationCoordinator: AuthenticationCoordinator?
     let clientListController: ClientListViewController
-    var userInterfaceSizeClass :(UITraitEnvironment) -> UIUserInterfaceSizeClass = {traitEnvironment in
+    var userInterfaceSizeClass: (UITraitEnvironment) -> UIUserInterfaceSizeClass = {traitEnvironment in
        return traitEnvironment.traitCollection.horizontalSizeClass
     }
 
@@ -79,7 +82,7 @@ final class RemoveClientStepViewController: UIViewController, AuthenticationCoor
         NSLayoutConstraint.activate([
             clientListController.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             clientListController.view.topAnchor.constraint(equalTo: safeTopAnchor),
-            clientListController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            clientListController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
         // Adaptive Constraints
@@ -117,8 +120,16 @@ final class RemoveClientStepViewController: UIViewController, AuthenticationCoor
         toggleConstraints()
     }
 
-}
+    // MARK: - AuthenticationCoordinatedViewController
 
+    func executeErrorFeedbackAction(_ feedbackAction: AuthenticationErrorFeedbackAction) {
+        // no-op
+    }
+
+    func displayError(_ error: Error) {
+        // no-op
+    }
+}
 
 // MARK: - ClientListViewControllerDelegate
 

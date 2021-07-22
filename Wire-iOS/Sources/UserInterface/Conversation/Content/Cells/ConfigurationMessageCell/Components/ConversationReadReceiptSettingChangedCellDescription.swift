@@ -17,14 +17,14 @@
 //
 
 import Foundation
-
+import WireCommonComponents
+import WireDataModel
 
 struct ReadReceiptViewModel {
     let icon: StyleKitIcon
     let iconColor: UIColor?
     let systemMessageType: ZMSystemMessageType
-    let sender: ZMUser
-
+    let sender: UserType
 
     func image() -> UIImage? {
         return iconColor.map { icon.makeImage(size: .tiny, color: $0) }
@@ -60,9 +60,7 @@ struct ReadReceiptViewModel {
             updateText = NSAttributedString(string: "content.system.message_read_receipt_on_add_to_group".localized, attributes: ConversationSystemMessageCell.baseAttributes)
         default:
             assertionFailure("invalid systemMessageType for ReadReceiptViewModel")
-            break
         }
-
 
         return updateText
     }
@@ -92,7 +90,7 @@ final class ConversationReadReceiptSettingChangedCellDescription: ConversationMe
     let accessibilityIdentifier: String? = nil
     let accessibilityLabel: String? = nil
 
-    init(sender: ZMUser,
+    init(sender: UserType,
          systemMessageType: ZMSystemMessageType) {
         let viewModel = ReadReceiptViewModel(icon: .eye,
                                              iconColor: UIColor.from(scheme: .textDimmed),

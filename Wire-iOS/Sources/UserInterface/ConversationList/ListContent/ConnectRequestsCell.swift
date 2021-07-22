@@ -14,9 +14,37 @@
 // 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
-final class ConnectRequestsCell : UICollectionViewCell {
+import WireSyncEngine
+
+protocol SectionListCellType: class {
+    var sectionName: String? { get set }
+    var cellIdentifier: String? { get set }
+}
+
+extension SectionListCellType {
+    var identifier: String {
+        let prefix: String
+
+        if let sectionName = sectionName {
+            prefix = "\(sectionName) - "
+        } else {
+            prefix = ""
+        }
+
+        if let cellIdentifier = cellIdentifier {
+            return prefix + cellIdentifier
+        } else {
+            return prefix
+        }
+    }
+}
+
+final class ConnectRequestsCell: UICollectionViewCell, SectionListCellType {
+    var sectionName: String?
+    var cellIdentifier: String?
+
     let itemView = ConversationListItemView()
 
     private var hasCreatedInitialConstraints = false
@@ -32,8 +60,7 @@ final class ConnectRequestsCell : UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private
-    func setupConnectRequestsCell() {
+    private func setupConnectRequestsCell() {
         clipsToBounds = true
         addSubview(itemView)
         updateAppearance()
@@ -43,7 +70,15 @@ final class ConnectRequestsCell : UICollectionViewCell {
         }
 
         setNeedsUpdateConstraints()
-        accessibilityIdentifier = "conversation_list_cell"
+    }
+
+    override var accessibilityIdentifier: String? {
+        get {
+            return identifier
+        }
+        set {
+            // no op
+        }
     }
 
     override func updateConstraints() {
@@ -77,18 +112,16 @@ final class ConnectRequestsCell : UICollectionViewCell {
         }
     }
 
-
     private
     func updateAppearance() {
         guard let userSession = ZMUserSession.shared() else { return }
-
 
         let connectionRequests = ZMConversationList.pendingConnectionConversations(inUserSession: userSession)
 
         let newCount: Int = connectionRequests.count
 
         if newCount != currentConnectionRequestsCount {
-            let connectionUsers = connectionRequests.map{ conversation in
+            let connectionUsers = connectionRequests.map { conversation in
                 if let conversation = conversation as? ZMConversation {
                     return conversation.connection?.to
                 } else {

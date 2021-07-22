@@ -16,9 +16,10 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
 
-
 import Foundation
 import Cartography
+import UIKit
+import WireSyncEngine
 
 fileprivate extension UIView {
 
@@ -34,14 +35,12 @@ fileprivate extension UIView {
 
 }
 
-
 protocol ChangeHandleTableViewCellDelegate: class {
     func tableViewCell(cell: ChangeHandleTableViewCell, shouldAllowEditingText text: String) -> Bool
     func tableViewCellDidChangeText(cell: ChangeHandleTableViewCell, text: String)
 }
 
-
-@objcMembers final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
+final class ChangeHandleTableViewCell: UITableViewCell, UITextFieldDelegate {
 
     weak var delegate: ChangeHandleTableViewCellDelegate?
     let prefixLabel: UILabel = {
@@ -71,7 +70,6 @@ protocol ChangeHandleTableViewCellDelegate: class {
         backgroundColor = .clear
     }
 
-    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -156,11 +154,11 @@ struct HandleChangeState {
     }
 
     private static var allowedCharacters: CharacterSet = {
-        return CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz_").union(.decimalDigits)
+        return CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz_-.").union(.decimalDigits)
     }()
 
     private static var allowedLength: CountableClosedRange<Int> {
-        return 2...21
+        return 2...256
     }
 
     /// Validates the passed in handle and updates the state if
@@ -184,10 +182,9 @@ struct HandleChangeState {
 
 }
 
+final class ChangeHandleViewController: SettingsBaseTableViewController {
 
-@objcMembers final class ChangeHandleViewController: SettingsBaseTableViewController {
-
-    public var footerFont: UIFont = .smallFont
+    var footerFont: UIFont = .smallFont
     var state: HandleChangeState
     private var footerLabel = UILabel()
     fileprivate weak var userProfile = ZMUserSession.shared()?.userProfile
@@ -195,7 +192,7 @@ struct HandleChangeState {
     var popOnSuccess = true
 
     convenience init() {
-        self.init(state: HandleChangeState(currentHandle: ZMUser.selfUser().handle ?? nil, newHandle: nil, availability: .unknown))
+        self.init(state: HandleChangeState(currentHandle: SelfUser.current.handle ?? nil, newHandle: nil, availability: .unknown))
     }
 
     convenience init(suggestedHandle handle: String) {
@@ -208,7 +205,7 @@ struct HandleChangeState {
     init(state: HandleChangeState) {
         self.state = state
         super.init(style: .grouped)
-        
+
         setupViews()
     }
 
@@ -250,7 +247,7 @@ struct HandleChangeState {
     @objc func saveButtonTapped(sender: UIBarButtonItem) {
         guard let handleToSet = state.newHandle else { return }
         userProfile?.requestSettingHandle(handle: handleToSet)
-        showLoadingView = true
+        isLoadingViewVisible = true
     }
 
     fileprivate var attributedFooterTitle: NSAttributedString? {
@@ -298,7 +295,6 @@ struct HandleChangeState {
         return 56
     }
 }
-
 
 extension ChangeHandleViewController: ChangeHandleTableViewCellDelegate {
 
@@ -351,7 +347,7 @@ extension ChangeHandleViewController: UserProfileUpdateObserver {
     }
 
     func didSetHandle() {
-        showLoadingView = false
+        isLoadingViewVisible = false
         state.availability = .taken
         guard popOnSuccess else { return }
         _ = navigationController?.popViewController(animated: true)
@@ -359,13 +355,13 @@ extension ChangeHandleViewController: UserProfileUpdateObserver {
 
     func didFailToSetHandle() {
         presentFailureAlert()
-        showLoadingView = false
+        isLoadingViewVisible = false
     }
 
     func didFailToSetHandleBecauseExisting() {
         state.availability = .taken
         updateUI()
-        showLoadingView = false
+        isLoadingViewVisible = false
     }
 
     private func presentFailureAlert() {
@@ -385,5 +381,5 @@ fileprivate extension String {
     var isEqualToUnicodeName: Bool {
         return applyingTransform(.toUnicodeName, reverse: false) == self
     }
-    
+
 }

@@ -17,17 +17,16 @@
 //
 
 import Foundation
+import WireDataModel
 
 extension ZMConversationMessage {
 
     var senderName: String {
-        guard let sender = self.sender else { return "conversation.status.someone".localized }
+        guard let sender = senderUser else { return "conversation.status.someone".localized }
         if sender.isSelfUser {
             return "conversation.status.you".localized
-        } else if let conversation = self.conversation {
-            return sender.displayName(in: conversation)
         } else {
-            return sender.displayName
+            return sender.name ?? ""
         }
     }
 

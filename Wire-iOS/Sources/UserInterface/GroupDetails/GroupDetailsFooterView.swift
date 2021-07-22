@@ -17,41 +17,25 @@
 //
 
 import UIKit
+import WireDataModel
 
 protocol GroupDetailsFooterViewDelegate: class {
     func footerView(_ view: GroupDetailsFooterView, shouldPerformAction action: GroupDetailsFooterView.Action)
 }
 
 final class GroupDetailsFooterView: ConversationDetailFooterView {
-    
+
     weak var delegate: GroupDetailsFooterViewDelegate?
-    
+
     enum Action {
         case more, invite
     }
-    
-    init() {
-        super.init(mainButton: RestrictedIconButton(requiredPermissions: .member))
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func action(for button: IconButton) -> Action? {
-        switch button {
-        case rightButton: return .more
-        case leftButton: return .invite
-        default: return nil
-        }
-    }
-    
-    func update(for conversation: ZMConversation) {
-        let selfUser = ZMUser.selfUser()!
-        leftButton.isHidden = selfUser.isGuest(in: conversation) || selfUser.teamRole == .partner
+
+    func update(for conversation: GroupDetailsConversationType) {
+        leftButton.isHidden = !SelfUser.current.canAddUser(to: conversation)
         leftButton.isEnabled = conversation.freeParticipantSlots > 0
     }
-    
+
     override func setupButtons() {
         leftIcon = .plus
         leftButton.setTitle("participants.footer.add_title".localized(uppercased: true), for: .normal)
@@ -67,5 +51,5 @@ final class GroupDetailsFooterView: ConversationDetailFooterView {
     override func rightButtonTapped(_ sender: IconButton) {
         delegate?.footerView(self, shouldPerformAction: .more)
     }
-    
+
 }

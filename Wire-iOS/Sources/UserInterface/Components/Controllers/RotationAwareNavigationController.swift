@@ -16,12 +16,19 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
+import UIKit
 
-class RotationAwareNavigationController: UINavigationController {
-    
-    override var shouldAutorotate : Bool {
+final class RotationAwareNavigationController: UINavigationController, PopoverPresenter, SpinnerCapable {
+
+    // MARK: SpinnerCapable
+    var dismissSpinner: SpinnerCompletion?
+
+    // PopoverPresenter
+    weak var presentedPopover: UIPopoverPresentationController?
+    weak var popoverPointToView: UIView?
+
+    override var shouldAutorotate: Bool {
         if let topController = self.viewControllers.last {
             return topController.shouldAutorotate
         }
@@ -29,8 +36,8 @@ class RotationAwareNavigationController: UINavigationController {
             return super.shouldAutorotate
         }
     }
-    
-    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         if let topController = self.viewControllers.last {
             return topController.supportedInterfaceOrientations
         }
@@ -38,8 +45,8 @@ class RotationAwareNavigationController: UINavigationController {
             return super.supportedInterfaceOrientations
         }
     }
-    
-    override var preferredInterfaceOrientationForPresentation : UIInterfaceOrientation {
+
+    override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
         if let topController = self.viewControllers.last {
             return topController.preferredInterfaceOrientationForPresentation
         }
@@ -47,35 +54,29 @@ class RotationAwareNavigationController: UINavigationController {
             return super.preferredInterfaceOrientationForPresentation
         }
     }
-    
-    override var prefersStatusBarHidden: Bool {
-        if let topController = self.viewControllers.last {
-            return topController.prefersStatusBarHidden
-        }
-        else {
-            return super.prefersStatusBarHidden
-        }
-    }
-    
-    open override var preferredStatusBarStyle : UIStatusBarStyle {
-        if let topController = self.viewControllers.last {
-            return topController.preferredStatusBarStyle
-        }
-        else {
-            return super.preferredStatusBarStyle
-        }
-    }
-    
+
     override func setViewControllers(_ viewControllers: [UIViewController], animated: Bool) {
         viewControllers.forEach { $0.hideDefaultButtonTitle() }
-        
+
         super.setViewControllers(viewControllers, animated: animated)
     }
-    
+
     override func pushViewController(_ viewController: UIViewController, animated: Bool) {
         viewController.hideDefaultButtonTitle()
-        
+
         super.pushViewController(viewController, animated: animated)
     }
-    
+
+    // MARK: - status bar
+    override var childForStatusBarStyle: UIViewController? {
+        return topViewController
+    }
+
+    override var childForStatusBarHidden: UIViewController? {
+        return topViewController
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return ColorScheme.default.statusBarStyle
+    }
 }

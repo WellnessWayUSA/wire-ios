@@ -20,10 +20,10 @@ import UIKit
 import Cartography
 
 final class TextCell: UITableViewCell, CellConfigurationConfigurable {
-    
+
     private let container = UIView()
     private let label = CopyableLabel()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         backgroundColor = .clear
@@ -43,7 +43,7 @@ final class TextCell: UITableViewCell, CellConfigurationConfigurable {
             label.bottom == container.bottom - 16
         }
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -54,5 +54,5 @@ final class TextCell: UITableViewCell, CellConfigurationConfigurable {
         label.textColor = UIColor.from(scheme: .textForeground, variant: variant)
         container.backgroundColor = UIColor.from(scheme: .barBackground, variant: variant)
     }
-    
+
 }

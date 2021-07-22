@@ -19,25 +19,25 @@
 import XCTest
 @testable import Wire
 
-class ConversationReplyCellDescriptionTests: CoreDataSnapshotTestCase {
+final class ConversationReplyCellDescriptionTests: CoreDataSnapshotTestCase {
 
     func testThatItDisplaysNameOfOriginalSender() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Hello")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Hello")
+        message.senderUser = MockUserType.createUser(name: "Bruno")
         message.conversation = otherUserConversation
 
         // WHEN
         let cellDescription = ConversationReplyCellDescription(quotedMessage: message)
 
         // THEN
-        XCTAssertEqual(cellDescription.configuration.senderName, otherUser.displayName(in: otherUserConversation))
+        XCTAssertEqual(cellDescription.configuration.senderName, otherUser.name)
     }
 
     func testThatItDisplaysCorrectNameForSelfReply() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Hello")!
-        message.sender = selfUser
+        let message = MockMessageFactory.textMessage(withText: "Hello")
+        message.senderUser = MockUserType.createSelfUser(name: "Alice")
         message.conversation = otherUserConversation
 
         // WHEN
@@ -49,8 +49,8 @@ class ConversationReplyCellDescriptionTests: CoreDataSnapshotTestCase {
 
     func testThatItFormatsDateForPastDay() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Hello")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Hello")
+        message.senderUser = MockUserType.createUser(name: "Bruno")
         message.conversation = otherUserConversation
         message.serverTimestamp = Date(timeIntervalSince1970: 1497798000)
 
@@ -63,8 +63,8 @@ class ConversationReplyCellDescriptionTests: CoreDataSnapshotTestCase {
 
     func testThatItFormatsDateForToday() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Hello")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Hello")
+        message.senderUser = MockUserType.createUser(name: "Bruno")
         message.conversation = otherUserConversation
         message.serverTimestamp = .today(at: 9, 41)
 

@@ -19,18 +19,17 @@
 import XCTest
 @testable import Wire
 
-@objc
 final private class MockAudioRecordViewControllerDelegate: NSObject, AudioRecordViewControllerDelegate {
 
     var cancelCallCount: UInt = 0
 
-    @objc func audioRecordViewControllerDidCancel(_ audioRecordViewController: AudioRecordBaseViewController) {
-        cancelCallCount = cancelCallCount + 1
+    func audioRecordViewControllerDidCancel(_ audioRecordViewController: AudioRecordBaseViewController) {
+        cancelCallCount += 1
     }
 
-    @objc func audioRecordViewControllerDidStartRecording(_ audioRecordViewController: AudioRecordBaseViewController) {}
+    func audioRecordViewControllerDidStartRecording(_ audioRecordViewController: AudioRecordBaseViewController) {}
 
-    @objc func audioRecordViewControllerWantsToSendAudio(_ audioRecordViewController: AudioRecordBaseViewController, recordingURL: URL, duration: TimeInterval, filter: AVSAudioEffectType) {}
+    func audioRecordViewControllerWantsToSendAudio(_ audioRecordViewController: AudioRecordBaseViewController, recordingURL: URL, duration: TimeInterval, filter: AVSAudioEffectType) {}
 }
 
 final class AudioRecordViewControllerTests: ZMSnapshotTestCase {
@@ -124,7 +123,6 @@ final class AudioRecordViewControllerTests: ZMSnapshotTestCase {
 
 }
 
-
 private extension UIViewController {
     @discardableResult func prepareForSnapshot() -> UIView {
         beginAppearanceTransition(true, animated: false)
@@ -134,7 +132,7 @@ private extension UIViewController {
         container.addSubview(view)
         container.translatesAutoresizingMaskIntoConstraints = false
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             view.heightAnchor.constraint(equalToConstant: 112),
             container.heightAnchor.constraint(equalToConstant: 130),

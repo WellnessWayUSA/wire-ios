@@ -19,44 +19,44 @@
 import UIKit
 import Cartography
 
-@objc enum ImageToolbarConfiguration : UInt {
+enum ImageToolbarConfiguration {
     case cell
     case compactCell
     case preview
 }
 
-@objcMembers class ImageToolbarView: UIView {
-    
+final class ImageToolbarView: UIView {
+
     let buttonContainer = UIView()
     let sketchButton = IconButton()
     let emojiButton = IconButton()
     let textButton = IconButton()
     let expandButton = IconButton()
-    var buttons : [IconButton] = []
-    
-    var configuration : ImageToolbarConfiguration {
+    var buttons: [IconButton] = []
+
+    var configuration: ImageToolbarConfiguration {
         didSet {
             guard oldValue != configuration else { return }
-            
+
             updateButtonConfiguration()
         }
     }
 
-    @objc public var showsSketchButton = true {
+    var showsSketchButton = true {
         didSet {
             guard oldValue != showsSketchButton else { return }
             updateButtonConfiguration()
         }
     }
-    
+
     public var imageIsEphemeral = false {
         didSet {
             guard oldValue != imageIsEphemeral else { return }
             updateButtonConfiguration()
         }
     }
-    
-    var isPlacedOnImage : Bool = false {
+
+    var isPlacedOnImage: Bool = false {
         didSet {
             backgroundColor = isPlacedOnImage ? UIColor(white: 0, alpha: 0.40) : UIColor.clear
             updateButtonStyle()
@@ -75,15 +75,15 @@ import Cartography
         }
     }
 
-    @objc public init(withConfiguraton configuration: ImageToolbarConfiguration) {
+    init(withConfiguraton configuration: ImageToolbarConfiguration) {
         self.configuration = configuration
-        
+
         super.init(frame: CGRect.zero)
 
         updateButtonStyle()
 
         addSubview(buttonContainer)
-        
+
         constrain(self, buttonContainer) { container, buttonContainer in
             buttonContainer.centerX == container.centerX
             buttonContainer.top == container.top
@@ -91,15 +91,15 @@ import Cartography
             buttonContainer.left >= container.left
             buttonContainer.right <= container.right
         }
-        
+
         setupButtons()
         updateButtonConfiguration()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func updateButtonConfiguration() {
         buttons.forEach({ $0.removeFromSuperview() })
         var newButtons = showsSketchButton ? [sketchButton] : []
@@ -120,22 +120,22 @@ import Cartography
         buttons.forEach(buttonContainer.addSubview)
         createButtonConstraints()
     }
-    
+
     func createButtonConstraints() {
-        let spacing : CGFloat = 16
-        
+        let spacing: CGFloat = 16
+
         if let firstButton = buttons.first {
             constrain(buttonContainer, firstButton) { container, firstButton in
                 firstButton.left == container.left + spacing
             }
         }
-        
+
         if let lastButton = buttons.last {
             constrain(buttonContainer, lastButton) { container, lastButton in
                 lastButton.right == container.right - spacing
             }
         }
-        
+
         for button in buttons {
             constrain(buttonContainer, button) { container, button in
                 button.width == 16
@@ -143,32 +143,32 @@ import Cartography
                 button.centerY == container.centerY
             }
         }
-        
+
         for i in 1..<buttons.count {
             let previousButton = buttons[i-1]
             let button = buttons[i]
-            
-            constrain(self, button, previousButton) { container, button, previousButton in
+
+            constrain(self, button, previousButton) { _, button, previousButton in
                 button.left == previousButton.right + spacing * 2
             }
         }
     }
-    
+
     func setupButtons() {
         let hitAreaPadding = CGSize(width: 16, height: 16)
-        
+
         sketchButton.setIcon(.brush, size: .tiny, for: .normal)
         sketchButton.hitAreaPadding = hitAreaPadding
         sketchButton.accessibilityIdentifier = "sketchButton"
-        
+
         emojiButton.setIcon(.emoji, size: .tiny, for: .normal)
         emojiButton.hitAreaPadding = hitAreaPadding
         emojiButton.accessibilityIdentifier = "emojiButton"
-        
+
         textButton.setIcon(.pencil, size: .tiny, for: .normal)
         textButton.hitAreaPadding = hitAreaPadding
         textButton.accessibilityIdentifier = "textButton"
-        
+
         expandButton.setIcon(.fullScreen, size: .tiny, for: .normal)
         expandButton.hitAreaPadding = hitAreaPadding
         expandButton.accessibilityIdentifier = "expandButton"

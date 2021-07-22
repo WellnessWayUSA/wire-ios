@@ -17,6 +17,7 @@
 //
 
 import Foundation
+import WireSystem
 
 private let zmLog = ZMSLog(tag: "AuthenticationReauthenticateInputHandler")
 
@@ -54,4 +55,3 @@ final class AuthenticationReauthenticateInputHandler: AuthenticationEventHandler
     }
 
 }
-

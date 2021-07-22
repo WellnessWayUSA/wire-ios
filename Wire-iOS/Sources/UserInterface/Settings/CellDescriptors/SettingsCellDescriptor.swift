@@ -16,9 +16,9 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
-
+import WireCommonComponents
+import UIKit
 
 /**
  * Top-level structure overview:
@@ -43,17 +43,16 @@ protocol SettingsCellDescriptorType: class {
     var title: String {get}
     var identifier: String? {get}
     var group: SettingsGroupCellDescriptorType? {get}
-    
+
     func select(_: SettingsPropertyValue?)
     func featureCell(_: SettingsCellType)
 }
 
-func ==(left: SettingsCellDescriptorType, right: SettingsCellDescriptorType) -> Bool {
+func == (left: SettingsCellDescriptorType, right: SettingsCellDescriptorType) -> Bool {
     if let leftID = left.identifier,
         let rightID = right.identifier {
             return leftID == rightID
-    }
-    else {
+    } else {
         return left == right
     }
 }
@@ -119,30 +118,33 @@ class SettingsSectionDescriptor: SettingsSectionDescriptorType {
         }
     }
     var visible: Bool {
-        get {
-            if let visibilityAction = self.visibilityAction {
-                return visibilityAction(self)
-            }
-            else {
-                return true
-            }
-        }
+        return visibilityAction?(self) ?? true
     }
     let visibilityAction: ((SettingsSectionDescriptorType) -> (Bool))?
 
-    let header: String?
-    let footer: String?
-    
-    init(cellDescriptors: [SettingsCellDescriptorType], header: String? = .none, footer: String? = .none, visibilityAction: ((SettingsSectionDescriptorType) -> (Bool))? = .none) {
+    var header: String? {
+        return headerGenerator()
+    }
+    var footer: String? {
+        return footerGenerator()
+    }
+
+    let headerGenerator: () -> String?
+    let footerGenerator: () -> String?
+
+    convenience init(cellDescriptors: [SettingsCellDescriptorType], header: String? = .none, footer: String? = .none, visibilityAction: ((SettingsSectionDescriptorType) -> (Bool))? = .none) {
+        self.init(cellDescriptors: cellDescriptors, headerGenerator: { return header }, footerGenerator: { return footer}, visibilityAction: visibilityAction)
+    }
+
+    init(cellDescriptors: [SettingsCellDescriptorType], headerGenerator: @escaping () -> String?, footerGenerator: @escaping () -> String?, visibilityAction: ((SettingsSectionDescriptorType) -> (Bool))? = .none) {
         self.cellDescriptors = cellDescriptors
-        self.header = header
-        self.footer = footer
+        self.headerGenerator = headerGenerator
+        self.footerGenerator = footerGenerator
         self.visibilityAction = visibilityAction
     }
 }
 
-
-class SettingsGroupCellDescriptor: SettingsInternalGroupCellDescriptorType, SettingsControllerGeneratorType {
+final class SettingsGroupCellDescriptor: SettingsInternalGroupCellDescriptorType, SettingsControllerGeneratorType {
     static let cellType: SettingsTableCell.Type = SettingsGroupCell.self
     var visible: Bool = true
     let title: String
@@ -150,19 +152,19 @@ class SettingsGroupCellDescriptor: SettingsInternalGroupCellDescriptorType, Sett
     let items: [SettingsSectionDescriptorType]
     let identifier: String?
     let icon: StyleKitIcon?
-    
+
     let previewGenerator: PreviewGeneratorType?
-    
+
     weak var group: SettingsGroupCellDescriptorType?
-    
+
     var visibleItems: [SettingsSectionDescriptorType] {
         return self.items.filter {
             $0.visible
         }
     }
-    
+
     weak var viewController: UIViewController?
-    
+
     init(items: [SettingsSectionDescriptorType], title: String, style: InternalScreenStyle = .grouped, identifier: String? = .none, previewGenerator: PreviewGeneratorType? = .none, icon: StyleKitIcon? = nil) {
         self.items = items
         self.title = title
@@ -171,7 +173,7 @@ class SettingsGroupCellDescriptor: SettingsInternalGroupCellDescriptorType, Sett
         self.previewGenerator = previewGenerator
         self.icon = icon
     }
-    
+
     func featureCell(_ cell: SettingsCellType) {
         cell.titleText = self.title
         if let previewGenerator = self.previewGenerator {
@@ -180,14 +182,14 @@ class SettingsGroupCellDescriptor: SettingsInternalGroupCellDescriptorType, Sett
         }
         cell.icon = self.icon
     }
-    
+
     func select(_ value: SettingsPropertyValue?) {
-        if let navigationController = self.viewController?.navigationController,
-           let controllerToPush = self.generateViewController() {
+        if let navigationController = viewController?.navigationController,
+           let controllerToPush = generateViewController() {
             navigationController.pushViewController(controllerToPush, animated: true)
         }
     }
-    
+
     func generateViewController() -> UIViewController? {
         return SettingsTableViewController(group: self)
     }
@@ -247,20 +249,24 @@ extension SettingsPropertyName {
             return "Use AssetCollectionBatched"
         case .lockApp:
             return "self.settings.privacy_security.lock_app".localized
-        case .lockAppLastDate:
-            return "Last app lock date"
         case .callingConstantBitRate:
             return "self.settings.vbr.title".localized
         case .disableLinkPreviews:
             return "self.settings.privacy_security.disable_link_previews.title".localized
 
             // personal information - Analytics
-        case .disableCrashAndAnalyticsSharing:
+        case .disableCrashSharing:
+            return "self.settings.privacy_crash.title".localized
+        case .disableAnalyticsSharing:
             return "self.settings.privacy_analytics.title".localized
         case .receiveNewsAndOffers:
             return "self.settings.receiveNews_and_offers.title".localized
         case .readReceiptsEnabled:
             return "self.settings.enable_read_receipts.title".localized
+        case .encryptMessagesAtRest:
+            return "self.settings.encrypt_messages_at_rest.title".localized
+        case .federationEnabled:
+            return "Federate with other domains"
         }
     }
 }

@@ -17,104 +17,90 @@
 //
 
 import Foundation
-
-private let zmLog = ZMSLog(tag: "UI")
-
-extension UIViewController {
-
-    @discardableResult
-    func requestPassword(_ completion: @escaping (ZMEmailCredentials?)->()) -> RequestPasswordController {
-        let passwordRequest = RequestPasswordController(context: .removeDevice) { (result: Result<String?>) -> () in
-            switch result {
-            case .success(let passwordString):
-                if let email = ZMUser.selfUser()?.emailAddress {
-
-                    if let passwordString = passwordString {
-                        let newCredentials = ZMEmailCredentials(email: email, password: passwordString)
-                        completion(newCredentials)
-                    }
-                } else {
-                    if DeveloperMenuState.developerMenuEnabled() {
-                        DebugAlert.showGeneric(message: "No email set!")
-                    }
-                    completion(nil)
-                }
-            case .failure(let error):
-                zmLog.error("Error: \(error)")
-                completion(nil)
-            }
-        }
-
-        present(passwordRequest.alertController, animated: true)
-
-        return passwordRequest
-    }
-}
+import WireSyncEngine
 
 enum ClientRemovalUIError: Error {
     case noPasswordProvided
 }
 
-final class ClientRemovalObserver: NSObject, ZMClientUpdateObserver {
+protocol ClientRemovalObserverDelegate: class {
+    func present(_ clientRemovalObserver: ClientRemovalObserver,
+                 viewControllerToPresent: UIViewController)
+    func setIsLoadingViewVisible(_ clientRemovalObserver: ClientRemovalObserver, isVisible: Bool)
+}
+
+final class ClientRemovalObserver: NSObject, ClientUpdateObserver {
     var userClientToDelete: UserClient
-    unowned let controller: UIViewController
-    let completion: ((Error?)->())?
-    var credentials: ZMEmailCredentials?
+    private weak var delegate: ClientRemovalObserverDelegate?
+    private let completion: ((Error?) -> Void)?
+    private var credentials: ZMEmailCredentials?
+    private lazy var requestPasswordController: RequestPasswordController = {
+        return RequestPasswordController(context: .removeDevice,
+                                         callback: {[weak self] password in
+            guard let password = password,
+                !password.isEmpty else {
+                self?.endRemoval(result: ClientRemovalUIError.noPasswordProvided)
+                return
+            }
+
+            self?.credentials = ZMEmailCredentials(email: "", password: password)
+            self?.startRemoval()
+            self?.passwordIsNecessaryForDelete = true
+        })
+    }()
     private var passwordIsNecessaryForDelete: Bool = false
     private var observerToken: Any?
-    
-    init(userClientToDelete: UserClient, controller: UIViewController, credentials: ZMEmailCredentials?, completion: ((Error?)->())? = nil) {
+
+    init(userClientToDelete: UserClient,
+         delegate: ClientRemovalObserverDelegate,
+         credentials: ZMEmailCredentials?,
+         completion: ((Error?) -> Void)? = nil) {
         self.userClientToDelete = userClientToDelete
-        self.controller = controller
+        self.delegate = delegate
         self.credentials = credentials
         self.completion = completion
+
         super.init()
-        observerToken = ZMUserSession.shared()?.add(self)
+
+        observerToken = ZMUserSession.shared()?.addClientUpdateObserver(self)
     }
 
     func startRemoval() {
-        controller.showLoadingView = true
-        ZMUserSession.shared()?.delete(userClientToDelete, with: credentials)
+        delegate?.setIsLoadingViewVisible(self, isVisible: true)
+        ZMUserSession.shared()?.deleteClient(userClientToDelete, credentials: credentials)
     }
-    
+
     private func endRemoval(result: Error?) {
         completion?(result)
+
+        // Allow password input alert can be show next time
+        passwordIsNecessaryForDelete = false
     }
-    
+
     func finishedFetching(_ userClients: [UserClient]) {
         // NO-OP
     }
-    
-    func failedToFetchClientsWithError(_ error: Error) {
+
+    func failedToFetchClients(_ error: Error) {
         // NO-OP
     }
-    
+
     func finishedDeleting(_ remainingClients: [UserClient]) {
-        controller.showLoadingView = false
+        delegate?.setIsLoadingViewVisible(self, isVisible: false)
         endRemoval(result: nil)
     }
-    
-    func failedToDeleteClientsWithError(_ error: Error) {
-        controller.showLoadingView = false
 
-        if !passwordIsNecessaryForDelete {
-            controller.requestPassword { [weak self] newCredentials in
-                guard let emailCredentials = newCredentials,
-                    emailCredentials.password?.isEmpty == false else {
-                    self?.endRemoval(result: ClientRemovalUIError.noPasswordProvided)
-                    return
-                }
-                self?.credentials = emailCredentials
-                self?.startRemoval()
+    func failedToDeleteClients(_ error: Error) {
+        delegate?.setIsLoadingViewVisible(self, isVisible: false)
 
-                self?.passwordIsNecessaryForDelete = true
-            }
-        } else {
-            controller.presentAlertWithOKButton(message: "self.settings.account_details.remove_device.password.error".localized)
+        if passwordIsNecessaryForDelete {
+            let alert = UIAlertController.alertWithOKButton(title: nil,
+                                                            message: "self.settings.account_details.remove_device.password.error".localized)
+
+            delegate?.present(self, viewControllerToPresent: alert)
             endRemoval(result: error)
-
-            /// allow password input alert can be show next time
-            passwordIsNecessaryForDelete = false
+        } else {
+            delegate?.present(self, viewControllerToPresent: requestPasswordController.alertController)
         }
     }
 }

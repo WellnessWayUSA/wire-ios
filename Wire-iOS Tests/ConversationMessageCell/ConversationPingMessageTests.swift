@@ -19,20 +19,16 @@
 import XCTest
 @testable import Wire
 
-class ConversationPingMessageTests: ConversationCellSnapshotTestCase {
-
-    override func setUp() {
-        super.setUp()
-    }
+final class ConversationPingMessageTests: XCTestCase {
 
     func testPing() {
         // GIVEN
-        let message = MockMessageFactory.pingMessage()!
-        message.sender = selfUser
+        SelfUser.provider = SelfProvider(selfUser: MockUserType.createSelfUser(name: "Alice"))
+        let message = MockMessageFactory.pingMessage()
+        message.senderUser = MockUserType.createSelfUser(name: "Alice")
 
         // THEN
         verify(message: message)
     }
-
 
 }

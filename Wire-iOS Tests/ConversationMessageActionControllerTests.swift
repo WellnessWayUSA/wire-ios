@@ -19,34 +19,45 @@
 import XCTest
 @testable import Wire
 
-class ConversationMessageActionControllerTests: CoreDataSnapshotTestCase {
-    
+final class ConversationMessageActionControllerTests: XCTestCase, CoreDataFixtureTestHelper {
+    var coreDataFixture: CoreDataFixture!
+
+    override func setUp() {
+        super.setUp()
+        coreDataFixture = CoreDataFixture()
+    }
+
+    override func tearDown() {
+        coreDataFixture = nil
+        super.tearDown()
+    }
+
     // MARK: - Single Tap Action
-    
+
     func testThatImageIsPresentedOnSingleTapWhenDownloaded() {
         // GIVEN
-        let message = MockMessageFactory.imageMessage(with: image(inTestBundleNamed: "unsplash_burger.jpg"))!
-        message.sender = otherUser
+        let message = MockMessageFactory.imageMessage(with: image(inTestBundleNamed: "unsplash_burger.jpg"))
+        message.senderUser = MockUserType.createUser(name: "Bob")
         message.conversation = otherUserConversation
-        
+
         // WHEN
         let actionController = ConversationMessageActionController(responder: nil, message: message, context: .content, view: UIView())
         let singleTapAction = actionController.singleTapAction
-        
+
         // THEN
         XCTAssertEqual(singleTapAction, .present)
     }
-    
+
     func testThatImageIgnoresSingleTapWhenNotDownloaded() {
         // GIVEN
-        let message = MockMessageFactory.imageMessage(with: nil)!
-        message.sender = otherUser
+        let message = MockMessageFactory.imageMessage(with: nil)
+        message.senderUser = MockUserType.createUser(name: "Bob")
         message.conversation = otherUserConversation
-        
+
         // WHEN
         let actionController = ConversationMessageActionController(responder: nil, message: message, context: .content, view: UIView())
         let singleTapAction = actionController.singleTapAction
-        
+
         // THEN
         XCTAssertNil(singleTapAction)
     }
@@ -55,8 +66,8 @@ class ConversationMessageActionControllerTests: CoreDataSnapshotTestCase {
 
     func testThatItAllowsToLikeMessage() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Super likeable")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Super likeable")
+        message.senderUser = MockUserType.createUser(name: "Bob")
         message.conversation = otherUserConversation
 
         // WHEN
@@ -69,8 +80,8 @@ class ConversationMessageActionControllerTests: CoreDataSnapshotTestCase {
 
     func testThatItDoesNotAllowToLikeEphemeralMessage() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Super likeable")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Super likeable")
+        message.senderUser = MockUserType.createUser(name: "Bob")
         message.conversation = otherUserConversation
         message.isEphemeral = true
 
@@ -86,8 +97,8 @@ class ConversationMessageActionControllerTests: CoreDataSnapshotTestCase {
 
     func testThatItDoesNotShowReplyItemForUnsentTextMessage() {
         // GIVEN
-        let message = MockMessageFactory.textMessage(withText: "Text")!
-        message.sender = otherUser
+        let message = MockMessageFactory.textMessage(withText: "Text")
+        message.senderUser = MockUserType.createUser(name: "Bob")
         message.conversation = otherUserConversation
         message.deliveryState = .failedToSend
 
@@ -98,6 +109,22 @@ class ConversationMessageActionControllerTests: CoreDataSnapshotTestCase {
         // THEN
         XCTAssertFalse(supportsReply)
 
+    }
+
+    // MARK: - Copy
+
+    func testThatItShowsCopyItemForTextMessage() {
+        // GIVEN
+        let message = MockMessageFactory.textMessage(withText: "Text")
+        message.senderUser = MockUserType.createUser(name: "Bob")
+        message.conversation = otherUserConversation
+
+        // WHEN
+        let actionController = ConversationMessageActionController(responder: nil, message: message, context: .content, view: UIView())
+        let supportsCopy = actionController.canPerformAction(#selector(ConversationMessageActionController.copyMessage))
+
+        // THEN
+        XCTAssertTrue(supportsCopy)
     }
 
 }

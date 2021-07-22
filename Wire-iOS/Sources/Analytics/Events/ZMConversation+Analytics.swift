@@ -17,20 +17,21 @@
 //
 
 import Foundation
+import WireDataModel
 
-@objc public enum ConversationType: Int {
+enum ConversationType: Int {
     case oneToOne
     case group
 }
 
 extension ConversationType {
-    var analyticsTypeString : String {
+    var analyticsTypeString: String {
         switch  self {
         case .oneToOne:     return "one_to_one"
         case .group:        return "group"
         }
     }
-    
+
     static func type(_ conversation: ZMConversation) -> ConversationType? {
         switch conversation.conversationType {
         case .oneOnOne:
@@ -44,41 +45,67 @@ extension ConversationType {
 }
 
 extension ZMConversation {
-    
-    @objc public func analyticsTypeString() -> String? {
+
+    var analyticsTypeString: String? {
         return ConversationType.type(self)?.analyticsTypeString
     }
-    
-    @objc public class func analyticsTypeString(withConversationType conversationType: ConversationType) -> String {
-        return conversationType.analyticsTypeString
-    }
-    
+
+    /// TODO: move to DM
     /// Whether the conversation is a 1-on-1 conversation with a service user
-    @objc public var isOneOnOneServiceUserConversation: Bool {
-        guard self.activeParticipants.count == 2,
-             let otherUser = self.firstActiveParticipantOtherThanSelf() else {
+    var isOneOnOneServiceUserConversation: Bool {
+        guard self.localParticipants.count == 2,
+             let otherUser = firstActiveParticipantOtherThanSelf else {
             return false
         }
-        
+
         return otherUser.serviceIdentifier != nil &&
                 otherUser.providerIdentifier != nil
     }
-    
+
+    /// TODO: move to DM
     /// Whether the conversation includes at least 1 service user.
-    @objc public var includesServiceUser: Bool {
-        guard let participants = lastServerSyncedActiveParticipants.array as? [UserType] else { return false }
+    var includesServiceUser: Bool {
+        let participants = Array(localParticipants)
         return participants.any { $0.isServiceUser }
     }
-    
-    @objc public var sortedServiceUsers: [UserType] {
-        guard let participants = lastServerSyncedActiveParticipants.array as? [UserType] else { return [] }
-        return participants.filter { $0.isServiceUser }.sorted { $0.displayName < $1.displayName }
-    }
-    
-    @objc public var sortedOtherParticipants: [UserType] {
-        guard let participants = lastServerSyncedActiveParticipants.array as? [UserType] else { return [] }
-        return participants.filter { !$0.isServiceUser }.sorted { $0.displayName < $1.displayName }
+
+    var attributesForConversation: [String: Any] {
+        let participants = sortedActiveParticipants
+
+        let attributes: [String: Any] = [
+            "conversation_type": analyticsTypeString ?? "invalid",
+            "with_service": includesServiceUser ? true : false,
+            "is_allow_guests": accessMode == ConversationAccessMode.allowGuests ? true : false,
+            "conversation_size": participants.count.logRound(),
+            "is_global_ephemeral": hasSyncedTimeout,
+            "conversation_services": sortedServiceUsers.count.logRound(),
+            "conversation_guests_wireless": participants.filter({
+                $0.isWirelessUser && $0.isGuest(in: self)
+            }).count.logRound(),
+            "conversation_guests_pro": participants.filter({
+                $0.isGuest(in: self) && $0.hasTeam
+            }).count.logRound()]
+
+        return attributes.updated(other: guestAttributes)
     }
 
+    var hasSyncedTimeout: Bool {
+        if case .synced? = messageDestructionTimeout {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    var guestAttributes: [String: Any] {
+
+        let numGuests = sortedActiveParticipants.filter({
+            $0.isGuest(in: self)
+        }).count
+
+        return [
+            "conversation_guests": numGuests.logRound(),
+            "user_type": SelfUser.current.isGuest(in: self) ? "guest" : "user"
+        ]
+    }
 }
-

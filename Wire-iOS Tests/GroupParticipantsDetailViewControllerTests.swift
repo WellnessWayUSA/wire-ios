@@ -18,43 +18,82 @@
 
 import XCTest
 @testable import Wire
+import SnapshotTesting
 
-class GroupParticipantsDetailViewControllerTests: CoreDataSnapshotTestCase {
-    
+/// TODO: retire this extension
+extension ZMConversation {
+
+    func add(participants: Set<ZMUser>) {
+        addParticipantsAndUpdateConversationState(users: participants, role: nil)
+    }
+
+    func add(participants: [ZMUser]) {
+        add(participants: Set(participants))
+    }
+
+    func add(participants: ZMUser...) {
+        add(participants: Set(participants))
+    }
+}
+
+private final class MockConversation: MockStableRandomParticipantsConversation, GroupDetailsConversation {
+
+    var userDefinedName: String?
+
+    var hasReadReceiptsEnabled: Bool = false
+
+    var freeParticipantSlots: Int = 1
+}
+
+final class GroupParticipantsDetailViewControllerTests: XCTestCase {
+
+    override func setUp() {
+        super.setUp()
+
+        SelfUser.setupMockSelfUser()
+    }
+
     override func tearDown() {
-        resetColorScheme()
+        SelfUser.provider = nil
+
         super.tearDown()
     }
-    
+
     func testThatItRendersALotOfUsers() {
         // given
-        let users = (0..<20).map { createUser(name: "User #\($0)") }
+        let users: [MockUserType] = (0..<20).map {
+            let user = MockUserType.createUser(name: "User #\($0)")
+            user.handle = nil
+
+            return user
+        }
+
         let selected = Array(users.dropLast(15))
-        let conversation = createGroupConversation()
-        conversation.internalAddParticipants(users)
-        
-        // when
-        let sut = GroupParticipantsDetailViewController(participants: users, selectedParticipants: selected, conversation: conversation)
-        
-        // then
-        let wrapped = sut.wrapInNavigationController()
-        verify(view: wrapped.view)
+        let conversation = MockConversation()
+        conversation.sortedOtherParticipants = users
+
+        // when & then
+		let createSut: () -> UIViewController = {
+			let sut = GroupParticipantsDetailViewController(selectedParticipants: selected, conversation: conversation)
+			return sut.wrapInNavigationController()
+		}
+
+        verifyInAllColorSchemes(createSut: createSut)
     }
-    
-    func testThatItRendersALotOfUsers_Dark() {
+
+    func testEmptyState() {
         // given
-        ColorScheme.default.variant = .dark
-        let users = (0..<20).map { createUser(name: "User #\($0)") }
-        let selected = Array(users.dropLast(15))
-        let conversation = createGroupConversation()
-        conversation.internalAddParticipants(users)
-        
+        let conversation = MockConversation()
+
         // when
-        let sut = GroupParticipantsDetailViewController(participants: users, selectedParticipants: selected, conversation: conversation)
-        
+        let sut = GroupParticipantsDetailViewController(selectedParticipants: [], conversation: conversation)
+        sut.viewModel.admins = []
+        sut.viewModel.members = []
+        sut.setupViews()
+        sut.participantsDidChange()
+
         // then
         let wrapped = sut.wrapInNavigationController()
-        verify(view: wrapped.view)
-        ColorScheme.default.variant = .light
+        verify(matching: wrapped)
     }
 }

@@ -17,26 +17,21 @@
 //
 
 import Foundation
+import UIKit
 
 extension ConversationViewController {
-    @objc
     func updateOutgoingConnectionVisibility() {
-        guard let conversation = conversation,
-            contentViewController.tableView != nil else {
-                return
-        }
 
         let outgoingConnection: Bool = conversation.relatedConnectionState == .sent
         contentViewController.tableView.isScrollEnabled = !outgoingConnection
-
 
         if outgoingConnection {
             if outgoingConnectionViewController != nil {
                 return
             }
-            
+
             createOutgoingConnectionViewController()
-            
+
             if let outgoingConnectionViewController = outgoingConnectionViewController {
                 outgoingConnectionViewController.willMove(toParent: self)
                 view.addSubview(outgoingConnectionViewController.view)
@@ -51,17 +46,16 @@ extension ConversationViewController {
         }
     }
 
-    @objc
     func createConstraints() {
         [conversationBarController.view,
          contentViewController.view,
-         inputBarController.view].forEach(){$0?.translatesAutoresizingMaskIntoConstraints = false}
+         inputBarController.view].forEach {$0?.translatesAutoresizingMaskIntoConstraints = false}
 
         conversationBarController.view.fitInSuperview(exclude: [.bottom])
         contentViewController.view.fitInSuperview(exclude: [.bottom])
 
         contentViewController.view.bottomAnchor.constraint(equalTo: inputBarController.view.topAnchor).isActive = true
-        let constraints = inputBarController.view.fitInSuperview(exclude:[.top])
+        let constraints = inputBarController.view.fitInSuperview(exclude: [.top])
 
         inputBarBottomMargin = constraints[.bottom]
 
@@ -72,16 +66,18 @@ extension ConversationViewController {
     func keyboardFrameWillChange(_ notification: Notification) {
         // We only respond to keyboard will change frame if the first responder is not the input bar
         if invisibleInputAccessoryView.window == nil {
-            UIView.animate(withKeyboardNotification: notification, in: view, animations: { keyboardFrameInView in
-                self.inputBarBottomMargin?.constant = -keyboardFrameInView.size.height
-            }, completion: nil)
+            UIView.animate(withKeyboardNotification: notification, in: view, animations: { [weak self] keyboardFrameInView in
+                guard let weakSelf = self else { return }
+
+                weakSelf.inputBarBottomMargin?.constant = -keyboardFrameInView.size.height
+            })
         } else {
             if let screenRect: CGRect = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue,
-                let currentFirstResponder = UIResponder.wr_currentFirst(),
+                let currentFirstResponder = UIResponder.currentFirst,
             let height = currentFirstResponder.inputAccessoryView?.bounds.size.height {
 
                 let keyboardSize = CGSize(width: screenRect.size.width, height: height)
-                UIView.wr_setLastKeyboardSize(keyboardSize)
+                UIView.setLastKeyboardSize(keyboardSize)
             }
         }
     }

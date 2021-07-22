@@ -18,20 +18,25 @@
 
 
 import Foundation
+import WireUtilities
 
 public typealias FileInDirectory = (FileManager.SearchPathDirectory, String)
 
-public extension URL {
+public protocol BackupExcluder: class {
+    static func exclude(filesToExclude: [FileInDirectory]) throws
+}
 
-    func wr_excludeFromBackup() throws {
-        var mutableCopy = self
-        var resourceValues = URLResourceValues()
-        resourceValues.isExcludedFromBackup = true
-        try mutableCopy.setResourceValues(resourceValues)
-    }
-
-    static func wr_directory(for searchPathDirectory: FileManager.SearchPathDirectory) -> URL {
-        return URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(searchPathDirectory, .userDomainMask, true).first!)
+public extension BackupExcluder {
+    static func exclude(filesToExclude: [FileInDirectory]) throws {
+        do {
+            try filesToExclude.forEach { (directory, path) in
+                let url = URL.directory(for: directory).appendingPathComponent(path)
+                try url.excludeFromBackupIfExists()
+            }
+        }
+        catch (let error) {
+            throw error
+        }
     }
 
 }

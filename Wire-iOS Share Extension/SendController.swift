@@ -36,8 +36,8 @@ enum SendingState {
     case timedOut // Fired when the connection is lost, e.g. with bad network connection
     case conversationDidDegrade((Set<ZMUser>, DegradationStrategyChoice)) // In case the conversation degrades this case will be passed.
     case done // Sending either was cancelled (due to degradation for example) or finished.
+    case error(Error) // When error occurs, e.g. file is over the size limit/conversation does not exist
 }
-
 
 /// This class encapsulates the preparation and sending of text an `NSItemProviders`.
 /// It creates `UnsentSendable` instances and queries them if they need preparation.
@@ -45,7 +45,8 @@ enum SendingState {
 /// During the sending procress the current state of the operation is reported through the passed in
 /// `SendingCallState` in the `send` method. In comparison to the `PostContent` class, the `SendController`
 /// itself has no knowledge about conversation degradation.
-class SendController {
+final class SendController {
+    typealias SendableCompletion = (Result<[Sendable]>) -> Void
 
     private var observer: SendableBatchObserver? = nil
     private var isCancelled = false
@@ -58,12 +59,14 @@ class SendController {
     public var sentAllSendables = false
     
 
-    init(text: String, attachments: [NSItemProvider], conversation: Conversation, sharingSession: SharingSession) {
+    init(text: String, attachments: [NSItemProvider], conversation: WireShareEngine.Conversation, sharingSession: SharingSession) {
         
         var linkAttachment : NSItemProvider?
         
         var sendables: [UnsentSendable] = attachments.compactMap {
-            if $0.hasImage {
+            if $0.hasGifImage {
+                return UnsentGifImageSendable(conversation: conversation, sharingSession: sharingSession, attachment: $0)
+            } else if $0.hasImage {
                 return UnsentImageSendable(conversation: conversation, sharingSession: sharingSession, attachment: $0)
             } else if $0.hasURL {
                 linkAttachment = $0
@@ -80,12 +83,13 @@ class SendController {
         
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(SendController.networkStatusDidChange(_:)),
-                                               name: ShareExtensionNetworkObserver.statusChangeNotificationName,
+                                               name:  Notification.Name.NetworkStatus,
                                                object: nil)
     }
     
-    @objc func networkStatusDidChange(_ notification: Notification) {
-        if let status = notification.object as? NetworkStatus, status.reachability() == .OK {
+    @objc
+    private func networkStatusDidChange(_ notification: Notification) {
+        if let status = notification.object as? NetworkStatus, status.reachability == .ok {
             self.tryToTimeout()
         }
     }
@@ -97,19 +101,26 @@ class SendController {
         self.timedOut = false
         self.progress = progress
         
-        let completion: ([Sendable]) -> Void = { [weak self] sendables in
-            guard let `self` = self else { return }
-            
-            self.observer = SendableBatchObserver(sendables: sendables)
-            self.observer?.progressHandler = { [weak self] in
-                progress(.sending($0))
-                self?.tryToTimeout()
+        let completion: SendableCompletion  = { [weak self] sendableResult in
+            guard let weakSelf = self else {
+                return                
             }
+            
+            switch sendableResult {
+            case .success(let sendables):
+                weakSelf.observer = SendableBatchObserver(sendables: sendables)
+                weakSelf.observer?.progressHandler = { [weak self] in
+                    progress(.sending($0))
+                    self?.tryToTimeout()
+                }
 
-            self.observer?.sentHandler = { [weak self] in
-                self?.cancelTimeout()
-                self?.sentAllSendables = true
-                progress(.done)
+                weakSelf.observer?.sentHandler = { [weak self] in
+                    self?.cancelTimeout()
+                    self?.sentAllSendables = true
+                    progress(.done)
+                }
+            case .failure(let error):
+                progress(.error(error))
             }
         }
 
@@ -117,7 +128,9 @@ class SendController {
             progress(.preparing)
             prepare(unsentSendables: unsentSendables) { [weak self] in
                 guard let `self` = self else { return }
-                guard !self.isCancelled else { return progress(.done) }
+                guard !self.isCancelled else {
+                    return progress(.done)                    
+                }
                 progress(.startingSending)
                 self.append(unsentSendables: self.unsentSendables, completion: completion)
             }
@@ -145,7 +158,7 @@ class SendController {
         timeoutWorkItem = nil
     }
     
-    @objc func timeout() {
+    private func timeout() {
         self.cancel { [weak self] in
             self?.cancelTimeout()
             self?.timedOut = true
@@ -181,8 +194,12 @@ class SendController {
         preparationGroup.notify(queue: .main, execute: completion)
     }
 
-    private func append(unsentSendables: [UnsentSendable], completion: @escaping ([Sendable]) -> Void) {
-        guard !isCancelled else { return completion([]) }
+    private func append(unsentSendables: [UnsentSendable],
+                        completion: @escaping SendableCompletion) {
+        guard !isCancelled else {
+            return completion(.success([]))
+        }
+        
         let sendingGroup = DispatchGroup()
         var messages = [Sendable]()
 
@@ -193,14 +210,20 @@ class SendController {
         }
 
         unsentSendables.filter {
-            $0.error != .unsupportedAttachment
+            $0.error == nil
         }.forEach {
             sendingGroup.enter()
             $0.send(completion: appendToMessages)
         }
-
+        
+        let error = unsentSendables.compactMap(\.error).first
+        
         sendingGroup.notify(queue: .main) {
-            completion(messages)
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                completion(.success(messages))
+            }
         }
     }
 

@@ -20,7 +20,7 @@ import UIKit
 
 extension UIViewController {
 
-    @objc var safeBottomAnchor: NSLayoutYAxisAnchor {
+    var safeBottomAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return self.view.safeAreaLayoutGuide.bottomAnchor
         }
@@ -28,8 +28,8 @@ extension UIViewController {
             return self.bottomLayoutGuide.topAnchor
         }
     }
-    
-    @objc var safeTopAnchor: NSLayoutYAxisAnchor {
+
+    var safeTopAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return self.view.safeAreaLayoutGuide.topAnchor
         }
@@ -38,7 +38,7 @@ extension UIViewController {
         }
     }
 
-    @objc var safeCenterYAnchor: NSLayoutYAxisAnchor {
+    var safeCenterYAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return view.safeAreaLayoutGuide.centerYAnchor
         }
@@ -50,8 +50,7 @@ extension UIViewController {
 }
 
 extension UIView {
-
-    @objc var safeAreaLayoutGuideOrFallback: UILayoutGuide {
+    var safeAreaLayoutGuideOrFallback: UILayoutGuide {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide
         } else {
@@ -59,7 +58,7 @@ extension UIView {
         }
     }
 
-    @objc var safeAreaInsetsOrFallback: UIEdgeInsets {
+    var safeAreaInsetsOrFallback: UIEdgeInsets {
         if #available(iOS 11, *) {
             return safeAreaInsets
         } else {
@@ -67,7 +66,7 @@ extension UIView {
         }
     }
 
-    @objc var safeLeadingAnchor: NSLayoutXAxisAnchor {
+    var safeLeadingAnchor: NSLayoutXAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.leadingAnchor
         } else {
@@ -75,7 +74,7 @@ extension UIView {
         }
     }
 
-    @objc var safeTrailingAnchor: NSLayoutXAxisAnchor {
+    var safeTrailingAnchor: NSLayoutXAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.trailingAnchor
         } else {
@@ -83,7 +82,7 @@ extension UIView {
         }
     }
 
-    @objc var safeBottomAnchor: NSLayoutYAxisAnchor {
+    var safeBottomAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.bottomAnchor
         }
@@ -92,16 +91,15 @@ extension UIView {
         }
     }
 
-    @objc var safeTopAnchor: NSLayoutYAxisAnchor {
+    var safeTopAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.topAnchor
-        }
-        else {
+        } else {
             return topAnchor
         }
     }
 
-    @objc var safeCenterYAnchor: NSLayoutYAxisAnchor {
+    var safeCenterYAnchor: NSLayoutYAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.centerYAnchor
         }
@@ -110,7 +108,7 @@ extension UIView {
         }
     }
 
-    @objc var safeCenterXAnchor: NSLayoutXAxisAnchor {
+    var safeCenterXAnchor: NSLayoutXAxisAnchor {
         if #available(iOS 11, *) {
             return safeAreaLayoutGuide.centerXAnchor
         }

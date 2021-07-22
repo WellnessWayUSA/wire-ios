@@ -18,8 +18,10 @@
 
 import UIKit
 import Down
+import WireDataModel
+import WireCommonComponents
 
-class ConversationReplyContentView: UIView {
+final class ConversationReplyContentView: UIView {
     let numberOfLinesLimit: Int = 4
 
     struct Configuration {
@@ -109,7 +111,6 @@ class ConversationReplyContentView: UIView {
         ])
     }
 
-
     func configure(with object: Configuration) {
         senderComponent.isHidden = !object.showDetails
         timestampLabel.isHidden = !object.showDetails
@@ -122,7 +123,7 @@ class ConversationReplyContentView: UIView {
         switch object.content {
         case .text(let attributedContent):
             let mutableAttributedContent = NSMutableAttributedString(attributedString: attributedContent)
-            /// trim the string to first four lines to prevent last line narrower spacing issue
+            // Trim the string to first four lines to prevent last line narrower spacing issue
             mutableAttributedContent.paragraphTailTruncated()
             contentTextView.attributedText = mutableAttributedContent.trimmedToNumberOfLines(numberOfLinesLimit: numberOfLinesLimit)
             contentTextView.isHidden = false
@@ -184,7 +185,7 @@ class ConversationReplyCell: UIView, ConversationMessageCell {
 
 }
 
-class ConversationReplyCellDescription: ConversationMessageCellDescription {
+final class ConversationReplyCellDescription: ConversationMessageCellDescription {
     typealias View = ConversationReplyCell
     let configuration: View.Configuration
 
@@ -257,4 +258,3 @@ class ConversationReplyCellDescription: ConversationMessageCellDescription {
     }
 
 }
-

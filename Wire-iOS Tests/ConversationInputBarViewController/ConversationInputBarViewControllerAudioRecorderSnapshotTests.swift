@@ -19,7 +19,6 @@
 import XCTest
 @testable import Wire
 
-
 final class MockLongPressGestureRecognizer: UILongPressGestureRecognizer {
     let mockState: UIGestureRecognizer.State
     var mockLocation: CGPoint?
@@ -43,10 +42,6 @@ final class MockLongPressGestureRecognizer: UILongPressGestureRecognizer {
     }
 }
 
-final class MockAudioSession: NSObject, AVAudioSessionType {
-    var recordPermission: AVAudioSession.RecordPermission = .granted
-}
-
 final class ConversationInputBarViewControllerAudioRecorderSnapshotTests: CoreDataSnapshotTestCase {
     var sut: ConversationInputBarViewController!
     var mockLongPressGestureRecognizer: MockLongPressGestureRecognizer!
@@ -55,9 +50,8 @@ final class ConversationInputBarViewControllerAudioRecorderSnapshotTests: CoreDa
         super.setUp()
 
         sut = ConversationInputBarViewController(conversation: otherUserConversation)
-        sut.audioSession = MockAudioSession()
         sut.loadViewIfNeeded()
-        
+
         mockLongPressGestureRecognizer = MockLongPressGestureRecognizer(location: .zero, state: .began)
     }
 
@@ -80,7 +74,6 @@ final class ConversationInputBarViewControllerAudioRecorderSnapshotTests: CoreDa
 
     func testAudioRecorderTouchBegan() {
         // GIVEN
-
 
         // THEN
         verifyInAllPhoneWidths(view: sut.view,
@@ -120,4 +113,3 @@ final class ConversationInputBarViewControllerAudioRecorderSnapshotTests: CoreDa
         })
     }
 }
-

@@ -49,6 +49,16 @@
     return self;
 }
 
+- (BOOL) localParticipantsContainWithUser:(BOOL)user
+{
+    return YES;
+}
+
+- (void)verifyLegalHoldSubjects
+{
+  //no-op
+}
+
 - (BOOL)isKindOfClass:(Class)aClass
 {
     if ([aClass isSubclassOfClass:[ZMConversation class]]) {
@@ -61,16 +71,6 @@
 - (ZMUser *)firstActiveParticipantOtherThanSelf
 {
     return nil;
-}
-
-- (NSSet *)activeParticipants
-{
-    return [NSSet setWithArray:self.sortedActiveParticipants];
-}
-
-- (void)setActiveParticipants:(NSSet *)activeParticipants
-{
-    self.sortedActiveParticipants = [activeParticipants allObjects];
 }
 
 - (NSArray *)messages;
@@ -91,12 +91,6 @@
 - (NSManagedObjectContext *)managedObjectContext
 {
     return nil;
-}
-
-- (BOOL)isSelfAnActiveMember
-{
-    NSPredicate *selfUserPredicate = [NSPredicate predicateWithFormat:@"isSelfUser == YES"];
-    return ![self.activeParticipants filteredSetUsingPredicate:selfUserPredicate].isEmpty;
 }
 
 - (BOOL)canMarkAsUnread

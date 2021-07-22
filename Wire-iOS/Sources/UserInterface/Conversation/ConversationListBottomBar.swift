@@ -16,68 +16,91 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import UIKit
 import Cartography
+import WireSyncEngine
 
-
-@objc enum ConversationListButtonType: UInt {
-    case archive, camera, startUI
+enum ConversationListButtonType {
+    case archive, startUI, list, folder
 }
 
-@objc protocol ConversationListBottomBarControllerDelegate: class {
+protocol ConversationListBottomBarControllerDelegate: class {
     func conversationListBottomBar(_ bar: ConversationListBottomBarController, didTapButtonWithType buttonType: ConversationListButtonType)
 }
 
-
-@objcMembers final class ConversationListBottomBarController: UIViewController {
+final class ConversationListBottomBarController: UIViewController {
 
     weak var delegate: ConversationListBottomBarControllerDelegate?
 
+    let buttonStackview = UIStackView(axis: .horizontal)
+
     let startUIButton  = IconButton()
+    let listButton     = IconButton()
+    let folderButton   = IconButton()
     let archivedButton = IconButton()
-    let cameraButton   = IconButton()
 
     let separator = UIView()
+
+    private var userObserverToken: Any?
     private let heightConstant: CGFloat = 56
     private let xInset: CGFloat = 16
 
-    private var didLayout = false
-
     var showArchived: Bool = false {
         didSet {
-            guard didLayout else { return }
-            updateViews()
+            self.archivedButton.isHidden = !self.showArchived
         }
     }
 
-    private let showComposeButtons: Bool = false // Set this to show the compose buttons
-
     var showSeparator: Bool {
-        set { separator.fadeAndHide(!newValue) }
-        get { return !separator.isHidden }
+        get {
+            return !separator.isHidden
+        }
+
+        set {
+            separator.fadeAndHide(!newValue)
+        }
     }
 
-    required init(delegate: ConversationListBottomBarControllerDelegate? = nil) {
+    private var allButtons: [IconButton] {
+        return [startUIButton, listButton, folderButton, archivedButton]
+    }
+
+    required init() {
         super.init(nibName: nil, bundle: nil)
-        self.delegate = delegate
-        self.view.backgroundColor = UIColor.clear
+
         createViews()
+        createConstraints()
+        updateColorScheme()
+        addObservers()
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-
     private func createViews() {
         separator.backgroundColor = UIColor.from(scheme: .separator, variant: .light)
-        
+        separator.isHidden = true
+        separator.translatesAutoresizingMaskIntoConstraints = false
+
+        listButton.setIcon(.recentList, size: .tiny, for: [])
+        listButton.addTarget(self, action: #selector(listButtonTapped), for: .touchUpInside)
+        listButton.accessibilityIdentifier = "bottomBarRecentListButton"
+        listButton.accessibilityLabel = "conversation_list.voiceover.bottom_bar.recent_button.label".localized
+        listButton.accessibilityHint = "conversation_list.voiceover.bottom_bar.recent_button.hint".localized
+
+        folderButton.setIcon(.folderList, size: .tiny, for: [])
+        folderButton.addTarget(self, action: #selector(folderButtonTapped), for: .touchUpInside)
+        folderButton.accessibilityIdentifier = "bottomBarFolderListButton"
+        folderButton.accessibilityLabel = "conversation_list.voiceover.bottom_bar.folder_button.label".localized
+        folderButton.accessibilityHint = "conversation_list.voiceover.bottom_bar.folder_button.hint".localized
+
         archivedButton.setIcon(.archive, size: .tiny, for: [])
         archivedButton.addTarget(self, action: #selector(archivedButtonTapped), for: .touchUpInside)
         archivedButton.accessibilityIdentifier = "bottomBarArchivedButton"
         archivedButton.accessibilityLabel = "conversation_list.voiceover.bottom_bar.archived_button.label".localized
         archivedButton.accessibilityHint = "conversation_list.voiceover.bottom_bar.archived_button.hint".localized
+        archivedButton.isHidden = true
 
         startUIButton.setIcon(.person, size: .tiny, for: .normal)
         startUIButton.addTarget(self, action: #selector(startUIButtonTapped), for: .touchUpInside)
@@ -85,83 +108,81 @@ import Cartography
         startUIButton.accessibilityLabel = "conversation_list.voiceover.bottom_bar.contacts_button.label".localized
         startUIButton.accessibilityHint = "conversation_list.voiceover.bottom_bar.contacts_button.hint".localized
 
-        cameraButton.setIcon(.cameraLens, size: .tiny, for: .normal)
-        cameraButton.addTarget(self, action: #selector(cameraButtonTapped), for: .touchUpInside)
-        cameraButton.accessibilityIdentifier = "bottomBarCameraButton"
-        cameraButton.accessibilityLabel = "conversation_list.voiceover.bottom_bar.camera_button.label".localized
-        cameraButton.accessibilityHint = "conversation_list.voiceover.bottom_bar.camera_button.hint".localized
+        buttonStackview.distribution = .equalSpacing
+        buttonStackview.alignment = .center
+        buttonStackview.translatesAutoresizingMaskIntoConstraints = false
 
-        [archivedButton, startUIButton, cameraButton].forEach { button in
-            button.setIconColor(UIColor.from(scheme: .textForeground, variant: .dark), for: .normal)
+        allButtons.forEach { button in
+            button.translatesAutoresizingMaskIntoConstraints = false
+            buttonStackview.addArrangedSubview(button)
         }
 
-        addSubviews()
-        [separator, archivedButton].forEach{ $0.isHidden = true }
-
-        if !showComposeButtons {
-            createConstraints()
-        }
-    }
-
-    private func addSubviews() {
-        [archivedButton, startUIButton, separator].forEach(view.addSubview)
+        view.addSubview(buttonStackview)
+        view.addSubview(separator)
     }
 
     private func createConstraints() {
-        constrain(view, separator) { view, separator in
-            view.height == heightConstant ~ 750
-            separator.height == .hairline
-            separator.leading == view.leading
-            separator.trailing == view.trailing
-            separator.top == view.top
-        }
+        NSLayoutConstraint.activate([
+            view.heightAnchor.constraint(equalToConstant: heightConstant),
 
-        constrain(view, cameraButton, startUIButton, archivedButton) { view, cameraButton, startUIButton, archivedButton in
-            startUIButton.centerY == view.centerY
-            archivedButton.centerY == view.centerY
-            archivedButton.trailing == view.trailing - xInset
+            separator.heightAnchor.constraint(equalToConstant: .hairline),
+            separator.leftAnchor.constraint(equalTo: view.leftAnchor),
+            separator.rightAnchor.constraint(equalTo: view.rightAnchor),
+            separator.topAnchor.constraint(equalTo: view.topAnchor),
 
-            if showArchived {
-                startUIButton.leading == view.leading + xInset
-            } else {
-                startUIButton.centerX == view.centerX
-            }
-        }
+            buttonStackview.leftAnchor.constraint(equalTo: view.leftAnchor, constant: xInset),
+            buttonStackview.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -xInset),
+            buttonStackview.topAnchor.constraint(equalTo: view.topAnchor),
+            buttonStackview.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        updateViews()
-        didLayout = true
+    private func addObservers() {
+        guard let userSession = ZMUserSession.shared() else { return }
+
+        userObserverToken = UserChangeInfo.add(observer: self, for: userSession.selfUser, in: userSession)
     }
 
-    func updateViews() {
-        archivedButton.isHidden = !showArchived
-        [archivedButton, startUIButton, separator].forEach { $0.removeFromSuperview() }
-        
-        addSubviews()
-        createConstraints()
+    fileprivate func updateColorScheme() {
+        allButtons.forEach { button in
+            button.setIconColor(UIColor.from(scheme: .textForeground, variant: .dark), for: .normal)
+            button.setIconColor(.accent(), for: .selected)
+        }
     }
 
     // MARK: - Target Action
 
-    @objc private dynamic func archivedButtonTapped(_ sender: IconButton) {
+    @objc
+    private func listButtonTapped(_ sender: IconButton) {
+        updateSelection(with: sender)
+        delegate?.conversationListBottomBar(self, didTapButtonWithType: .list)
+    }
+
+    @objc
+    private func folderButtonTapped(_ sender: IconButton) {
+        updateSelection(with: sender)
+        delegate?.conversationListBottomBar(self, didTapButtonWithType: .folder)
+    }
+
+    @objc
+    private func archivedButtonTapped(_ sender: IconButton) {
         delegate?.conversationListBottomBar(self, didTapButtonWithType: .archive)
     }
 
-    @objc private dynamic func startUIButtonTapped(_ sender: IconButton) {
+    @objc
+    private func startUIButtonTapped(_ sender: IconButton) {
         delegate?.conversationListBottomBar(self, didTapButtonWithType: .startUI)
     }
 
-    @objc private dynamic func cameraButtonTapped(_ sender: IconButton) {
-        delegate?.conversationListBottomBar(self, didTapButtonWithType: .camera)
+    private func updateSelection(with button: IconButton) {
+        allButtons.forEach({ $0.isSelected = $0 == button })
     }
-
 }
 
 // MARK: - Helper
 
-public extension UIView {
+extension UIView {
+
     func fadeAndHide(_ hide: Bool, duration: TimeInterval = 0.2, options: UIView.AnimationOptions = UIView.AnimationOptions()) {
         if !hide {
             alpha = 0
@@ -172,5 +193,26 @@ public extension UIView {
         let completion: (Bool) -> Void = { _ in self.isHidden = hide }
         UIView.animate(withDuration: duration, delay: 0, options: UIView.AnimationOptions(), animations: animations, completion: completion)
     }
+
 }
 
+// MARK: - ConversationListViewModelRestorationDelegate
+extension ConversationListBottomBarController: ConversationListViewModelRestorationDelegate {
+    func listViewModel(_ model: ConversationListViewModel?, didRestoreFolderEnabled enabled: Bool) {
+        if enabled {
+            updateSelection(with: folderButton)
+        } else {
+            updateSelection(with: listButton)
+        }
+    }
+}
+
+extension ConversationListBottomBarController: ZMUserObserver {
+
+    func userDidChange(_ changeInfo: UserChangeInfo) {
+        guard changeInfo.accentColorValueChanged else { return }
+
+        updateColorScheme()
+    }
+
+}

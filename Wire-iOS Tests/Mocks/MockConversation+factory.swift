@@ -19,25 +19,45 @@
 import Foundation
 
 extension MockConversation {
-    static func oneOnOneConversation() -> MockConversation {
+    @objc
+    var isSelfAnActiveMember: Bool {
+        let selfUserPredicate = NSPredicate(format: "isSelfUser == YES")
+        return !sortedActiveParticipants.filter { selfUserPredicate.evaluate(with: $0) }.isEmpty
+    }
+
+    @objc
+    var localParticipants: Set<AnyHashable> {
+        return Set(sortedActiveParticipants as! [AnyHashable])
+    }
+
+    @objc
+    var activeParticipants: [AnyHashable] {
+        get {
+            return sortedActiveParticipants as! [AnyHashable]
+        }
+
+        set {
+            sortedActiveParticipants = newValue
+        }
+    }
+
+    static func oneOnOneConversation(otherUser: UserType = MockUser.mockUsers().first!) -> MockConversation {
         let selfUser = (MockUser.mockSelf() as Any) as! ZMUser
-        let otherUser = MockUser.mockUsers().first!
         let mockConversation = MockConversation()
         mockConversation.conversationType = .oneOnOne
-        mockConversation.displayName = otherUser.displayName
+        mockConversation.displayName = otherUser.name
         mockConversation.connectedUser = otherUser
         mockConversation.sortedActiveParticipants = [selfUser, otherUser]
         mockConversation.isConversationEligibleForVideoCalls = true
 
         return mockConversation
     }
-    
-    static func groupConversation() -> MockConversation {
-        let selfUser = (MockUser.mockSelf() as Any) as! ZMUser
-        let otherUser = MockUser.mockUsers().first!
+
+    static func groupConversation(selfUser: UserType = MockUserType.createSelfUser(name: "Alice"),
+                                  otherUser: UserType = SwiftMockLoader.mockUsers().first!) -> MockConversation {
         let mockConversation = MockConversation()
         mockConversation.conversationType = .group
-        mockConversation.displayName = otherUser.displayName
+        mockConversation.displayName = otherUser.name
         mockConversation.sortedActiveParticipants = [selfUser, otherUser]
         mockConversation.isConversationEligibleForVideoCalls = true
 

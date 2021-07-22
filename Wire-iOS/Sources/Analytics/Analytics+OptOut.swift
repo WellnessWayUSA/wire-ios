@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2018 Wire Swiss GmbH
+// Copyright (C) 2020 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,9 +17,10 @@
 //
 
 import Foundation
+import WireDataModel
 
 extension Analytics {
-    
+
     /// Opt the user out of sending analytics data
     var isOptedOut: Bool {
         get {
@@ -33,16 +34,13 @@ extension Analytics {
             }
 
             if newValue {
-                tagEvent("settings.opted_out_tracking")
-
-                provider?.flush() {
+                provider?.flush {
                     self.provider?.isOptedOut = newValue
                     self.provider = nil
                 }
             } else {
                 provider = AnalyticsProviderFactory.shared.analyticsProvider()
-                setTeam(ZMUser.selfUser()?.team)
-                tagEvent("settings.opted_in_tracking")
+                selfUser = SelfUser.current
             }
         }
     }

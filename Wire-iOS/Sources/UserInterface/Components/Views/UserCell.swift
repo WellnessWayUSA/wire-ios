@@ -17,38 +17,45 @@
 //
 
 import UIKit
+import WireCommonComponents
+import WireSyncEngine
 
-
-class UserCell: SeparatorCollectionViewCell {
-
-    enum AccessoryIcon {
-        case none, disclosure, connect
+extension UIImageView {
+    func setUpIconImageView(accessibilityIdentifier: String? = nil) {
+        translatesAutoresizingMaskIntoConstraints = false
+        contentMode = .center
+        self.accessibilityIdentifier = accessibilityIdentifier
+        isHidden = true
     }
-    
+}
+
+class UserCell: SeparatorCollectionViewCell, SectionListCellType {
+
     var hidesSubtitle: Bool = false
-    
+
     let avatarSpacer = UIView()
     let avatar = BadgeUserImageView()
     let titleLabel = UILabel()
     let subtitleLabel = UILabel()
     let connectButton = IconButton()
     let accessoryIconView = UIImageView()
-    let guestIconView = UIImageView()
+    let userTypeIconView = IconImageView()
     let verifiedIconView = UIImageView()
-    let videoIconView = UIImageView()
+    let videoIconView = IconImageView()
     let checkmarkIconView = UIImageView()
-    var contentStackView : UIStackView!
-    var titleStackView : UIStackView!
-    var iconStackView : UIStackView!
-    
+    let microphoneIconView = PulsingIconImageView()
+    var contentStackView: UIStackView!
+    var titleStackView: UIStackView!
+    var iconStackView: UIStackView!
+
     fileprivate var avatarSpacerWidthConstraint: NSLayoutConstraint?
-    
-    weak var user: UserType? = nil
-    
+
+    weak var user: UserType?
+
     static let boldFont: UIFont = .smallRegularFont
     static let lightFont: UIFont = .smallLightFont
     static let defaultAvatarSpacing: CGFloat = 64
-    
+
     /// Specify a custom avatar spacing
     var avatarSpacing: CGFloat? {
         get {
@@ -58,6 +65,9 @@ class UserCell: SeparatorCollectionViewCell {
             avatarSpacerWidthConstraint?.constant = newValue ?? UserCell.defaultAvatarSpacing
         }
     }
+
+    var sectionName: String?
+    var cellIdentifier: String?
 
     override var isSelected: Bool {
         didSet {
@@ -69,14 +79,16 @@ class UserCell: SeparatorCollectionViewCell {
             checkmarkIconView.layer.borderColor = borderColor.cgColor
         }
     }
-        
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        
+
         UIView.performWithoutAnimation {
             hidesSubtitle = false
+            userTypeIconView.isHidden = true
             verifiedIconView.isHidden = true
             videoIconView.isHidden = true
+            microphoneIconView.isHidden = true
             connectButton.isHidden = true
             accessoryIconView.isHidden = true
             checkmarkIconView.image = nil
@@ -84,47 +96,36 @@ class UserCell: SeparatorCollectionViewCell {
             checkmarkIconView.isHidden = true
         }
     }
-    
+
     override func setUp() {
         super.setUp()
 
-        guestIconView.translatesAutoresizingMaskIntoConstraints = false
-        guestIconView.contentMode = .center
-        guestIconView.accessibilityIdentifier = "img.guest"
-        guestIconView.isHidden = true
-        
-        videoIconView.translatesAutoresizingMaskIntoConstraints = false
-        videoIconView.contentMode = .center
-        videoIconView.accessibilityIdentifier = "img.video"
-        videoIconView.isHidden = true
-        
+        userTypeIconView.setUpIconImageView()
+        microphoneIconView.setUpIconImageView()
+        videoIconView.setUpIconImageView()
+
         verifiedIconView.image = WireStyleKit.imageOfShieldverified
-        verifiedIconView.translatesAutoresizingMaskIntoConstraints = false
-        verifiedIconView.contentMode = .center
-        verifiedIconView.accessibilityIdentifier = "img.shield"
-        verifiedIconView.isHidden = true
-        
+        verifiedIconView.setUpIconImageView(accessibilityIdentifier: "img.shield")
+
         connectButton.setIcon(.plusCircled, size: .tiny, for: .normal)
         connectButton.imageView?.contentMode = .center
         connectButton.isHidden = true
-        
+
         checkmarkIconView.layer.borderWidth = 2
         checkmarkIconView.contentMode = .center
         checkmarkIconView.layer.cornerRadius = 12
         checkmarkIconView.isHidden = true
 
-        accessoryIconView.translatesAutoresizingMaskIntoConstraints = false
-        accessoryIconView.contentMode = .center
-        accessoryIconView.isHidden = true
-        
+        accessoryIconView.setUpIconImageView()
+
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .normalLightFont
         titleLabel.accessibilityIdentifier = "user_cell.name"
-        
+
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.font = .smallRegularFont
         subtitleLabel.accessibilityIdentifier = "user_cell.username"
-        
+
         avatar.userSession = ZMUserSession.shared()
         avatar.initialsFont = .avatarInitial
         avatar.size = .small
@@ -132,21 +133,21 @@ class UserCell: SeparatorCollectionViewCell {
 
         avatarSpacer.addSubview(avatar)
         avatarSpacer.translatesAutoresizingMaskIntoConstraints = false
-        
-        iconStackView = UIStackView(arrangedSubviews: [verifiedIconView, guestIconView, videoIconView, connectButton, checkmarkIconView, accessoryIconView])
+
+        iconStackView = UIStackView(arrangedSubviews: [videoIconView, microphoneIconView, userTypeIconView, verifiedIconView, connectButton, checkmarkIconView, accessoryIconView])
         iconStackView.spacing = 16
         iconStackView.axis = .horizontal
         iconStackView.distribution = .fill
         iconStackView.alignment = .center
         iconStackView.translatesAutoresizingMaskIntoConstraints = false
         iconStackView.setContentHuggingPriority(.required, for: .horizontal)
-        
+
         titleStackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
         titleStackView.axis = .vertical
         titleStackView.distribution = .equalSpacing
         titleStackView.alignment = .leading
         titleStackView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         contentStackView = UIStackView(arrangedSubviews: [avatarSpacer, titleStackView, iconStackView])
         contentStackView.axis = .horizontal
         contentStackView.distribution = .fill
@@ -156,11 +157,11 @@ class UserCell: SeparatorCollectionViewCell {
         contentView.addSubview(contentStackView)
         createConstraints()
     }
-    
+
     func createConstraints() {
         let avatarSpacerWidthConstraint = avatarSpacer.widthAnchor.constraint(equalToConstant: UserCell.defaultAvatarSpacing)
         self.avatarSpacerWidthConstraint = avatarSpacerWidthConstraint
-        
+
         NSLayoutConstraint.activate([
             checkmarkIconView.widthAnchor.constraint(equalToConstant: 24),
             checkmarkIconView.heightAnchor.constraint(equalToConstant: 24),
@@ -173,16 +174,22 @@ class UserCell: SeparatorCollectionViewCell {
             contentStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             contentStackView.topAnchor.constraint(equalTo: contentView.topAnchor),
             contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
     }
-    
+
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
         let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
+
+        let iconColor = UIColor.from(scheme: .iconGuest, variant: colorSchemeVariant)
+
         backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-        videoIconView.setIcon(.videoCall, size: .tiny, color: UIColor.from(scheme: .iconGuest, variant: colorSchemeVariant))
-        guestIconView.setIcon(.guest, size: .tiny, color: UIColor.from(scheme: .iconGuest, variant: colorSchemeVariant))
+
+        userTypeIconView.set(size: .tiny, color: iconColor)
+        microphoneIconView.set(size: .tiny, color: iconColor)
+        videoIconView.set(size: .tiny, color: iconColor)
+
         accessoryIconView.setIcon(.disclosureIndicator, size: 12, color: sectionTextColor)
         connectButton.setIconColor(sectionTextColor, for: .normal)
         checkmarkIconView.layer.borderColor = UIColor.from(scheme: .iconNormal, variant: colorSchemeVariant).cgColor
@@ -190,42 +197,43 @@ class UserCell: SeparatorCollectionViewCell {
         subtitleLabel.textColor = sectionTextColor
         updateTitleLabel()
     }
-    
-    private func updateTitleLabel() {
-        guard let user = self.user else {
+
+    private func updateTitleLabel(selfUser: UserType? = nil) {
+        guard let user = user,
+              let selfUser = selfUser else {
             return
         }
-        
-        var attributedTitle = user.nameIncludingAvailability(color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant))
-        
+
+        var attributedTitle = user.nameIncludingAvailability(color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant), selfUser: selfUser)
+
         if user.isSelfUser, let title = attributedTitle {
             attributedTitle = title + "user_cell.title.you_suffix".localized
         }
-        
+
         titleLabel.attributedText = attributedTitle
     }
-    
-    public func configure(with user: UserType, conversation: ZMConversation? = nil) {
-        configure(with: user, subtitle: subtitle(for: user), conversation: conversation)
-    }
 
-    public func configure(with user: UserType, subtitle: NSAttributedString?, conversation: ZMConversation? = nil) {
+    func configure(with user: UserType,
+                   selfUser: UserType,
+                   subtitle overrideSubtitle: NSAttributedString? = nil,
+                   conversation: GroupDetailsConversationType? = nil) {
+
+        let subtitle: NSAttributedString?
+        if overrideSubtitle == nil {
+            subtitle = self.subtitle(for: user)
+        } else {
+            subtitle = overrideSubtitle
+        }
+
         self.user = user
 
         avatar.user = user
-        updateTitleLabel()
+        updateTitleLabel(selfUser: selfUser)
 
-        if let conversation = conversation {
-            guestIconView.isHidden = !user.isGuest(in: conversation)
-        } else {
-            guestIconView.isHidden = !ZMUser.selfUser().isTeamMember || user.isTeamMember || user.isServiceUser
-        }
+        let style = UserTypeIconStyle(conversation: conversation, user: user, selfUser: selfUser)
+        userTypeIconView.set(style: style)
 
-        if let user = user as? ZMUser {
-            verifiedIconView.isHidden = !user.trusted() || user.clients.isEmpty
-        } else {
-            verifiedIconView.isHidden  = true
-        }
+        verifiedIconView.isHidden = !user.isVerified
 
         if let subtitle = subtitle, !subtitle.string.isEmpty, !hidesSubtitle {
             subtitleLabel.isHidden = false
@@ -242,7 +250,7 @@ class UserCell: SeparatorCollectionViewCell {
 extension UserCell: UserCellSubtitleProtocol {}
 
 extension UserCell {
-    
+
     func subtitle(for user: UserType) -> NSAttributedString? {
         if user.isServiceUser, let service = user as? SearchServiceUser {
             return subtitle(forServiceUser: service)
@@ -253,27 +261,25 @@ extension UserCell {
 
     private func subtitle(forServiceUser service: SearchServiceUser) -> NSAttributedString? {
         guard let summary = service.summary else { return nil }
-        
+
         return summary && UserCell.boldFont
     }
 
-    static var correlationFormatters:  [ColorSchemeVariant : AddressBookCorrelationFormatter] = [:]
+    static var correlationFormatters: [ColorSchemeVariant: AddressBookCorrelationFormatter] = [:]
 }
 
 // MARK: - Availability
 
 extension UserType {
-    
-    func nameIncludingAvailability(color: UIColor) -> NSAttributedString? {
-        if ZMUser.selfUser().isTeamMember, let user = self as? ZMUser {
-            return AvailabilityStringBuilder.string(for: user, with: .list, color: color)
-        } else {
-            if let name = name {
-                return NSAttributedString(string: name)
-            } else {
-                return nil
-            }
+
+    func nameIncludingAvailability(color: UIColor, selfUser: UserType) -> NSAttributedString? {
+        if selfUser.isTeamMember {
+            return AvailabilityStringBuilder.string(for: self, with: .list, color: color)
+        } else if let name = name {
+            return name && color
         }
+
+        return nil
     }
-    
+
 }

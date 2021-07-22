@@ -16,95 +16,95 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 
-
 import Foundation
 import Cartography
+import avs
 
-public struct AudioEffectCellBorders : OptionSet {
-    public let rawValue: Int
-    
-    public init(rawValue: Int) {
+struct AudioEffectCellBorders: OptionSet {
+    let rawValue: Int
+
+    init(rawValue: Int) {
         self.rawValue = rawValue
     }
-    
-    public static let None   = AudioEffectCellBorders(rawValue: 0)
-    public static let Right  = AudioEffectCellBorders(rawValue: 1 << 0)
-    public static let Bottom = AudioEffectCellBorders(rawValue: 1 << 1)
+
+    static let None   = AudioEffectCellBorders([])
+    static let Right  = AudioEffectCellBorders(rawValue: 1 << 0)
+    static let Bottom = AudioEffectCellBorders(rawValue: 1 << 1)
 }
 
-@objcMembers public final class AudioEffectCell: UICollectionViewCell {
+final class AudioEffectCell: UICollectionViewCell {
     fileprivate let iconView = IconButton()
     fileprivate let borderRightView = UIView()
     fileprivate let borderBottomView = UIView()
-    
-    public var borders: AudioEffectCellBorders = [.None] {
+
+    var borders: AudioEffectCellBorders = [.None] {
         didSet {
             self.updateBorders()
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
+
         self.backgroundColor = UIColor.clear
         self.contentView.backgroundColor = UIColor.clear
         self.clipsToBounds = false
-        
+
         self.iconView.isUserInteractionEnabled = false
         [self.iconView, self.borderRightView, self.borderBottomView].forEach(self.contentView.addSubview)
 
         [self.borderRightView, self.borderBottomView].forEach { v in
             v.backgroundColor = UIColor(white: 1, alpha: 0.16)
         }
-        
+
         constrain(self.contentView, self.iconView) { contentView, iconView in
             iconView.edges == contentView.edges
         }
-        
+
         constrain(self.contentView, self.borderRightView, self.borderBottomView) { contentView, borderRightView, borderBottomView in
 
             borderRightView.bottom == contentView.bottom
             borderRightView.top == contentView.top
             borderRightView.right == contentView.right + 0.5
             borderRightView.width == .hairline
-            
+
             borderBottomView.left == contentView.left
             borderBottomView.bottom == contentView.bottom + 0.5
             borderBottomView.right == contentView.right
             borderBottomView.height == .hairline
         }
-        
+
         self.updateForSelectedState()
     }
-    
-    required public init?(coder aDecoder: NSCoder) {
+
+    required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    override public var isSelected: Bool {
+
+    override var isSelected: Bool {
         didSet {
             self.updateForSelectedState()
         }
     }
-    
+
     fileprivate func updateBorders() {
         self.borderRightView.isHidden = !self.borders.contains(.Right)
         self.borderBottomView.isHidden = !self.borders.contains(.Bottom)
     }
-    
+
     fileprivate func updateForSelectedState() {
         let color: UIColor = self.isSelected ? UIColor.accent() : UIColor.white
         self.iconView.setIconColor(color, for: .normal)
     }
-    
-    public var effect: AVSAudioEffectType = .none {
+
+    var effect: AVSAudioEffectType = .none {
         didSet {
             self.iconView.setIcon(effect.icon, size: .small, for: .normal)
             self.accessibilityLabel = effect.description
         }
     }
-    
-    public override func prepareForReuse() {
+
+    override func prepareForReuse() {
         super.prepareForReuse()
         self.effect = .none
         self.borders = .None

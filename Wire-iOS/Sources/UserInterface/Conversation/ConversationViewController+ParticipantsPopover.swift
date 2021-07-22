@@ -20,38 +20,33 @@ import UIKit
 
 extension ConversationViewController: UIPopoverPresentationControllerDelegate {
 
-    @objc (createAndPresentParticipantsPopoverControllerWithRect:fromView:contentViewController:)
     func createAndPresentParticipantsPopoverController(with rect: CGRect,
                                                        from view: UIView,
                                                        contentViewController controller: UIViewController) {
 
         endEditing()
-        controller.modalPresentationStyle = .formSheet
+
+        controller.presentationController?.delegate = self
         present(controller, animated: true)
     }
+}
 
-    @objc func didTap(onUserAvatar user: UserType, view: UIView?, frame: CGRect) {
-        if view == nil {
-            return
+extension ConversationViewController: UIAdaptivePresentationControllerDelegate {
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        if controller.presentedViewController is AddParticipantsViewController {
+            return .overFullScreen
         }
 
-        let profileViewController = ProfileViewController(user: user,
-                                                          viewer: ZMUser.selfUser(),
-                                                          conversation: conversation,
-                                                          viewControllerDismisser: self)
-        profileViewController.preferredContentSize = CGSize.IPadPopover.preferredContentSize
-
-        profileViewController.delegate = self
-
-        endEditing()
-
-        createAndPresentParticipantsPopoverController(with: frame, from: view!, contentViewController: profileViewController.wrapInNavigationController())
+        if #available(iOS 13, *) {
+            return .formSheet
+        } else {
+            return .fullScreen
+        }
     }
-
 }
 
 extension ConversationViewController: ViewControllerDismisser {
-    func dismiss(viewController: UIViewController, completion: (() -> ())?) {
+    func dismiss(viewController: UIViewController, completion: (() -> Void)?) {
         dismiss(animated: true, completion: completion)
     }
 }

@@ -18,7 +18,7 @@
 
 import Foundation
 import avs
-
+import WireSyncEngine
 
 // The AVS library consists of several components, those are:
 // - FlowManager: the component for establishing the network media flows.
@@ -26,7 +26,6 @@ import avs
 // - wcall: the Calling3 implementation.
 // The entities must be initialized in certain expected order. The main requirement is that the MediaManager is only
 // initialized after the FlowManager.
-
 
 enum LoadingMessage {
     // Called when the app is starting
@@ -42,7 +41,6 @@ enum MediaManagerState {
     case loaded
 }
 
-
 // This enum is implementing the redundant Elm architecture state change. There is a single state and it's mutated by
 // sending it the messages (there is no way to directly alter the state).
 extension MediaManagerState {
@@ -50,7 +48,7 @@ extension MediaManagerState {
         switch (self, message) {
         case (.initial, .flowManagerLoaded):
             self = .loaded
-            
+
         default:
             // already loaded
             break
@@ -58,8 +56,8 @@ extension MediaManagerState {
     }
 }
 
-@objcMembers final class MediaManagerLoader: NSObject {
-    
+final class MediaManagerLoader: NSObject {
+
     private var flowManagerObserver: AnyObject?
     private var state: MediaManagerState = .initial {
         didSet {
@@ -70,35 +68,35 @@ extension MediaManagerState {
             }
         }
     }
-    
-    internal func send(message: LoadingMessage) {
+
+    func send(message: LoadingMessage) {
         self.state.send(message: message)
     }
-    
+
     private func loadMediaManager() {
         AVSMediaManager.sharedInstance()
         configureMediaManager()
     }
-    
+
     private func configureMediaManager() {
-        guard let _ = AVSFlowManager.getInstance(),
+        guard AVSFlowManager.getInstance() != nil,
                 let mediaManager = AVSMediaManager.sharedInstance() else {
             return
         }
-        
+
         mediaManager.configureSounds()
         mediaManager.observeSoundConfigurationChanges()
         mediaManager.isMicrophoneMuted = false
         mediaManager.isSpeakerEnabled = false
     }
-    
+
     override init() {
         super.init()
         flowManagerObserver = NotificationCenter.default.addObserver(forName: FlowManager.AVSFlowManagerCreatedNotification, object: nil, queue: OperationQueue.main, using: { [weak self] _ in
             self?.send(message: .flowManagerLoaded)
         })
-        
-        if let _ = AVSFlowManager.getInstance() {
+
+        if AVSFlowManager.getInstance() != nil {
             self.send(message: .flowManagerLoaded)
         }
     }

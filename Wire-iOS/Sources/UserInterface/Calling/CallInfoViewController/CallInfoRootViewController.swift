@@ -17,6 +17,9 @@
 //
 
 import Foundation
+import UIKit
+import SafariServices
+import WireDataModel
 
 protocol CallInfoRootViewControllerDelegate: class {
     func infoRootViewController(_ viewController: CallInfoRootViewController, perform action: CallAction)
@@ -24,7 +27,7 @@ protocol CallInfoRootViewControllerDelegate: class {
 }
 
 final class CallInfoRootViewController: UIViewController, UINavigationControllerDelegate, CallInfoViewControllerDelegate, CallDegradationControllerDelegate {
-    
+
     enum Context {
         case overview, participants
     }
@@ -33,42 +36,45 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
     private let contentController: CallInfoViewController
     private let contentNavigationController: UINavigationController
     private let callDegradationController: CallDegradationController
-    
+
+    private weak var participantsViewController: CallParticipantsViewController?
+
     var context: Context = .overview {
         didSet {
             delegate?.infoRootViewController(self, contextDidChange: context)
         }
     }
-    
+
     var configuration: CallInfoViewControllerInput {
         didSet {
             guard !configuration.isEqual(toConfiguration: oldValue) else { return }
             updateConfiguration(animated: true)
         }
     }
-    
-    init(configuration: CallInfoViewControllerInput) {
+
+    init(configuration: CallInfoViewControllerInput,
+         selfUser: UserType) {
         self.configuration = configuration
-        contentController = CallInfoViewController(configuration: configuration)
+        contentController = CallInfoViewController(configuration: configuration, selfUser: selfUser)
         contentNavigationController = contentController.wrapInNavigationController()
         callDegradationController = CallDegradationController()
-        
+
         super.init(nibName: nil, bundle: nil)
-        
+
         callDegradationController.targetViewController = self
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
         createConstraints()
         updateConfiguration()
     }
-        
+
     private func setupViews() {
         addToSelf(contentNavigationController)
         addToSelf(callDegradationController)
@@ -76,12 +82,12 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
         contentNavigationController.delegate = self
         callDegradationController.delegate = self
     }
-    
+
     private func createConstraints() {
         contentNavigationController.view.fitInSuperview()
         callDegradationController.view.fitInSuperview()
     }
-    
+
     private func updateConfiguration(animated: Bool = false) {
         callDegradationController.state = configuration.degradationState
         contentController.configuration = configuration
@@ -89,20 +95,28 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
         contentNavigationController.navigationBar.isTranslucent = true
         contentNavigationController.navigationBar.barTintColor = .clear
         contentNavigationController.navigationBar.setBackgroundImage(UIImage.singlePixelImage(with: .clear), for: .default)
-        
+
         UIView.animate(withDuration: 0.2) { [view, configuration] in
             view?.backgroundColor = configuration.overlayBackgroundColor
         }
+
+        updatePresentedParticipantsListIfNeeded()
     }
-    
+
     private func presentParticipantsList() {
         context = .participants
         let participantsList = CallParticipantsViewController(scrollableWithConfiguration: configuration)
+        participantsViewController = participantsList
         contentNavigationController.pushViewController(participantsList, animated: true)
     }
-    
+
+    private func updatePresentedParticipantsListIfNeeded() {
+        guard case let .participantsList(participants) = configuration.accessoryType else { return }
+        participantsViewController?.participants = participants
+    }
+
     // MARK: - Delegates
-    
+
     func infoViewController(_ viewController: CallInfoViewController, perform action: CallAction) {
         switch (action, configuration.degradationState) {
         case (.showParticipantsList, _): presentParticipantsList()
@@ -110,16 +124,16 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
         default: delegate?.infoRootViewController(self, perform: action)
         }
     }
-    
+
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         guard viewController is CallInfoViewController else { return }
         context = .overview
     }
-    
+
     func continueDegradedCall() {
         delegate?.infoRootViewController(self, perform: .continueDegradedCall)
     }
-    
+
     func cancelDegradedCall() {
         delegate?.infoRootViewController(self, perform: .terminateDegradedCall)
     }

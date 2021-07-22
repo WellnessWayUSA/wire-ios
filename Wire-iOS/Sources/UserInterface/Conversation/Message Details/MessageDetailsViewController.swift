@@ -17,13 +17,13 @@
 //
 
 import UIKit
-
+import WireDataModel
 
 /**
  * A view controller wrapping the message details.
  */
 
-@objc class MessageDetailsViewController: UIViewController, ModalTopBarDelegate {
+final class MessageDetailsViewController: UIViewController, ModalTopBarDelegate {
 
     /**
      * The collection of view controllers displaying the content.
@@ -84,7 +84,7 @@ import UIKit
      * - parameter message: The message to display the details of.
      */
 
-    @objc convenience init(message: ZMConversationMessage) {
+    convenience init(message: ZMConversationMessage) {
         self.init(message: message, preferredDisplayMode: .receipts)
     }
 
@@ -96,7 +96,7 @@ import UIKit
      * if the data source says it is unavailable for the message.
      */
 
-    @objc init(message: ZMConversationMessage, preferredDisplayMode: MessageDetailsDisplayMode) {
+    init(message: ZMConversationMessage, preferredDisplayMode: MessageDetailsDisplayMode) {
         self.message = message
         self.dataSource = MessageDetailsDataSource(message: message)
 
@@ -129,6 +129,10 @@ import UIKit
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return ColorScheme.default.statusBarStyle
     }
 
     // MARK: - Configuration
@@ -179,7 +183,7 @@ import UIKit
             container.view.topAnchor.constraint(equalTo: topBar.bottomAnchor),
             container.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             container.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            container.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            container.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 
@@ -209,14 +213,21 @@ import UIKit
     // MARK: - Top Bar
 
     override func accessibilityPerformEscape() -> Bool {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true)
         return true
     }
 
     func modelTopBarWantsToBeDismissed(_ topBar: ModalTopBar) {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true)
     }
 
+    override var shouldAutorotate: Bool {
+        return false
+    }
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return wr_supportedInterfaceOrientations
+    }
 }
 
 // MARK: - MessageDetailsDataSourceObserver

@@ -17,11 +17,12 @@
 //
 
 import Foundation
+import UIKit
+import WireDataModel
 
 extension StartUIViewController {
-    @objc
     func createConstraints() {
-        [searchHeaderViewController.view, groupSelector, searchResultsViewController.view].forEach{ $0?.translatesAutoresizingMaskIntoConstraints = false }
+        [searchHeaderViewController.view, groupSelector, searchResultsViewController.view].forEach { $0?.translatesAutoresizingMaskIntoConstraints = false }
 
         searchHeaderViewController.view.fitInSuperview(exclude: [.bottom])
 
@@ -41,7 +42,6 @@ extension StartUIViewController {
         searchResultsViewController.view.fitInSuperview(exclude: [.top])
     }
 
-    @objc
     var showsGroupSelector: Bool {
         return SearchGroup.all.count > 1 && ZMUser.selfUser().canSeeServices
     }

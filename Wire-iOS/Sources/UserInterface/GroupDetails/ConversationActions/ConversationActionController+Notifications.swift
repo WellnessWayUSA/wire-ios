@@ -17,14 +17,16 @@
 //
 
 import Foundation
+import WireDataModel
+import WireSyncEngine
 
 enum NotificationResult: CaseIterable {
     case everything, mentionsAndReplies, nothing, cancel
-    
+
     static var title: String {
         return "meta.menu.configure_notification.dialog_message".localized
     }
-    
+
     var mutedMessageTypes: MutedMessageTypes? {
         switch self {
         case .everything:
@@ -37,11 +39,11 @@ enum NotificationResult: CaseIterable {
             return nil
         }
     }
-    
+
     var title: String {
         return localizationKey.localized
     }
-    
+
     private var localizationKey: String {
         let base = "meta.menu.configure_notification.button_"
         switch self {
@@ -51,24 +53,24 @@ enum NotificationResult: CaseIterable {
         case .cancel: return base + "cancel"
         }
     }
-    
+
     private var style: UIAlertAction.Style {
         switch self {
         case .cancel: return .cancel
         default: return .default
         }
     }
-    
+
     func action(for conversation: ZMConversation, handler: @escaping (NotificationResult) -> Void) -> UIAlertAction {
         let checkmarkText: String
-        
+
         if let mutedMessageTypes = self.mutedMessageTypes, conversation.mutedMessageTypes == mutedMessageTypes {
             checkmarkText = " ✓"
         }
         else {
             checkmarkText = ""
         }
-        
+
         let title = self.title + checkmarkText
         return .init(title: title, style: style, handler: { _ in handler(self) })
     }
@@ -85,7 +87,7 @@ extension ConversationActionController {
 
     func handleNotificationResult(_ result: NotificationResult, for conversation: ZMConversation) {
         if let mutedMessageTypes = result.mutedMessageTypes {
-            ZMUserSession.shared()?.performChanges {
+            ZMUserSession.shared()?.perform {
                 conversation.mutedMessageTypes = mutedMessageTypes
             }
         }

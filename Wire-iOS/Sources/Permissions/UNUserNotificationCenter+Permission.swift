@@ -17,8 +17,9 @@
 //
 
 import Foundation
+import UserNotifications
 
-@objc extension UNUserNotificationCenter {
+extension UNUserNotificationCenter {
 
     /**
      * Checks asynchronously whether push notifications are disabled, that is,

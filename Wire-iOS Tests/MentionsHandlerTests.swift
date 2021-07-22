@@ -70,7 +70,6 @@ class MentionsHandlerTests: XCTestCase {
         XCTAssertEqual(sut.searchString(in: "@bill"), "bill")
     }
 
-
     func testThereIsNoMentionToTheLeftOfAtSymbol() {
         let query = "Hi @bill how are you?"
         let handler = MentionsHandler(text: query, cursorPosition: 3)
@@ -95,7 +94,7 @@ class MentionsHandlerTests: XCTestCase {
     }
 
     func testThatItReplacesMention() {
-        let mockUser = MockUser.mockUsers()[0]
+        let mockUser = SwiftMockLoader.mockUsers()[0]
         let query = "Hi @bill how are you?"
         let handler = MentionsHandler(text: query, cursorPosition: 4)
         guard let sut = handler else { XCTFail(); return }
@@ -113,7 +112,7 @@ class MentionsHandlerTests: XCTestCase {
     }
 
     func testThatItAppendsSpaceAfterMention() {
-        let mockUser = MockUser.mockUsers()[0]
+        let mockUser = SwiftMockLoader.mockUsers()[0]
         let query = "Hi @bill"
         let handler = MentionsHandler(text: query, cursorPosition: 4)
         guard let sut = handler else { XCTFail(); return }
@@ -136,7 +135,7 @@ class MentionsHandlerTests: XCTestCase {
 extension NSAttributedString {
     var allAttachments: [NSTextAttachment] {
         var attachments = [NSTextAttachment]()
-        enumerateAttributes(in: wholeRange, options: []) { (attributes, range, _) in
+        enumerateAttributes(in: wholeRange, options: []) { attributes, _, _ in
             if let attachment = attributes[NSAttributedString.Key.attachment] as? NSTextAttachment {
                 attachments.append(attachment)
             }

@@ -24,13 +24,11 @@ final class VersionInfoViewController: UIViewController {
     private var versionInfoLabel: UILabel!
     private let componentsVersionsFilepath: String
 
-
     init(versionsPlist path: String = Bundle.main.path(forResource: "ComponentsVersions", ofType: "plist")!) {
         componentsVersionsFilepath = path
 
         super.init(nibName: nil, bundle: nil)
     }
-
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -45,40 +43,27 @@ final class VersionInfoViewController: UIViewController {
         setupVersionInfo()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        updateStatusBar()
-    }
-
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-
-        updateStatusBar()
-    }
-
     private func setupCloseButton() {
         closeButton = IconButton()
         view.addSubview(closeButton)
 
-        //Cosmetics
+        // Cosmetics
         closeButton.setIcon(.cross, size: .small, for: UIControl.State.normal)
         closeButton.setIconColor(UIColor.black, for: UIControl.State.normal)
 
-        //Layout
+        // Layout
         closeButton.translatesAutoresizingMaskIntoConstraints = false
 
         closeButton.pinToSuperview(safely: true, anchor: .top, inset: 24)
         closeButton.pinToSuperview(safely: true, anchor: .trailing, inset: 18)
 
-        //Target
+        // Target
         closeButton.addTarget(self, action: #selector(self.closeButtonTapped(_:)), for: .touchUpInside)
     }
 
     private func setupVersionInfo() {
         guard let versionsPlist = NSDictionary(contentsOfFile: componentsVersionsFilepath),
               let carthageInfo = versionsPlist["CarthageBuildInfo"] as? [String: String] else { return }
-
 
         versionInfoLabel = UILabel()
         versionInfoLabel.numberOfLines = 0
@@ -106,9 +91,4 @@ final class VersionInfoViewController: UIViewController {
     private func closeButtonTapped(_ close: Any?) {
         dismiss(animated: true)
     }
-
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .default
-    }
 }
-

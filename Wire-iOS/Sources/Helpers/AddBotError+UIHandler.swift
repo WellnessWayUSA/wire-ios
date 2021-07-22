@@ -17,13 +17,15 @@
 //
 
 import Foundation
+import UIKit
+import WireSyncEngine
 
 extension AddBotError {
-    
+
     var localizedTitle: String {
         return "peoplepicker.services.add_service.error.title".localized
     }
-    
+
     var localizedMessage: String {
         switch self {
         case .tooManyParticipants:
@@ -32,11 +34,11 @@ extension AddBotError {
             return "peoplepicker.services.add_service.error.default".localized
         }
     }
-    
+
     func displayAddBotError(in viewController: UIViewController) {
-        let alert = UIAlertController(title: self.localizedTitle,
-                                      message: self.localizedMessage,
-                                      cancelButtonTitle: "general.confirm".localized)
-        viewController.present(alert, animated: true, completion: nil)
+        let alert = UIAlertController(title: localizedTitle,
+                                      message: localizedMessage,
+                                      alertAction: .confirm())
+        viewController.present(alert, animated: true)
     }
 }

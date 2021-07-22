@@ -16,9 +16,10 @@
 //
 
 import Foundation
+import WireSyncEngine
 
 extension ZClientViewController: ZMUserObserver {
-    
+
     public func userDidChange(_ changeInfo: UserChangeInfo) {
         if changeInfo.accentColorValueChanged {
             UIApplication.shared.keyWindow?.tintColor = UIColor.accent()
@@ -27,7 +28,7 @@ extension ZClientViewController: ZMUserObserver {
 
     @objc func setupUserChangeInfoObserver() {
         guard let userSession = ZMUserSession.shared() else { return }
-        userObserverToken = UserChangeInfo.add(userObserver:self, for: ZMUser.selfUser(), userSession: userSession)
+        userObserverToken = UserChangeInfo.add(observer: self, for: ZMUser.selfUser(), in: userSession)
     }
 
 }

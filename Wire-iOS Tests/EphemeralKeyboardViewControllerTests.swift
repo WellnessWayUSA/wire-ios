@@ -18,8 +18,9 @@
 
 import XCTest
 @testable import Wire
+import UIKit
 
-class EphemeralKeyboardViewControllerTests: CoreDataSnapshotTestCase {
+final class EphemeralKeyboardViewControllerTests: CoreDataSnapshotTestCase {
 
     var sut: EphemeralKeyboardViewController!
     var conversation: ZMConversation!
@@ -37,11 +38,10 @@ class EphemeralKeyboardViewControllerTests: CoreDataSnapshotTestCase {
         super.tearDown()
     }
 
-
     func testThatItRendersCorrectInitially() {
         verify(view: sut.prepareForSnapshots())
     }
-    
+
     func testThatItRendersCorrectIntially_DarkMode() {
         ColorScheme.default.variant = .dark
         verify(view: sut.prepareForSnapshots())
@@ -54,7 +54,7 @@ fileprivate extension UIViewController {
 
     func prepareForSnapshots() -> UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             view.heightAnchor.constraint(equalToConstant: 290),
             view.widthAnchor.constraint(equalToConstant: 375)

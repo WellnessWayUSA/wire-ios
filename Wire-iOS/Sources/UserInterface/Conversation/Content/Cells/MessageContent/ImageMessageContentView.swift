@@ -17,28 +17,29 @@
 //
 
 import Foundation
+import UIKit
 
 final class ImageContentView: UIView {
-    
+
     var imageView = ImageResourceView()
     var imageAspectConstraint: NSLayoutConstraint?
     var imageWidthConstraint: NSLayoutConstraint
 
     var mediaAsset: MediaAsset? {
-        return imageView.mediaAsset()
+        return imageView.mediaAsset
     }
 
     init() {
         imageWidthConstraint = imageView.widthAnchor.constraint(equalToConstant: 140)
 
         super.init(frame: .zero)
-        
+
         imageView.clipsToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageWidthConstraint.priority = .defaultLow
 
         addSubview(imageView)
-        
+
         NSLayoutConstraint.activate([
             imageWidthConstraint,
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -46,7 +47,7 @@ final class ImageContentView: UIView {
             imageView.topAnchor.constraint(equalTo: topAnchor),
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor)])
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

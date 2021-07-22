@@ -15,166 +15,124 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
 //
+import UIKit
+import WireSyncEngine
 
-@objc protocol ActionController: NSObjectProtocol {
-    var alertController: UIAlertController? {get}
-    func presentMenu(from sourceView: UIView?, showConverationNameInMenuTitle: Bool)
-}
+final class ConversationActionController {
 
-extension ActionController {
-    private func prepare(viewController: UIViewController, with context: PresentationContext) {
-        viewController.popoverPresentationController.apply {
-            $0.sourceView = context.view
-            $0.sourceRect = context.rect
-        }
+    struct PresentationContext {
+        let view: UIView
+        let rect: CGRect
     }
 
-    func present(_ controller: UIViewController,
-                 currentContext: PresentationContext?,
-                 target: UIViewController) {
-        currentContext.apply {
-            prepare(viewController: controller, with: $0)
-        }
-        target.present(controller, animated: true, completion: nil)
+    enum Context {
+        case list, details
     }
 
-}
-
-struct PresentationContext {
-    let view: UIView
-    let rect: CGRect
-}
-
-@objcMembers final class RemoveUserActionController: NSObject, ActionController {
-
-    private let conversation: ZMConversation
-    private let participant: ZMUser
+    private let conversation: GroupDetailsConversationType
     unowned let target: UIViewController
-    private var currentContext: PresentationContext?
-    weak var alertController: UIAlertController?
-    weak var dismisser: ViewControllerDismisser?
-
-    @objc init(conversation: ZMConversation,
-               participant: ZMUser,
-               dismisser: ViewControllerDismisser?,
-               target: UIViewController) {
-        self.conversation = conversation
-        self.target = target
-        self.participant = participant
-        self.dismisser = dismisser
-        super.init()
-    }
-
-    func presentMenu(from sourceView: UIView?, showConverationNameInMenuTitle: Bool = true) {
-        currentContext = sourceView.map {
-            .init(
-                view: target.view,
-                rect: target.view.convert($0.frame, from: $0.superview).insetBy(dx: 8, dy: 8)
-            )
-        }
-
-        let controller = UIAlertController(title: showConverationNameInMenuTitle ? conversation.displayName: nil, message: nil, preferredStyle: .actionSheet)
-
-        let action = ZMConversation.Action.remove
-        let alertAction = ZMConversation.Action.remove.alertAction { [weak self] in
-            guard let `self` = self else { return }
-            self.handleAction(action)
-        }
-        controller.addAction(alertAction)
-
-        controller.addAction(.cancel())
-        present(controller,
-                currentContext: currentContext,
-                target: target)
-
-        alertController = controller
-    }
-
-    func handleAction(_ action: ZMConversation.Action) {
-        switch action {
-        case .remove:
-            target.presentRemoveDialogue(for: participant, from: conversation, dismisser: dismisser)
-        default:
-            break
-        }
-    }
-}
-
-@objcMembers final class ConversationActionController: NSObject, ActionController {
-
-    private let conversation: ZMConversation
-    unowned let target: UIViewController
+    weak var sourceView: UIView?
     var currentContext: PresentationContext?
     weak var alertController: UIAlertController?
-    
-    @objc init(conversation: ZMConversation, target: UIViewController) {
+
+    init(conversation: GroupDetailsConversationType,
+         target: UIViewController,
+         sourceView: UIView?) {
         self.conversation = conversation
         self.target = target
-        super.init()
+        self.sourceView = sourceView
     }
 
-    func presentMenu(from sourceView: UIView?, showConverationNameInMenuTitle: Bool = true) {
+    func presentMenu(from sourceView: UIView?, context: Context) {
         currentContext = sourceView.map {
             .init(
                 view: target.view,
                 rect: target.view.convert($0.frame, from: $0.superview).insetBy(dx: 8, dy: 8)
             )
         }
-        
-        let controller = UIAlertController(title: showConverationNameInMenuTitle ? conversation.displayName: nil, message: nil, preferredStyle: .actionSheet)
-        // TODO: we need to exclude the notification settings action if the menu is being presented from the conversation details.
-        conversation.actions.map(alertAction).forEach(controller.addAction)
+
+        let actions: [ZMConversation.Action]
+        switch context {
+        case .details:
+            actions = (conversation as? ZMConversation)?.detailActions ?? []
+        case .list:
+            actions = (conversation as? ZMConversation)?.listActions ?? []
+        }
+
+        let title = context == .list ? conversation.displayName : nil
+        let controller = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+        actions.map(alertAction).forEach(controller.addAction)
         controller.addAction(.cancel())
         present(controller)
 
         alertController = controller
     }
-    
+
     func enqueue(_ block: @escaping () -> Void) {
-        ZMUserSession.shared()?.enqueueChanges(block)
+        ZMUserSession.shared()?.enqueue(block)
     }
-    
+
     func transitionToListAndEnqueue(_ block: @escaping () -> Void) {
-        ZClientViewController.shared()?.transitionToList(animated: true) {
-            ZMUserSession.shared()?.enqueueChanges(block)
+        ZClientViewController.shared?.transitionToList(animated: true) {
+            ZMUserSession.shared()?.enqueue(block)
         }
     }
 
     func handleAction(_ action: ZMConversation.Action) {
+        guard let conversation = conversation as? ZMConversation else { return }
+
         switch action {
+        case .deleteGroup:
+            guard let userSession = ZMUserSession.shared() else { return }
+
+            requestDeleteGroupResult { result in
+                self.handleDeleteGroupResult(result, conversation: conversation, in: userSession)
+            }
         case .archive(isArchived: let isArchived): self.transitionToListAndEnqueue {
-            self.conversation.isArchived = !isArchived
+            conversation.isArchived = !isArchived
             }
         case .markRead: self.enqueue {
-            self.conversation.markAsRead()
+            conversation.markAsRead()
             }
         case .markUnread: self.enqueue {
-            self.conversation.markAsUnread()
+            conversation.markAsUnread()
             }
-        case .configureNotifications: self.requestNotificationResult(for: self.conversation) { result in
-            self.handleNotificationResult(result, for: self.conversation)
+        case .configureNotifications: self.requestNotificationResult(for: conversation) { result in
+            self.handleNotificationResult(result, for: conversation)
         }
         case .silence(isSilenced: let isSilenced): self.enqueue {
-            self.conversation.mutedMessageTypes = isSilenced ? .none : .all 
+            conversation.mutedMessageTypes = isSilenced ? .none : .all
             }
-        case .leave: self.request(LeaveResult.self) { result in
-            self.handleLeaveResult(result, for: self.conversation)
+        case .leave:
+            request(LeaveResult.self) { result in
+                self.handleLeaveResult(result, for: conversation)
             }
-        case .delete: self.requestDeleteResult(for: self.conversation) { result in
-            self.handleDeleteResult(result, for: self.conversation)
+        case .clearContent:
+            requestClearContentResult(for: conversation) { result in
+            self.handleClearContentResult(result, for: conversation)
             }
         case .cancelRequest:
-            guard let user = self.conversation.connectedUser else { return }
+            guard let user = conversation.connectedUser else { return }
             self.requestCancelConnectionRequestResult(for: user) { result in
-                self.handleConnectionRequestResult(result, for: self.conversation)
+                self.handleConnectionRequestResult(result, for: conversation)
             }
-        case .block: self.requestBlockResult(for: self.conversation) { result in
-            self.handleBlockResult(result, for: self.conversation)
+        case .block: self.requestBlockResult(for: conversation) { result in
+            self.handleBlockResult(result, for: conversation)
+            }
+        case .moveToFolder:
+            self.openMoveToFolder(for: conversation)
+        case .removeFromFolder:
+            enqueue {
+                conversation.removeFromFolder()
+            }
+        case .favorite(isFavorite: let isFavorite):
+            enqueue {
+                conversation.isFavorite = !isFavorite
             }
         case .remove: fatalError()
         }
     }
-    
+
     private func alertAction(for action: ZMConversation.Action) -> UIAlertAction {
         return action.alertAction { [weak self] in
             guard let `self` = self else { return }
@@ -187,4 +145,24 @@ struct PresentationContext {
                 currentContext: currentContext,
                 target: target)
     }
+
+    private func prepare(viewController: UIViewController, with context: PresentationContext) {
+        viewController.popoverPresentationController.apply {
+            $0.sourceView = context.view
+            $0.sourceRect = context.rect
+        }
+    }
+
+    private func present(_ controller: UIViewController,
+                         currentContext: PresentationContext?,
+                         target: UIViewController) {
+        currentContext.apply {
+            prepare(viewController: controller, with: $0)
+        }
+
+        controller.configPopover(pointToView: sourceView ?? target.view, popoverPresenter: target as? PopoverPresenterViewController)
+
+        target.present(controller, animated: true)
+    }
+
 }

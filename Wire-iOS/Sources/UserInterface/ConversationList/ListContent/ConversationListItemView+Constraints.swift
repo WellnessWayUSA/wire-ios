@@ -17,11 +17,12 @@
 //
 
 import Foundation
+import UIKit
 
 extension ConversationListItemView {
     static let minHeight: CGFloat = 64
 
-    @objc func createConstraints() {
+    func createConstraints() {
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         lineView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -30,9 +31,9 @@ extension ConversationListItemView {
             heightAnchor.constraint(greaterThanOrEqualToConstant: ConversationListItemView.minHeight),
 
             // avatar
-            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: CGFloat.ConversationList.horizontalMargin),
             contentStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -CGFloat.ConversationList.horizontalMargin),
             contentStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
 
             // lineView
