@@ -320,10 +320,8 @@ final class ConversationInputBarViewController: UIViewController,
         setInputLanguage()
         setupStyle()
 
-        if #available(iOS 11.0, *) {
-            let interaction = UIDropInteraction(delegate: self)
-            inputBar.textView.addInteraction(interaction)
-        }
+        let interaction = UIDropInteraction(delegate: self)
+        inputBar.textView.addInteraction(interaction)
 
         setupObservers()
     }
@@ -341,6 +339,10 @@ final class ConversationInputBarViewController: UIViewController,
         if let connectedUser = conversation.connectedUserType as? ZMUser,
            let userSession = ZMUserSession.shared() {
             userObserverToken = UserChangeInfo.add(observer: self, for: connectedUser, in: userSession)
+        }
+
+        NotificationCenter.default.addObserver(forName: .featureConfigDidChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.updateInputBarButtons()
         }
     }
 
@@ -466,6 +468,14 @@ final class ConversationInputBarViewController: UIViewController,
 
     func updateInputBarVisibility() {
         view.isHidden = conversation.isReadOnly
+    }
+
+    @objc func updateInputBarButtons() {
+        inputBar.buttonsView.buttons = inputBarButtons
+        inputBarButtons.forEach {
+            $0.setIconColor(.from(scheme: .iconNormal), for: .normal)
+        }
+        inputBar.buttonsView.setNeedsLayout()
     }
 
     // MARK: - Save draft message

@@ -24,8 +24,7 @@ private let zmLog = ZMSLog(tag: "Drag and drop images")
 
 extension ConversationInputBarViewController: UIDropInteractionDelegate {
 
-    @available(iOS 11.0, *)
-    public func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
+    func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
 
         for dragItem in session.items {
             dragItem.itemProvider.loadObject(ofClass: UIImage.self, completionHandler: { object, error in
@@ -59,14 +58,28 @@ extension ConversationInputBarViewController: UIDropInteractionDelegate {
         }
     }
 
-    @available(iOS 11.0, *)
-    public func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
-        return UIDropProposal(operation: .copy)
+    func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
+        return dropProposal(isText: session.canLoadObjects(ofClass: NSString.self),
+                            isClipboardEnabled: SecurityFlags.clipboard.isEnabled,
+                            canFilesBeShared: canFilesBeShared)
     }
 
-    @available(iOS 11.0, *)
-    public func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
-        return session.canLoadObjects(ofClass: UIImage.self)
+    func dropInteraction(_ interaction: UIDropInteraction, canHandle session: UIDropSession) -> Bool {
+        return true
+    }
+
+    func dropProposal(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> UIDropProposal {
+      return shouldAllowDropInteraction(isText: isText, isClipboardEnabled: isClipboardEnabled, canFilesBeShared: canFilesBeShared)
+        ? UIDropProposal(operation: .copy)
+        : UIDropProposal(operation: .forbidden)
+    }
+
+    private func shouldAllowDropInteraction(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> Bool {
+      if isText {
+        return isClipboardEnabled
+      } else {
+        return isClipboardEnabled && canFilesBeShared
+      }
     }
 
 }

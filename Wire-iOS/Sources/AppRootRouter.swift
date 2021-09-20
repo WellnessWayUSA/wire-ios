@@ -119,6 +119,7 @@ public class AppRootRouter: NSObject {
         setupApplicationNotifications()
         setupContentSizeCategoryNotifications()
         setupAudioPermissionsNotifications()
+        setupFeatureConfigNotifications()
     }
 
     private func setupAdditionalWindows() {
@@ -132,6 +133,7 @@ public class AppRootRouter: NSObject {
 
     private func setCallingSettings() {
         sessionManager.updateCallNotificationStyleFromSettings()
+        sessionManager.usePackagingFeatureConfig = false
         sessionManager.useConstantBitRateAudio = SecurityFlags.forceConstantBitRateCalls.isEnabled
             ? true
             : Settings.shared[.callingConstantBitRate] ?? false
@@ -550,5 +552,13 @@ extension AppRootRouter: ContentSizeCategoryObserving {
 extension AppRootRouter: AudioPermissionsObserving {
     func userDidGrantAudioPermissions() {
         sessionManager.updateCallNotificationStyleFromSettings()
+    }
+}
+
+// MARK: - FeatureConfigChangeObserving
+
+extension AppRootRouter: FeatureConfigObserving {
+    func featureConfigDidChange(in featureUpdateEvent: FeatureUpdateEventPayload) {
+        UIAlertController.showFeatureConfigDidChangeAlert(featureUpdateEvent.name, status: featureUpdateEvent.status)
     }
 }

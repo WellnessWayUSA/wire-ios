@@ -31,11 +31,13 @@ struct CallInfoTestFixture {
     }
 
     let otherUser: UserType
+    let selfUser: UserType
     let groupSize: GroupSize
     let mockUsers: [UserType]
 
-    init(otherUser: UserType, groupSize: GroupSize = .small, mockUsers: [UserType]) {
+    init(otherUser: UserType, selfUser: UserType, groupSize: GroupSize = .small, mockUsers: [UserType]) {
         self.otherUser = otherUser
+        self.selfUser = selfUser
         self.groupSize = groupSize
         self.mockUsers = mockUsers
     }
@@ -46,6 +48,10 @@ struct CallInfoTestFixture {
         return HashBox(value: otherUser)
     }
 
+    private var hashBoxSelfUser: HashBoxUser {
+        return HashBox(value: selfUser)
+    }
+
     var oneToOneOutgoingAudioRinging: CallInfoViewControllerInput {
         return MockCallInfoViewControllerInput(
             allowPresentationModeUpdates: false,
@@ -53,8 +59,8 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .avatar(hashBoxOtherUser),
-            canToggleMediaType: false,
+            accessoryType: .avatar(hashBoxSelfUser),
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.outgoing,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -62,11 +68,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -78,7 +84,7 @@ struct CallInfoTestFixture {
             permissions: CallPermissions(),
             degradationState: .none,
             accessoryType: .avatar(hashBoxOtherUser),
-            canToggleMediaType: false,
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.incoming,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -86,11 +92,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -101,8 +107,8 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .outgoing(degradedUser: hashBoxOtherUser),
-            accessoryType: .avatar(hashBoxOtherUser),
-            canToggleMediaType: false,
+            accessoryType: .avatar(hashBoxSelfUser),
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.outgoing,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -110,11 +116,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -126,7 +132,7 @@ struct CallInfoTestFixture {
             permissions: CallPermissions(),
             degradationState: .incoming(degradedUser: hashBoxOtherUser),
             accessoryType: .avatar(hashBoxOtherUser),
-            canToggleMediaType: false,
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.incoming,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -134,11 +140,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -158,11 +164,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -173,7 +179,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .avatar(hashBoxOtherUser),
+            accessoryType: .participantsList(CallParticipantsListHelper.participants(count: 2, videoState: .stopped, microphoneState: .unmuted, mockUsers: mockUsers)),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.ongoing,
@@ -182,11 +188,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -197,7 +203,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .avatar(hashBoxOtherUser),
+            accessoryType: .participantsList(CallParticipantsListHelper.participants(count: 2, videoState: .stopped, microphoneState: .unmuted, mockUsers: mockUsers)),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.ongoing,
@@ -206,11 +212,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: true,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -221,7 +227,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .avatar(hashBoxOtherUser),
+            accessoryType: .participantsList(CallParticipantsListHelper.participants(count: 2, videoState: .stopped, microphoneState: .unmuted, mockUsers: mockUsers)),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.ongoing,
@@ -230,11 +236,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -254,11 +260,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .poor,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -272,7 +278,7 @@ struct CallInfoTestFixture {
             permissions: MockCallPermissions.videoAllowedForever,
             degradationState: .none,
             accessoryType: .none,
-            canToggleMediaType: false,
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.outgoing,
             mediaState: .sendingVideo,
@@ -280,11 +286,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -304,11 +310,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -328,11 +334,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -352,11 +358,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -367,7 +373,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: CallVideoPlaceholderState.statusTextHidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .none,
+            accessoryType: .avatar(hashBoxOtherUser),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.incoming,
@@ -376,11 +382,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -400,11 +406,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -415,7 +421,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: MockCallPermissions.videoAllowedForever,
             degradationState: .none,
-            accessoryType: .none,
+            accessoryType: .participantsList(CallParticipantsListHelper.participants(count: 2, videoState: .started, microphoneState: .unmuted, mockUsers: mockUsers)),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.ongoing,
@@ -424,11 +430,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -441,8 +447,8 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .none,
-            canToggleMediaType: false,
+            accessoryType: .avatar(hashBoxSelfUser),
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.outgoing,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -450,11 +456,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -466,7 +472,7 @@ struct CallInfoTestFixture {
             permissions: CallPermissions(),
             degradationState: .none,
             accessoryType: .avatar(hashBoxOtherUser),
-            canToggleMediaType: false,
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.incoming,
             mediaState: .notSendingVideo(speakerState: .deselectedCanBeToggled),
@@ -474,11 +480,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -489,7 +495,7 @@ struct CallInfoTestFixture {
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
             degradationState: .none,
-            accessoryType: .none,
+            accessoryType: .avatar(hashBoxOtherUser),
             canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.connecting,
@@ -498,17 +504,17 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
     func groupAudioEstablished(mockUsers: [UserType]) -> CallInfoViewControllerInput {
         return MockCallInfoViewControllerInput(
-            allowPresentationModeUpdates: false,
+            allowPresentationModeUpdates: true,
             videoGridPresentationMode: .allVideoStreams,
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
@@ -522,11 +528,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -546,17 +552,17 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
     func groupAudioEstablishedVideoUnavailable(mockUsers: [MockUserType]) -> CallInfoViewControllerInput {
         return MockCallInfoViewControllerInput(
-            allowPresentationModeUpdates: false,
+            allowPresentationModeUpdates: true,
             videoGridPresentationMode: .allVideoStreams,
             videoPlaceholderState: .hidden,
             permissions: CallPermissions(),
@@ -570,11 +576,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -594,11 +600,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: true,
             title: otherUser.name ?? "",
             isVideoCall: false,
-            variant: .light,
             disableIdleTimer: false,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -612,7 +618,7 @@ struct CallInfoTestFixture {
             permissions: MockCallPermissions.videoAllowedForever,
             degradationState: .none,
             accessoryType: .none,
-            canToggleMediaType: false,
+            canToggleMediaType: true,
             isMuted: false,
             callState: CallStateMock.outgoing,
             mediaState: .sendingVideo,
@@ -620,11 +626,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -644,11 +650,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -668,11 +674,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -692,11 +698,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -716,11 +722,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .poor,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -740,11 +746,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: false
+            userEnabledCBR: false,
+            variant: .dark
         )
     }
 
@@ -764,11 +770,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: true,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -788,11 +794,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: false,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -813,11 +819,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: true,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
@@ -838,11 +844,11 @@ struct CallInfoTestFixture {
             isConstantBitRate: true,
             title: otherUser.name ?? "",
             isVideoCall: true,
-            variant: .light,
             disableIdleTimer: true,
             cameraType: .front,
             networkQuality: .normal,
-            userEnabledCBR: true
+            userEnabledCBR: true,
+            variant: .dark
         )
     }
 
