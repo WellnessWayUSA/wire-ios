@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2016 Wire Swiss GmbH
+// Copyright (C) 2021 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,26 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
-import AppCenter
-import AppCenterCrashes
-import AppCenterDistribute
-import AppCenterAnalytics
+import Foundation
 
-public extension AppCenter {
-    
-    static func setTrackingEnabled(_ enabled: Bool) {
-        Analytics.enabled = enabled
-        Distribute.enabled = enabled
-        Crashes.enabled = enabled
-    }
-    
-    static func start() {
-        Distribute.updateTrack = .private
+protocol PerformClipboardAction: class {
+    func shouldAllowPerformAction(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> Bool
+}
 
-        AppCenter.start(withAppSecret: Bundle.appCenterAppId, services: [Crashes.self,
-                                                                Distribute.self,
-                                                                Analytics.self])
+extension PerformClipboardAction {
+    func shouldAllowPerformAction(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> Bool {
+        if isText {
+            return isClipboardEnabled
+        } else {
+            return isClipboardEnabled && canFilesBeShared
+        }
     }
 }
