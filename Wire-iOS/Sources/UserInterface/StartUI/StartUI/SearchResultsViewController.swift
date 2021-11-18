@@ -32,7 +32,7 @@ extension SearchGroup {
         case .people:
             return true
         case .services:
-            return ZMUser.selfUser().canCreateService
+            return SelfUser.current.canCreateService
         }
     }
 
@@ -55,7 +55,7 @@ extension SearchGroup {
     }
 }
 
-protocol SearchResultsViewControllerDelegate: class {
+protocol SearchResultsViewControllerDelegate: AnyObject {
 
     func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController, didTapOnUser user: UserType, indexPath: IndexPath, section: SearchResultsViewControllerSection)
     func searchResultsViewController(_ searchResultsViewController: SearchResultsViewController, didDoubleTapOnUser user: UserType, indexPath: IndexPath)
@@ -435,6 +435,10 @@ extension SearchResultsViewController: SearchSectionControllerDelegate {
             delegate?.searchResultsViewController(self, wantsToPerformAction: .createGuestRoom)
         }
 
+    }
+
+    func searchSectionController(_ searchSectionController: CollectionViewSectionController, wantsToDisplayError error: LocalizedError) {
+        presentLocalizedErrorAlert(error)
     }
 
 }

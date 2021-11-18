@@ -17,11 +17,10 @@
 //
 
 import UIKit
-import Cartography
 import WireDataModel
 import WireSyncEngine
 
-protocol ConfirmEmailDelegate: class {
+protocol ConfirmEmailDelegate: AnyObject {
     func resendVerification(inController controller: ConfirmEmailViewController)
     func didConfirmEmail(inController controller: ConfirmEmailViewController)
 }
@@ -68,6 +67,7 @@ final class ConfirmEmailViewController: SettingsBaseTableViewController {
         setupViews()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

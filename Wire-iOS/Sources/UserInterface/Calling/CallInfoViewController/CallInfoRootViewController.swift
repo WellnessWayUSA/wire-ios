@@ -21,7 +21,7 @@ import UIKit
 import SafariServices
 import WireDataModel
 
-protocol CallInfoRootViewControllerDelegate: class {
+protocol CallInfoRootViewControllerDelegate: AnyObject {
     func infoRootViewController(_ viewController: CallInfoRootViewController, perform action: CallAction)
     func infoRootViewController(_ viewController: CallInfoRootViewController, contextDidChange context: CallInfoRootViewController.Context)
 }
@@ -64,6 +64,7 @@ final class CallInfoRootViewController: UIViewController, UINavigationController
         callDegradationController.targetViewController = self
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

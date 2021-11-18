@@ -19,7 +19,7 @@
 import WireSyncEngine
 import UIKit
 
-protocol ReplyComposingViewDelegate: class {
+protocol ReplyComposingViewDelegate: AnyObject {
     func composingViewDidCancel(composingView: ReplyComposingView)
     func composingViewWantsToShowMessage(composingView: ReplyComposingView, message: ZMConversationMessage)
 }
@@ -76,6 +76,7 @@ final class ReplyComposingView: UIView {
         setupConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

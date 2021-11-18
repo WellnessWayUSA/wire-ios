@@ -43,7 +43,7 @@ extension EmptySearchResultsViewAction {
     }
 }
 
-protocol EmptySearchResultsViewDelegate: class {
+protocol EmptySearchResultsViewDelegate: AnyObject {
     func execute(action: EmptySearchResultsViewAction, from: EmptySearchResultsView)
 }
 
@@ -131,6 +131,7 @@ final class EmptySearchResultsView: UIView {
         state = .noUsers
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

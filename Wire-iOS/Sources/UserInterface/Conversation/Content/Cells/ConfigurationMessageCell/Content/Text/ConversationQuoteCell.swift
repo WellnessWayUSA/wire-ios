@@ -162,10 +162,9 @@ final class ConversationReplyContentView: UIView {
         configureConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        configureSubviews()
-        configureConstraints()
+        fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
     private func configureSubviews() {
@@ -278,6 +277,7 @@ class ConversationReplyCell: UIView, ConversationMessageCell {
         configureConstraints()
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

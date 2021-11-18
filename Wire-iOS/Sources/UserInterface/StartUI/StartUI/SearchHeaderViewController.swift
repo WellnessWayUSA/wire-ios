@@ -21,7 +21,7 @@ import Cartography
 import UIKit
 import WireDataModel
 
-protocol SearchHeaderViewControllerDelegate: class {
+protocol SearchHeaderViewControllerDelegate: AnyObject {
     func searchHeaderViewController(_ searchHeaderViewController: SearchHeaderViewController, updatedSearchQuery query: String)
     func searchHeaderViewControllerDidConfirmAction(_ searchHeaderViewController: SearchHeaderViewController)
 }
@@ -42,6 +42,7 @@ class SearchHeaderViewController: UIViewController {
         return tokenField.filterText
     }
 
+    @available(*, unavailable)
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
