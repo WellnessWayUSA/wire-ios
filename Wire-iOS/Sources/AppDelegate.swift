@@ -101,8 +101,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        SessionManager.shared?.updateDeviceToken(deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        ZMSLog.switchCurrentLogToPrevious()
+
         zmLog.info("application:didFinishLaunchingWithOptions START \(String(describing: launchOptions)) (applicationState = \(application.applicationState.rawValue))")
 
         NotificationCenter.default.addObserver(self,
@@ -256,15 +261,19 @@ private extension AppDelegate {
         configuration.supportFederation = Settings.shared.federationEnabled
         let jailbreakDetector = JailbreakDetector()
 
-        let sessionManager = SessionManager(appVersion: appVersion,
-                                            mediaManager: mediaManager,
-                                            analytics: Analytics.shared,
-                                            delegate: appStateCalculator,
-                                            application: UIApplication.shared,
-                                            environment: BackendEnvironment.shared,
-                                            configuration: configuration,
-                                            detector: jailbreakDetector)
-        return sessionManager
+        /// get maxNumberAccounts form SecurityFlags or SessionManager.defaultMaxNumberAccounts if no MAX_NUMBER_ACCOUNTS flag defined
+        let maxNumberAccounts = SecurityFlags.maxNumberAccounts.intValue ?? SessionManager.defaultMaxNumberAccounts
+
+        return SessionManager(maxNumberAccounts: maxNumberAccounts,
+                              appVersion: appVersion,
+                              mediaManager: mediaManager,
+                              analytics: Analytics.shared,
+                              delegate: appStateCalculator,
+                              application: UIApplication.shared,
+                              environment: BackendEnvironment.shared,
+                              configuration: configuration,
+                              detector: jailbreakDetector)
+
     }
 
     private func queueInitializationOperations(launchOptions: LaunchOptions) {

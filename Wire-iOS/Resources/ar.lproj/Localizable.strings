@@ -91,7 +91,7 @@
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "لا توجد نتائج.";
 "peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
 "peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
-"peoplepicker.no_matching_results.message.users_all_added" = "Everyone’s here.";
+"peoplepicker.no_matching_results.message.users_all_added" = "الجميع حاضرون.";
 "peoplepicker.no_matching_results.message.services" = "لا توجد نتائج.";
 "peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Services are helpers that can improve your workflow.";
 "peoplepicker.no_matching_results.message.services_not_enabled" = "Services are helpers that can improve your workflow. To enable them, ask your administrator.";
@@ -321,9 +321,11 @@
 "conversation.create.guidance.empty" = "على الأقل حرف واحد";
 "conversation.create.guidance.toolong" = "حروف كثيرة عن الحد";
 "conversation.create.options.title" = "خيارات المحادثة";
-"conversation.create.options.subtitle" = "Guests and services: %@, Read receipts: %@";
-"conversation.create.guests.title" = "اسمح بالضيوف";
-"conversation.create.guests.subtitle" = "إتاحة هذه المحادثة للخدمات والأشخاص خارج فريقك.";
+"conversation.create.options.subtitle" = "Guests: %@, Services: %@, Read receipts: %@";
+"conversation.create.guests.title" = "Allow guests";
+"conversation.create.guests.subtitle" = "Open this conversation to people outside your team.";
+"conversation.create.services.title" = "Allow services";
+"conversation.create.services.subtitle" = "Open this conversation to services.";
 "conversation.create.receipts.title" = "إشعار بالقراءة";
 "conversation.create.receipts.subtitle" = "When this is on, people can see when their messages in this conversation are read.";
 
@@ -335,13 +337,13 @@
 "conversation.alert.message_deleted" = "The message is deleted.";
 
 // Conversation banner
-"conversation.banner.guests_present" = "**Guests** are present";
-"conversation.banner.services_present" = "**Services** are active";
-"conversation.banner.externals_present" = "**Externals** are present";
-"conversation.banner.guests_services_present" = "**Guests** and **services** are present";
-"conversation.banner.externals_services_present" = "**Externals** and **services** are present";
-"conversation.banner.externals_guests_present" = "**Externals** and **guests** are present";
-"conversation.banner.externals_guests_services_present" = "**Externals**, **guests**, and **services** are present";
+"conversation.banner.guests" = "**Guests**";
+"conversation.banner.services" = "**Services**";
+"conversation.banner.externals" = "**Externals**";
+"conversation.banner.remotes" = "**Federated users**";
+"conversation.banner.are_present" = "%@ are present";
+"conversation.banner.are_active" = "%@ are active";
+"conversation.banner.separator" = " and ";
 
 "conversation.action.search" = "ابحث";
 
@@ -457,7 +459,7 @@
 "content.system.conversation.guest.joined" = "انضم %@";
 "content.system.conversation.guest.you_joined" = "You joined";
 
-"content.system.conversation.invite.title" = "Services and people outside your team can join this conversation.";
+"content.system.conversation.invite.title" = "People outside your team can join this conversation.";
 "content.system.conversation.invite.button" = "دعوة أُناس";
 
 "content.system.other_renamed_conv_to_nothing" = "حذف %@ اسم المُحادثة";
@@ -621,6 +623,7 @@
 
 "connection_request_pending_title" = "Connection Request";
 "connection_request.send_button_title" = "تواصل";
+"inbox.title" = "Connection Requests";
 "inbox.connection_request.connect_button_title" = "تواصل";
 "inbox.connection_request.ignore_button_title" = "تجاهل";
 "error.connection.title" = "خطأ";
@@ -650,8 +653,8 @@
 "voice.accept_button.title" = "قبول";
 "voice.decline_button.title" = "رفض";
 "voice.hang_up_button.title" = "إنهاء الاتصال";
-"voice.mute_button.title" = "Microphone";
-"voice.video_button.title" = "Camera";
+"voice.mute_button.title" = "الميكروفون";
+"voice.video_button.title" = "الكاميرا";
 "voice.flip_video_button.title" = "Switch camera";
 "voice.speaker_button.title" = "مكبّر الصوت";
 "voice.cancel_button.title" = "إلغاء";
@@ -919,9 +922,12 @@
 "participants.services.remove_integration.button" = "إلغاء التكامل";
 
 // Group details
-"group_details.guest_options_cell.title" = "خيارات الضيوف";
+"group_details.guest_options_cell.title" = "Guests";
 "group_details.guest_options_cell.enabled" = "مفعل";
 "group_details.guest_options_cell.disabled" = "غير مفعل";
+"group_details.services_options_cell.title" = "الخدمات";
+"group_details.services_options_cell.enabled" = "مفعل";
+"group_details.services_options_cell.disabled" = "غير مفعل";
 "group_details.timeout_options_cell.title" = "Self-deleting messages";
 "group_details.notification_options_cell.title" = "الإشعارات";
 "group_details.notification_options_cell.description" = "You can be notified about everything (including audio and video calls) or only when someone mentions you or replies to one of your messages.";
@@ -1012,8 +1018,11 @@
 "self.settings.account_section.phone.title" = "الهاتف";
 "self.settings.account_section.handle.title" = "مُعرّف";
 "self.settings.account_section.add_handle.title" = "أضف مُعرّف";
-"self.settings.account_section.team.title" = "Team";
+"self.settings.account_section.team.title" = "الفريق";
 "self.settings.account_section.domain.title" = "Domain";
+"self.settings.account_section.profile_link.title" = "Profile link";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copy Profile Link";
+"self.settings.account_section.profile_link.actions.copied_link" = "Profile Link Copied!";
 
 "self.settings.account_details_group.info.footer" = "سيتمكن الناس من ايجادك من خلال هذه التفاصيل.";
 "self.settings.account_details_group.personal.footer" = "هذه المعلومة غير مرئيّة.";
@@ -1350,9 +1359,9 @@
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "اسمح بالضيوف";
-"guest_room.allow_guests.subtitle" = "إتاحة هذه المحادثة للخدمات والأشخاص خارج فريقك.";
-"guest_room.remove_guests.message" = "Current guests and services will be removed from the conversation. New guests and services will not be allowed.";
+"guest_room.allow_guests.title" = "Allow guests";
+"guest_room.allow_guests.subtitle" = "Open this conversation to people outside your team.";
+"guest_room.remove_guests.message" = "Current guests will be removed from the conversation. New guests will not be allowed.";
 "guest_room.remove_guests.action" = "إزالة";
 "guest_room.revoke_link.message" = "New guests will not be able to join with this link. Current guests will still have access.";
 "guest_room.revoke_link.action" = "إلغاء الرابط";
@@ -1360,8 +1369,9 @@
 "guest_room.error.generic.title" = "حدث خطأ";
 "guest_room.error.generic.message" = "Check your connection and try again";
 
-"guest_room.link.header.title" = "ادعُ الآخرين برابط";
-"guest_room.link.header.subtitle" = "أي شخص معه هذا الرابط يستطيع الانضمام إلى المحادثة، حتى لو يكن لديه واير.";
+"guest_room.link.header.title" = "Guest Links";
+"guest_room.link.header.subtitle" = "Invite others with a link to this conversation. Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.not_allowed.explaination" = "Generating guest links is not allowed in your team.";
 
 "guest_room.link.button.title" = "إنشاء رابط";
 
@@ -1374,6 +1384,14 @@
 
 "guest_room.expiration.hours_left" = "%@h left";
 "guest_room.expiration.less_than_minutes_left" = "Less than %@m left";
+
+// Services Options
+
+"services_options.allow_services.title" = "Allow services";
+"services_options.allow_services.subtitle" = "Open this conversation to services.";
+"services_options.remove_services.message" = "Current services will be removed from the conversation. New services will not be allowed.";
+"services_options.remove_services.action" = "إزالة";
+
 
 // Registration
 
@@ -1587,7 +1605,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "حدث خطأ ما، برجاء إعادة المحاولة";
 "error.user.needs_credentials" = "الرجاء التحقق من التفاصيل الخاصة بك وحاول مرة أخرى.";
-"error.user.domain_blocked" = "This email requires a team invitation. Contact your organization's IT administrators to receive an invite.";
+"error.user.domain_blocked" = "You can't create this account as your email domain is intentionally blocked.\nPlease ask your team admin to invite you via email.";
 "error.user.invalid_credentials" = "الرجاء التحقق من التفاصيل الخاصة بك وحاول مرة أخرى.";
 "error.user.account_pending_activation" = "الحساب الذي تحاول الوصول له في انتظار التفعيل. من فضلك تحقق من التفاصيل.";
 "error.user.network_error" = "يبدو أن هناك مشكلة في شبكة اتصالك. الرجاء المحاولة مرة أخرى لاحقاً.";
@@ -1639,14 +1657,13 @@
 "push.notification.new_user" = "انضمّ %@ لـWire";
 "push.notification.new_message" = "رسالة جديدة";
 
-
 // Force Update
 "force.update.title" = "مطلوب التحديث";
 "force.update.message" = "أنت تفتقد مميزات جديدة.\nاحصل على آخر إصدار من Wire من خلال App Store.";
 "force.update.ok_button" = "اذهب لـApp Store";
 
 // Feature configs
-"feature_config.alert.generic_title" = "There has been a change in Wire";
+"feature_config.alert.generic_title" = "Team settings changed";
 
 // Feature configs: file sharing
 "feature_config.update.file_sharing.alert.title" = "There has been a change in Wire";
@@ -1675,8 +1692,12 @@
 
 // Feature configs: self-deleting messages
 "feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
-"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timeout before composing a message.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timer before writing a message.";
 "feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Generating guest links is now disabled for all group admins.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Generating guest links is now enabled for all group admins.";
 
 // Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak detected";
@@ -1788,9 +1809,10 @@
 "url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
 "url_action.join_conversation.confirmation.confirm_button" = "انضم إلى";
 
-"url_action.join_conversation.error.title" = "You could not join the conversation";
-"url_action.join_conversation.error.converation_is_full" = "The conversation is full.";
-"url_action.join_conversation.error.link_is_invalid" = "The conversation link is invalid.";
+"url_action.join_conversation.error.alert.title" = "You could not join the conversation";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "The conversation is full.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "The conversation link is invalid.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Learn more about guest links";
 
 // Deep Link
 "url_action.invalid_user.title" = "لم يتمكّن Wire مِن العثور على هذا الشخص.";

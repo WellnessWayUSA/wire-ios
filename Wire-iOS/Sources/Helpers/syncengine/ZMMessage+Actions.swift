@@ -37,7 +37,7 @@ extension ZMConversationMessage {
 
     /// Whether the message can be copied.
     var canBeCopied: Bool {
-        guard !isRestricted else {
+        guard canBeShared else {
             return false
         }
         return SecurityFlags.clipboard.isEnabled
@@ -107,10 +107,10 @@ extension ZMConversationMessage {
         return isSentBySelfUser
     }
 
-    /// Wether it is possible to download the message content.
+    /// Whether it is possible to download the message content.
     var canBeDownloaded: Bool {
         guard let fileMessageData = self.fileMessageData,
-              !isRestricted else {
+              canBeShared else {
             return false
         }
         return isFile
@@ -125,44 +125,39 @@ extension ZMConversationMessage {
         return isFile && fileMessageData.downloadState == .downloading
     }
 
-    /// Wether the content of the message can be saved to the disk.
+    /// Whether the content of the message can be saved to the disk.
     var canBeSaved: Bool {
-        if isEphemeral || isRestricted {
+        if isEphemeral || !canBeShared {
             return false
         }
 
         if isImage {
             return true
-        }
-        else if isVideo {
+        } else if isVideo {
             return videoCanBeSavedToCameraRoll()
-        }
-        else if isAudio {
+        } else if isAudio {
             return audioCanBeSaved()
-        }
-        else if isFile, let fileMessageData = self.fileMessageData {
+        } else if isFile, let fileMessageData = self.fileMessageData {
             return fileMessageData.fileURL != nil
-        }
-        else {
+        } else {
             return false
         }
     }
 
-    /// Wether it should be possible to forward given message to another conversation.
+    /// Whether it should be possible to forward given message to another conversation.
     var canBeForwarded: Bool {
-        if isEphemeral || isRestricted {
+        if isEphemeral || !canBeShared {
             return false
         }
 
         if isFile, let fileMessageData = self.fileMessageData {
             return fileMessageData.fileURL != nil
-        }
-        else {
+        } else {
             return (isText || isImage || isLocation || isFile)
         }
     }
 
-    /// Wether the message sending failed in the past and we can attempt to resend the message.
+    /// Whether the message sending failed in the past and we can attempt to resend the message.
     var canBeResent: Bool {
         guard let conversation = conversationLike,
               let sender = senderUser else {
@@ -173,5 +168,10 @@ extension ZMConversationMessage {
                sender.isSelfUser &&
                (isText || isImage || isLocation || isFile) &&
                deliveryState == .failedToSend
+    }
+
+    /// Whether the message can be sent or received.
+    var canBeShared: Bool {
+        return !isRestricted && SecurityFlags.fileSharing.isEnabled
     }
 }

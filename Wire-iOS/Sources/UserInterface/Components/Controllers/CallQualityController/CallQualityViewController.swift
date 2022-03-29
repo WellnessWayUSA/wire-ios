@@ -17,7 +17,6 @@
 //
 
 import Foundation
-import Cartography
 import UIKit
 
 protocol CallQualityViewControllerDelegate: AnyObject {
@@ -163,13 +162,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
         iphone_leadingConstraint = contentView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8)
         iphone_trailingConstraint = contentView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8)
 
-        let bottomAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor>
-
-        if #available(iOS 11, *) {
-            bottomAnchor = view.safeAreaLayoutGuide.bottomAnchor
-        } else {
-            bottomAnchor = view.bottomAnchor
-        }
+        let bottomAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor> = view.safeAreaLayoutGuide.bottomAnchor
 
         iphone_bottomConstraint = contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8)
         ipad_centerYConstraint = contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
@@ -225,7 +218,7 @@ final class CallQualityViewController: UIViewController, UIGestureRecognizerDele
 
 }
 
-class CallQualityView: UIStackView {
+final class CallQualityView: UIStackView {
     let scoreLabel = UILabel()
     let scoreButton = Button()
     let callback: (Int) -> Void
@@ -262,15 +255,22 @@ class CallQualityView: UIStackView {
         scoreButton.accessibilityIdentifier = "score_\(buttonScore)"
 
         scoreButton.accessibilityLabel = labelText
-        constrain(scoreButton) {scoreButton in
-            scoreButton.width <= 48
-            scoreButton.height == scoreButton.width
-        }
 
         addArrangedSubview(scoreLabel)
         addArrangedSubview(scoreButton)
+
+        createConstraints()
     }
 
+    private func createConstraints() {
+        scoreButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            scoreButton.widthAnchor.constraint(lessThanOrEqualToConstant: 48),
+            scoreButton.heightAnchor.constraint(equalTo: scoreButton.widthAnchor)
+        ])
+    }
+
+    @available(*, unavailable)
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

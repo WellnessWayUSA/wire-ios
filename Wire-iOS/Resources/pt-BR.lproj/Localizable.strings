@@ -85,8 +85,8 @@
 
 "peoplepicker.no_matching_results.action.send_invite" = "Enviar um convite";
 "peoplepicker.no_matching_results.action.share_contacts" = "Compartilhar Contatos";
-"peoplepicker.no_matching_results.action.learn_more" = "Mais informação";
-"peoplepicker.no_matching_results.action.manage_services" = "Gerenciar serviços";
+"peoplepicker.no_matching_results.action.learn_more" = "Saiba mais";
+"peoplepicker.no_matching_results.action.manage_services" = "Gerenciar Serviços";
 
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "Sem resultados.";
 "peoplepicker.no_matching_results.message.users" = "Encontre pessoas no Wire por nome ou @nomedeusuário";
@@ -321,9 +321,11 @@
 "conversation.create.guidance.empty" = "Pelo menos 1 caractere";
 "conversation.create.guidance.toolong" = "Muitos caracteres";
 "conversation.create.options.title" = "Opções de conversa";
-"conversation.create.options.subtitle" = "Os hóspedes e serviços: %@, recibos de leitura: %@";
-"conversation.create.guests.title" = "Permitir que os hóspedes e serviços";
-"conversation.create.guests.subtitle" = "Abra esta conversa para serviços e pessoas fora da sua equipe.";
+"conversation.create.options.subtitle" = "Convidados: %@, Serviços: %@, Confirmação de leitura: %@";
+"conversation.create.guests.title" = "Permitir convidados";
+"conversation.create.guests.subtitle" = "Abra esta conversa para pessoas de fora da sua equipe.";
+"conversation.create.services.title" = "Permitir serviços";
+"conversation.create.services.subtitle" = "Abra esta conversa para serviços.";
 "conversation.create.receipts.title" = "Recibos de Leitura";
 "conversation.create.receipts.subtitle" = "Quando isso está ativado, as pessoas podem ver quando suas mensagens nessa conversa são lidas.";
 
@@ -335,13 +337,13 @@
 "conversation.alert.message_deleted" = "A mensagem foi excluída.";
 
 // Conversation banner
-"conversation.banner.guests_present" = "**Convidados** estão presentes";
-"conversation.banner.services_present" = "**Serviços** estão ativos";
-"conversation.banner.externals_present" = "**Externos** estão presentes";
-"conversation.banner.guests_services_present" = "**Convidados** e **serviços** estão presentes";
-"conversation.banner.externals_services_present" = "**Externos** e **serviços** estão presentes";
-"conversation.banner.externals_guests_present" = "**Externos** e **convidados** estão presentes";
-"conversation.banner.externals_guests_services_present" = "**Externos**, **convidados** e **serviços** estão presentes";
+"conversation.banner.guests" = "**Convidados**";
+"conversation.banner.services" = "**Serviços**";
+"conversation.banner.externals" = "**Externos**";
+"conversation.banner.remotes" = "**Usuários federados**";
+"conversation.banner.are_present" = "%@ estão presentes";
+"conversation.banner.are_active" = "%@ estão ativos";
+"conversation.banner.separator" = " e ";
 
 "conversation.action.search" = "Procurar";
 
@@ -457,7 +459,7 @@
 "content.system.conversation.guest.joined" = "%@ juntou-se";
 "content.system.conversation.guest.you_joined" = "Você entrou";
 
-"content.system.conversation.invite.title" = "Serviços e pessoas fora da sua equipe podem participar desta conversa.";
+"content.system.conversation.invite.title" = "Pessoas de fora da sua equipe podem participar desta conversa.";
 "content.system.conversation.invite.button" = "Convidar pessoas";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ removeu o nome da conversa";
@@ -621,6 +623,7 @@
 
 "connection_request_pending_title" = "Solicitação de Conexão";
 "connection_request.send_button_title" = "Conectar";
+"inbox.title" = "Solicitações de Conexão";
 "inbox.connection_request.connect_button_title" = "Conectar";
 "inbox.connection_request.ignore_button_title" = "Ignorar";
 "error.connection.title" = "Erro";
@@ -919,9 +922,12 @@
 "participants.services.remove_integration.button" = "remover integração";
 
 // Group details
-"group_details.guest_options_cell.title" = "Opções de convidados";
+"group_details.guest_options_cell.title" = "Convidados";
 "group_details.guest_options_cell.enabled" = "Ligado";
 "group_details.guest_options_cell.disabled" = "Desligar";
+"group_details.services_options_cell.title" = "Serviços";
+"group_details.services_options_cell.enabled" = "Ligado";
+"group_details.services_options_cell.disabled" = "Desligar";
 "group_details.timeout_options_cell.title" = "Auto-exclusão de mensagens";
 "group_details.notification_options_cell.title" = "Notificações";
 "group_details.notification_options_cell.description" = "Você pode ser notificado sobre tudo (incluindo chamadas de áudio e vídeo), ou apenas quando você é mencionado.";
@@ -1014,6 +1020,9 @@
 "self.settings.account_section.add_handle.title" = "Adicionar nome de usuário";
 "self.settings.account_section.team.title" = "Equipe";
 "self.settings.account_section.domain.title" = "Domínio";
+"self.settings.account_section.profile_link.title" = "Link do perfil";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copiar link do perfil";
+"self.settings.account_section.profile_link.actions.copied_link" = "O link do perfil foi copiado!";
 
 "self.settings.account_details_group.info.footer" = "Pessoas podem te encontrar com esses detalhes.";
 "self.settings.account_details_group.personal.footer" = "Esta informação ainda não está disponível .";
@@ -1350,9 +1359,9 @@
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "Permitir que os hóspedes e serviços";
-"guest_room.allow_guests.subtitle" = "Abra esta conversa para serviços e pessoas fora da sua equipe.";
-"guest_room.remove_guests.message" = "Convidados atuais serão removidos da conversa. Novos convidados não serão permitidos.";
+"guest_room.allow_guests.title" = "Permitir convidados";
+"guest_room.allow_guests.subtitle" = "Abra esta conversa para pessoas de fora da sua equipe.";
+"guest_room.remove_guests.message" = "Os convidados atuais serão removidos da conversa. Novos convidados não serão permitidos.";
 "guest_room.remove_guests.action" = "Remover";
 "guest_room.revoke_link.message" = "Novos convidados não será capazes de juntar-se com este link. Os convidados atuais ainda terão acesso.";
 "guest_room.revoke_link.action" = "Desativar Link";
@@ -1360,8 +1369,9 @@
 "guest_room.error.generic.title" = "Algo deu errado";
 "guest_room.error.generic.message" = "Verifique sua conexão e tente novamente";
 
-"guest_room.link.header.title" = "Convide outros com um link";
-"guest_room.link.header.subtitle" = "Qualquer um com o link pode se juntar a conversa por 24 horas, até quem não possui Wire.";
+"guest_room.link.header.title" = "Links de Convidados";
+"guest_room.link.header.subtitle" = "Convide outras pessoas com um link para esta conversa. Qualquer pessoa com o link pode participar da conversa, mesmo que não possuam o Wire.";
+"guest_room.link.not_allowed.explaination" = "A geração de links de convidados não é permitida em sua equipe.";
 
 "guest_room.link.button.title" = "Criar Link";
 
@@ -1374,6 +1384,14 @@
 
 "guest_room.expiration.hours_left" = "%@h saiu";
 "guest_room.expiration.less_than_minutes_left" = "Menos de %@m restantes";
+
+// Services Options
+
+"services_options.allow_services.title" = "Permitir serviços";
+"services_options.allow_services.subtitle" = "Abra esta conversa para serviços.";
+"services_options.remove_services.message" = "Os serviços atuais serão removidos da conversa. Novos serviços não serão permitidos.";
+"services_options.remove_services.action" = "Remover";
+
 
 // Registration
 
@@ -1587,7 +1605,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Algo deu errado, por favor tente novamente";
 "error.user.needs_credentials" = "Por favor, verifique seus dados e tente novamente.";
-"error.user.domain_blocked" = "Este e-mail requer um convite para uma equipe. Entre em contato com os administradores de TI da sua organização para receber um convite.";
+"error.user.domain_blocked" = "Você não pode criar esta conta porque seu domínio de e-mail está intencionalmente bloqueado.\nPor favor, peça ao administrador da sua equipe para convidá-lo por e-mail.";
 "error.user.invalid_credentials" = "Por favor, verifique seus dados e tente novamente.";
 "error.user.account_pending_activation" = "A conta que você está tentando acessar ainda está com a ativação pendente. Por favor, verifique seus detalhes.";
 "error.user.network_error" = "Parece que há um problema com a sua rede. Por favor, tente novamente mais tarde.";
@@ -1639,14 +1657,13 @@
 "push.notification.new_user" = "%@ entrou no Wire";
 "push.notification.new_message" = "Nova mensagem";
 
-
 // Force Update
 "force.update.title" = "Atualização necessária";
 "force.update.message" = "Você está perdendo novas funcionalidades. \nObtenha a última versão do Wire na App Store.";
 "force.update.ok_button" = "Vá para a App Store";
 
 // Feature configs
-"feature_config.alert.generic_title" = "Houve uma mudança no Wire";
+"feature_config.alert.generic_title" = "As configurações de equipe foram alteradas";
 
 // Feature configs: file sharing
 "feature_config.update.file_sharing.alert.title" = "Houve uma mudança no Wire";
@@ -1675,8 +1692,12 @@
 
 // Feature configs: self-deleting messages
 "feature_config.alert.self_deleting_messages.message.disabled" = "A auto-exclusão de mensagens está desabilitada.";
-"feature_config.alert.self_deleting_messages.message.enabled" = "A auto-exclusão de mensagens está habilitada. Você pode definir um tempo limite antes de escrever uma mensagem.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "A auto-exclusão de mensagens está habilitada. Você pode definir um temporizador antes de escrever uma mensagem.";
 "feature_config.alert.self_deleting_messages.message.forced_on" = "A auto-exclusão de mensagens agora é obrigatória. Novas mensagens serão excluídas automaticamente após %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "A geração de links de convidados agora está desabilitada para todos os administradores do grupo.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "A geração de links de convidados agora está habilitada para todos os administradores do grupo.";
 
 // Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak detectado";
@@ -1786,11 +1807,12 @@
 
 // Placeholder: conversation name
 "url_action.join_conversation.confirmation.message" = "Você foi convidado para uma conversa:\n%@";
-"url_action.join_conversation.confirmation.confirm_button" = "Participe";
+"url_action.join_conversation.confirmation.confirm_button" = "Entrar";
 
-"url_action.join_conversation.error.title" = "Você não pôde entrar na conversa";
-"url_action.join_conversation.error.converation_is_full" = "A conversa está cheia.";
-"url_action.join_conversation.error.link_is_invalid" = "O link da conversa é inválido.";
+"url_action.join_conversation.error.alert.title" = "Você não pôde entrar na conversa";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "A conversa está cheia.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "O link da conversa é inválido.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Saiba mais sobre links de convidados";
 
 // Deep Link
 "url_action.invalid_user.title" = "O Wire não pode encontrar esta pessoa.";

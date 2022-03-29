@@ -152,6 +152,7 @@ class ClientTableViewCell: UITableViewCell {
         setupStyle()
     }
 
+    @available(*, unavailable)
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -176,12 +177,10 @@ class ClientTableViewCell: UITableViewCell {
 
             if userClient.verified {
                 verifiedLabel.text = NSLocalizedString("device.verified", comment: "")
-            }
-            else {
+            } else {
                 verifiedLabel.text = NSLocalizedString("device.not_verified", comment: "")
             }
-        }
-        else {
+        } else {
             verifiedLabel.text = ""
         }
     }
@@ -203,8 +202,7 @@ class ClientTableViewCell: UITableViewCell {
     func updateLabel() {
         if let userClientLabel = userClient?.label, showLabel {
             labelLabel.text = userClientLabel
-        }
-        else {
+        } else {
             labelLabel.text = ""
         }
     }

@@ -20,6 +20,7 @@ import Foundation
 
 /// TODO: rename to MockConversation after objc MockConversation is retired
 class SwiftMockConversation: NSObject, Conversation {
+
 	var relatedConnectionState: ZMConnectionStatus = .invalid
 
 	var sortedOtherParticipants: [UserType] = []
@@ -48,13 +49,15 @@ class SwiftMockConversation: NSObject, Conversation {
 
     var allowGuests: Bool = false
 
+    var allowServices: Bool = false
+
     var teamType: TeamType?
 
     var accessMode: ConversationAccessMode?
 
     var accessRole: ConversationAccessRole?
 
-    var messageDestructionTimeout: MessageDestructionTimeout?
+    var accessRoles: Set<ConversationAccessRoleV2> = [.teamMember]
 
     var isUnderLegalHold: Bool = false
     var securityLevel: ZMConversationSecurityLevel = .notSecure
@@ -69,11 +72,14 @@ class SwiftMockConversation: NSObject, Conversation {
 }
 
 final class MockGroupDetailsConversation: SwiftMockConversation, GroupDetailsConversation {
+
     var userDefinedName: String?
 
     var freeParticipantSlots: Int = 1
 
     var hasReadReceiptsEnabled: Bool = false
+
+    var syncedMessageDestructionTimeout: TimeInterval = 0
 }
 
 final class MockInputBarConversationType: SwiftMockConversation, InputBarConversation, TypingStatusProvider {
@@ -84,11 +90,14 @@ final class MockInputBarConversationType: SwiftMockConversation, InputBarConvers
 
     var draftMessage: DraftMessage?
 
-    var messageDestructionTimeoutValue: TimeInterval = 0
-
     func setIsTyping(_ isTyping: Bool) {
         // no-op
     }
 
     var isReadOnly: Bool = false
+
+    var activeMessageDestructionTimeoutValue: MessageDestructionTimeoutValue?
+    var hasSyncedMessageDestructionTimeout = false
+    var isSelfDeletingMessageSendingDisabled = false
+    var isSelfDeletingMessageTimeoutForced = false
 }

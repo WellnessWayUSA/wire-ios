@@ -19,6 +19,7 @@
 import UIKit
 import WireSyncEngine
 import avs
+import WireCommonComponents
 
 protocol CallViewControllerDelegate: AnyObject {
     func callViewControllerDidDisappear(_ callController: CallViewController,
@@ -130,6 +131,7 @@ final class CallViewController: UIViewController {
 
     deinit {
         AVSMediaManagerClientChangeNotification.remove(self)
+        NotificationCenter.default.removeObserver(self)
         stopOverlayTimer()
     }
 
@@ -152,7 +154,6 @@ final class CallViewController: UIViewController {
         super.viewWillDisappear(animated)
         proximityMonitorManager?.stopListening()
         pauseVideoIfNeeded()
-        NotificationCenter.default.removeObserver(self)
         isInteractiveDismissal = transitionCoordinator?.isInteractive == true
     }
 
@@ -274,12 +275,11 @@ final class CallViewController: UIViewController {
 
     fileprivate func toggleVideoState() {
         if !permissions.canAcceptVideoCalls {
-            permissions.requestOrWarnAboutVideoPermission { _ in
+            permissions.requestOrWarnAboutVideoPermission { isVideoPermissionGranted in
                 self.disableVideoIfNeeded()
                 self.updateVideoStatusPlaceholder()
-                self.updateConfiguration()
+                guard isVideoPermissionGranted else { return }
             }
-            return
         }
 
         let newState = voiceChannel.videoState.toggledState
@@ -468,20 +468,18 @@ extension CallViewController: CallGridViewControllerDelegate {
 
 extension CallViewController {
 
-    private var callingConfig: CallingConfiguration { .config }
-
     var isOverlayVisible: Bool {
         return callInfoRootViewController.view.alpha > 0
+    }
+
+    private var shouldOverlayStayVisibleForAutomation: Bool {
+        return AutomationHelper.sharedHelper.keepCallingOverlayVisible
     }
 
     fileprivate var canHideOverlay: Bool {
         guard case .established = callInfoConfiguration.state else { return false }
 
-        guard callingConfig.canAudioCallHideOverlay else {
-            return callInfoConfiguration.isVideoCall
-        }
-
-        return true
+        return !shouldOverlayStayVisibleForAutomation
     }
 
     fileprivate func toggleOverlayVisibility() {
@@ -519,6 +517,8 @@ extension CallViewController {
     }
 
     func startOverlayTimer() {
+        guard !shouldOverlayStayVisibleForAutomation else { return }
+
         stopOverlayTimer()
         overlayTimer = .scheduledTimer(withTimeInterval: 8, repeats: false) { [weak self] _ in
             self?.animateOverlay(show: false)

@@ -95,6 +95,7 @@ final class FingerprintTableViewCell: UITableViewCell {
         setupStyle()
     }
 
+    @available(*, unavailable)
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -117,8 +118,7 @@ final class FingerprintTableViewCell: UITableViewCell {
 
                     fingerprintLabel.attributedText = attributedFingerprint
                     spinner.stopAnimating()
-        }
-        else {
+        } else {
             fingerprintLabel.attributedText = .none
             spinner.startAnimating()
         }

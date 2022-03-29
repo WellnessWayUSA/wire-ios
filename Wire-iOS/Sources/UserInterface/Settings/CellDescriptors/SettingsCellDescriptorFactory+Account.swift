@@ -95,6 +95,12 @@ extension SettingsCellDescriptorFactory {
             cellDescriptors.append(domainElement())
         }
 
+        if URL.selfUserProfileLink != nil {
+            cellDescriptors.append(profileLinkTitle())
+            cellDescriptors.append(profileLinkElement())
+            cellDescriptors.append(profileLinkButton())
+        }
+
         return SettingsSectionDescriptor(
             cellDescriptors: cellDescriptors,
             header: "self.settings.account_details_group.info.title".localized,
@@ -227,9 +233,9 @@ extension SettingsCellDescriptorFactory {
                 return ChangeHandleViewController()
             }
 
-            if nil != ZMUser.selfUser().handle {
+            if let selfUser = ZMUser.selfUser(), nil != selfUser.handle {
                 let preview: PreviewGeneratorType = { _ in
-                    guard let handleDisplayString = ZMUser.selfUser()?.handleDisplayString(federationEnabled: federationEnabled) else {
+                    guard let handleDisplayString = selfUser.handleDisplayString(withDomain: federationEnabled) else {
                         return .none
                     }
                     return .text(handleDisplayString)
@@ -259,6 +265,20 @@ extension SettingsCellDescriptorFactory {
 
     func domainElement() -> SettingsCellDescriptorType {
         return textValueCellDescriptor(propertyName: .domain, enabled: false)
+    }
+
+    func profileLinkTitle() -> SettingsCellDescriptorType {
+        typealias Account = L10n.Localizable.Self.Settings.AccountSection
+
+        return SettingsStaticTextCellDescriptor(text: Account.ProfileLink.title)
+    }
+
+    func profileLinkElement() -> SettingsCellDescriptorType {
+        return SettingsProfileLinkCellDescriptor()
+    }
+
+    func profileLinkButton() -> SettingsCellDescriptorType {
+        return SettingsCopyButtonCellDescriptor()
     }
 
     func pictureElement() -> SettingsCellDescriptorType {
@@ -306,8 +326,7 @@ extension SettingsCellDescriptorFactory {
             presentationAction: {
                 if ZMUser.selfUser().hasValidEmail || ZMUser.selfUser()!.usesCompanyLogin {
                     return BackupViewController.init(backupSource: SessionManager.shared!)
-                }
-                else {
+                } else {
                     let alert = UIAlertController(
                         title: "self.settings.history_backup.set_email.title".localized,
                         message: "self.settings.history_backup.set_email.message".localized,

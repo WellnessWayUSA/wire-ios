@@ -31,28 +31,18 @@ protocol EphemeralKeyboardViewControllerDelegate: AnyObject {
 
 extension InputBarConversation {
 
-    var destructionTimeout: MessageDestructionTimeoutValue? {
-        switch messageDestructionTimeout {
-        case .local(let value)?:
-            return value
-        case .synced(let value)?:
-            return value
-        default:
-            return nil
-        }
-    }
-
     var timeoutImage: UIImage? {
-        guard let value = self.destructionTimeout else { return nil }
-        return timeoutImage(for: value)
+        guard let timeout = activeMessageDestructionTimeoutValue else { return nil }
+        return timeoutImage(for: timeout)
     }
 
     var disabledTimeoutImage: UIImage? {
-        guard let value = self.destructionTimeout else { return nil }
-        return timeoutImage(for: value, withColor: .lightGraphite)
+        guard let timeout = activeMessageDestructionTimeoutValue else { return nil }
+        return timeoutImage(for: timeout, withColor: .lightGraphite)
     }
 
     private func timeoutImage(for timeout: MessageDestructionTimeoutValue, withColor color: UIColor = UIColor.accent()) -> UIImage? {
+        guard timeout != .none else { return nil }
         if timeout.isYears { return StyleKitIcon.timeoutYear.makeImage(size: 64, color: color) }
         if timeout.isWeeks { return StyleKitIcon.timeoutWeek.makeImage(size: 64, color: color) }
         if timeout.isDays { return StyleKitIcon.timeoutDay.makeImage(size: 64, color: color) }
@@ -123,8 +113,7 @@ final class EphemeralKeyboardViewController: UIViewController {
         self.conversation = conversation
         if Bundle.developerModeEnabled {
             timeouts = MessageDestructionTimeoutValue.all + [nil]
-        }
-        else {
+        } else {
             timeouts = MessageDestructionTimeoutValue.all
         }
         super.init(nibName: nil, bundle: nil)
@@ -146,7 +135,8 @@ final class EphemeralKeyboardViewController: UIViewController {
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
-        guard let index = timeouts.firstIndex(of: MessageDestructionTimeoutValue(rawValue: conversation.messageDestructionTimeoutValue)) else { return }
+        let currentTimeout = conversation.messageDestructionTimeoutValue(for: .selfUser)
+        guard let index = timeouts.firstIndex(of: currentTimeout) else { return }
         picker.selectRow(index, inComponent: 0, animated: false)
     }
 
@@ -290,8 +280,7 @@ extension EphemeralKeyboardViewController: UIPickerViewDelegate, UIPickerViewDat
         let timeout = timeouts[row]
         if let actualTimeout = timeout, let title = actualTimeout.displayString {
             return title && font && color
-        }
-        else {
+        } else {
             return "Custom" && font && color
         }
     }
@@ -301,8 +290,7 @@ extension EphemeralKeyboardViewController: UIPickerViewDelegate, UIPickerViewDat
 
         if let actualTimeout = timeout {
             delegate?.ephemeralKeyboard(self, didSelectMessageTimeout: actualTimeout.rawValue)
-        }
-        else {
+        } else {
             displayCustomPicker()
         }
     }

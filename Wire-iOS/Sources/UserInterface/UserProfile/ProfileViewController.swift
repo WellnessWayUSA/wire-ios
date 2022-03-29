@@ -120,14 +120,7 @@ final class ProfileViewController: UIViewController {
         updateTitleView()
 
         profileTitleView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11, *) {
-            navigationItem.titleView = profileTitleView
-        } else {
-            profileTitleView.setNeedsLayout()
-            profileTitleView.layoutIfNeeded()
-            profileTitleView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            profileTitleView.translatesAutoresizingMaskIntoConstraints = true
-        }
+        navigationItem.titleView = profileTitleView
 
         navigationItem.titleView = profileTitleView
     }
@@ -467,6 +460,7 @@ extension ProfileViewController: ConversationCreationControllerDelegate {
                                         didSelectName name: String,
                                         participants: UserSet,
                                         allowGuests: Bool,
+                                        allowServices: Bool,
                                         enableReceipts: Bool) {
         controller.dismiss(animated: true) { [weak self] in
             self?.delegate?.profileViewController(self,

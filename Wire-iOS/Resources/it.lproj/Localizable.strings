@@ -89,12 +89,12 @@
 "peoplepicker.no_matching_results.action.manage_services" = "Gestisci servizi";
 
 "peoplepicker.no_matching_results_after_address_book_upload_title" = "Nessun risultato.";
-"peoplepicker.no_matching_results.message.users" = "Find people in Wire by name or @username";
+"peoplepicker.no_matching_results.message.users" = "Trova persone in Wire per nome o @username";
 "peoplepicker.no_matching_results.message.usersAndFederation" = "Find people in Wire by name or @username\n\nFind people on another domain by @username@domainname";
-"peoplepicker.no_matching_results.message.users_all_added" = "Everyone’s here.";
+"peoplepicker.no_matching_results.message.users_all_added" = "Sono tutti qui.";
 "peoplepicker.no_matching_results.message.services" = "Nessun risultato.";
-"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Services are helpers that can improve your workflow.";
-"peoplepicker.no_matching_results.message.services_not_enabled" = "Services are helpers that can improve your workflow. To enable them, ask your administrator.";
+"peoplepicker.no_matching_results.message.services_not_enabled_admin" = "I servizi aiutano a migliorare il tuo flusso di lavoro.";
+"peoplepicker.no_matching_results.message.services_not_enabled" = "I servizi aiutano a migliorare il tuo flusso di lavoro. Per attivarli, contatta il tuo amministratore.";
 
 "peoplepicker.send_invitation.dialog.title" = "Invito spedito";
 "peoplepicker.send_invitation.dialog.message" = "Può essere usato per 2 settimane. Inviane un altro quando scade.";
@@ -321,9 +321,11 @@
 "conversation.create.guidance.empty" = "Almeno 1 carattere";
 "conversation.create.guidance.toolong" = "Troppi caratteri";
 "conversation.create.options.title" = "Opzioni conversazione";
-"conversation.create.options.subtitle" = "Ospiti e servizi: %@, Conferme di lettura: %@";
-"conversation.create.guests.title" = "Consenti ospiti e servizi";
-"conversation.create.guests.subtitle" = "Apri questa conversazione a servizi e persone esterne al tuo team.";
+"conversation.create.options.subtitle" = "Guests: %@, Services: %@, Read receipts: %@";
+"conversation.create.guests.title" = "Allow guests";
+"conversation.create.guests.subtitle" = "Open this conversation to people outside your team.";
+"conversation.create.services.title" = "Allow services";
+"conversation.create.services.subtitle" = "Open this conversation to services.";
 "conversation.create.receipts.title" = "Conferme di lettura";
 "conversation.create.receipts.subtitle" = "Quando è attivo, le persone potranno vedere quando i loro messaggi vengono letti in questa conversazione.";
 
@@ -335,13 +337,13 @@
 "conversation.alert.message_deleted" = "Il messaggio verrà eliminato.";
 
 // Conversation banner
-"conversation.banner.guests_present" = "**Guests** are present";
-"conversation.banner.services_present" = "**Services** are active";
-"conversation.banner.externals_present" = "**Externals** are present";
-"conversation.banner.guests_services_present" = "**Guests** and **services** are present";
-"conversation.banner.externals_services_present" = "**Externals** and **services** are present";
-"conversation.banner.externals_guests_present" = "**Externals** and **guests** are present";
-"conversation.banner.externals_guests_services_present" = "**Externals**, **guests**, and **services** are present";
+"conversation.banner.guests" = "**Guests**";
+"conversation.banner.services" = "**Services**";
+"conversation.banner.externals" = "**Externals**";
+"conversation.banner.remotes" = "**Federated users**";
+"conversation.banner.are_present" = "%@ are present";
+"conversation.banner.are_active" = "%@ are active";
+"conversation.banner.separator" = " and ";
 
 "conversation.action.search" = "Cerca";
 
@@ -457,7 +459,7 @@
 "content.system.conversation.guest.joined" = "%@ è entrato";
 "content.system.conversation.guest.you_joined" = "You joined";
 
-"content.system.conversation.invite.title" = "I servizi e le persone esterne al tuo team possono unirsi a questa conversazione.";
+"content.system.conversation.invite.title" = "People outside your team can join this conversation.";
 "content.system.conversation.invite.button" = "Invita persone";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ ha rimosso il nome della conversazione";
@@ -621,6 +623,7 @@
 
 "connection_request_pending_title" = "Richiesta di connessione";
 "connection_request.send_button_title" = "Connetti";
+"inbox.title" = "Connection Requests";
 "inbox.connection_request.connect_button_title" = "Connetti";
 "inbox.connection_request.ignore_button_title" = "Ignora";
 "error.connection.title" = "Errore";
@@ -650,8 +653,8 @@
 "voice.accept_button.title" = "Accetta";
 "voice.decline_button.title" = "Rifiuta";
 "voice.hang_up_button.title" = "Riattacca";
-"voice.mute_button.title" = "Microphone";
-"voice.video_button.title" = "Camera";
+"voice.mute_button.title" = "Microfono";
+"voice.video_button.title" = "Fotocamera";
 "voice.flip_video_button.title" = "Switch camera";
 "voice.speaker_button.title" = "Altoparlante";
 "voice.cancel_button.title" = "Annulla";
@@ -684,18 +687,18 @@
 "call.status.constant_bitrate" = "Bit Rate costante";
 "call.status.variable_bitrate" = "Tasso Di Bit Rate";
 
-"call.participants.show_all" = "Participants (%d)";
+"call.participants.show_all" = "Partecipanti (%d)";
 "call.participants.list.title" = "Partecipanti";
 
 "call.overlay.switch_to.speakers" = "SPEAKER";
 "call.overlay.switch_to.all" = "TUTTI";
 
-"call.grid.no_active_speakers" = "No active video speakers...";
+"call.grid.no_active_speakers" = "Nessun altoparlante video attivo...";
 
-"call.grid.hints.fullscreen" = "Double tap on a tile for fullscreen";
-"call.grid.hints.go_back_or_zoom" = "Double tap to go back, pinch to zoom";
+"call.grid.hints.fullscreen" = "Tocca due volte su un tile per schermo intero";
+"call.grid.hints.go_back_or_zoom" = "Doppio tocco per tornare indietro, pizzica per ingrandire";
 "call.grid.hints.go_back" = "Double tap to go back";
-"call.grid.hints.zoom" = "Pinch to zoom";
+"call.grid.hints.zoom" = "Pizzica per ingrandire";
 
 "call.video.paused" = "Video in pausa";
 "call.video.too_many.alert.title" = "Troppe persone per la videochiamata";
@@ -919,9 +922,12 @@
 "participants.services.remove_integration.button" = "rimuovi integrazione";
 
 // Group details
-"group_details.guest_options_cell.title" = "Ospiti e servizi";
+"group_details.guest_options_cell.title" = "Guests";
 "group_details.guest_options_cell.enabled" = "On";
 "group_details.guest_options_cell.disabled" = "Disattivo";
+"group_details.services_options_cell.title" = "Servizi";
+"group_details.services_options_cell.enabled" = "On";
+"group_details.services_options_cell.disabled" = "Disattivo";
 "group_details.timeout_options_cell.title" = "Self-deleting messages";
 "group_details.notification_options_cell.title" = "Notifiche";
 "group_details.notification_options_cell.description" = "È possibile ricevere notifiche su tutto (comprese le chiamate audio e video) o solo quando qualcuno parla di te o risponde a uno dei tuoi messaggi.";
@@ -1014,6 +1020,9 @@
 "self.settings.account_section.add_handle.title" = "Aggiungi username";
 "self.settings.account_section.team.title" = "Team";
 "self.settings.account_section.domain.title" = "Domain";
+"self.settings.account_section.profile_link.title" = "Profile link";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copy Profile Link";
+"self.settings.account_section.profile_link.actions.copied_link" = "Profile Link Copied!";
 
 "self.settings.account_details_group.info.footer" = "Le persone ti possono trovare con questi dettagli.";
 "self.settings.account_details_group.personal.footer" = "Questa informazione non è disponibile.";
@@ -1350,9 +1359,9 @@
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "Consenti ospiti e servizi";
-"guest_room.allow_guests.subtitle" = "Apri questa conversazione a servizi e persone esterne al tuo team.";
-"guest_room.remove_guests.message" = "Gli ospiti e i servizi attuali saranno rimossi dalla conversazione. Non saranno accettati nuovi ospiti e servizi.";
+"guest_room.allow_guests.title" = "Allow guests";
+"guest_room.allow_guests.subtitle" = "Open this conversation to people outside your team.";
+"guest_room.remove_guests.message" = "Current guests will be removed from the conversation. New guests will not be allowed.";
 "guest_room.remove_guests.action" = "Rimuovi";
 "guest_room.revoke_link.message" = "I nuovi ospiti non saranno in grado di partecipare con questo link. Gli ospiti attuali avranno ancora accesso.";
 "guest_room.revoke_link.action" = "Revoca il link";
@@ -1360,8 +1369,9 @@
 "guest_room.error.generic.title" = "Qualcosa è andato storto";
 "guest_room.error.generic.message" = "Controlla la tua connessione e riprova";
 
-"guest_room.link.header.title" = "Invita altre persone con un link";
-"guest_room.link.header.subtitle" = "Chiunque abbia il link potrà unirsi alla conversazione, anche se non ha Wire.";
+"guest_room.link.header.title" = "Guest Links";
+"guest_room.link.header.subtitle" = "Invite others with a link to this conversation. Anyone with the link can join the conversation, even if they don’t have Wire.";
+"guest_room.link.not_allowed.explaination" = "Generating guest links is not allowed in your team.";
 
 "guest_room.link.button.title" = "Crea un link";
 
@@ -1374,6 +1384,14 @@
 
 "guest_room.expiration.hours_left" = "%@h rimanenti";
 "guest_room.expiration.less_than_minutes_left" = "Meno di %@m rimanenti";
+
+// Services Options
+
+"services_options.allow_services.title" = "Allow services";
+"services_options.allow_services.subtitle" = "Open this conversation to services.";
+"services_options.remove_services.message" = "Current services will be removed from the conversation. New services will not be allowed.";
+"services_options.remove_services.action" = "Rimuovi";
+
 
 // Registration
 
@@ -1587,7 +1605,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Qualcosa è andato storto, si prega di riprovare";
 "error.user.needs_credentials" = "Verifica i tuoi dati e riprova.";
-"error.user.domain_blocked" = "Questa email richiede un invito di squadra. Contatta gli amministratori IT della tua organizzazione per ricevere un invito.";
+"error.user.domain_blocked" = "You can't create this account as your email domain is intentionally blocked.\nPlease ask your team admin to invite you via email.";
 "error.user.invalid_credentials" = "Verifica i tuoi dati e riprova.";
 "error.user.account_pending_activation" = "L'account a cui stai cercando di accedere è in attesa di attivazione. Verifica i dati inseriti.";
 "error.user.network_error" = "Sembra esserci un problema con la tua rete. Per favore, riprova più tardi.";
@@ -1639,14 +1657,13 @@
 "push.notification.new_user" = "%@ è su Wire";
 "push.notification.new_message" = "Nuovo messaggio";
 
-
 // Force Update
 "force.update.title" = "Aggiornamento necessario";
 "force.update.message" = "Ti stai perdendo le novità di Wire. Scarica l'ultima versione dall'App Store.";
 "force.update.ok_button" = "Vai all'App Store";
 
 // Feature configs
-"feature_config.alert.generic_title" = "There has been a change in Wire";
+"feature_config.alert.generic_title" = "Team settings changed";
 
 // Feature configs: file sharing
 "feature_config.update.file_sharing.alert.title" = "There has been a change in Wire";
@@ -1675,8 +1692,12 @@
 
 // Feature configs: self-deleting messages
 "feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
-"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timeout before composing a message.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timer before writing a message.";
 "feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Generating guest links is now disabled for all group admins.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Generating guest links is now enabled for all group admins.";
 
 // Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak rilevato";
@@ -1788,9 +1809,10 @@
 "url_action.join_conversation.confirmation.message" = "You have been invited to a conversation:\n%@";
 "url_action.join_conversation.confirmation.confirm_button" = "Entra";
 
-"url_action.join_conversation.error.title" = "You could not join the conversation";
-"url_action.join_conversation.error.converation_is_full" = "The conversation is full.";
-"url_action.join_conversation.error.link_is_invalid" = "The conversation link is invalid.";
+"url_action.join_conversation.error.alert.title" = "Impossibile partecipare alla conversazione";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "La conversazione è piena.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "Il collegamento della conversazione non è valido.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Learn more about guest links";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire non riesce a trovare questa persona.";
@@ -1891,11 +1913,11 @@
 "unlock.textfield.placeholder" = "Enter your passcode";
 "unlock.title_label" = "Enter passcode to unlock Wire";
 "unlock.wipe_button" = "Access as new device";
-"unlock.error_label" = "Wrong passcode";
+"unlock.error_label" = "Codice di accesso errato";
 "unlock.submit_button.title" = "unlock";
 
 // Custom app lock - warning screen
-"warning_screen.title_label" = "There was a change in Wire";
+"warning_screen.title_label" = "C'è stato un cambiamento in Wire";
 "warning_screen.main_info.forced_applock" = "Your organization needs to lock your app when Wire is not in use to keep the team safe.";
 "warning_screen.info_label.forced_applock" = "Next time, unlock Wire the same way you unlock your phone.";
 "warning_screen.info_label.non_forced_applock" = "Your organization does not need app lock anymore. From now, you can access Wire without any obstacles.";

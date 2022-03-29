@@ -321,9 +321,11 @@
 "conversation.create.guidance.empty" = "Au moins un caractère";
 "conversation.create.guidance.toolong" = "Trop de caractères";
 "conversation.create.options.title" = "Options";
-"conversation.create.options.subtitle" = "Contacts externes et services : %@, Accusés de lecture : %@";
-"conversation.create.guests.title" = "Autoriser les contacts externes et les services";
-"conversation.create.guests.subtitle" = "Rendre cette conversation accessible à des services et contacts externes à votre équipe.";
+"conversation.create.options.subtitle" = "Invités : %@, Services : %@, Accusés de lecture : %@";
+"conversation.create.guests.title" = "Autoriser les invités";
+"conversation.create.guests.subtitle" = "Rendre cette conversation accessible à des personnes externes à votre équipe.";
+"conversation.create.services.title" = "Autoriser les services";
+"conversation.create.services.subtitle" = "Ouvrir cette conversation aux services.";
 "conversation.create.receipts.title" = "Accusés de lecture";
 "conversation.create.receipts.subtitle" = "Quand cette option est activée, les participants peuvent voir quand leurs messages ont été lus dans cette conversation.";
 
@@ -335,13 +337,13 @@
 "conversation.alert.message_deleted" = "Le message est supprimé.";
 
 // Conversation banner
-"conversation.banner.guests_present" = "Des **invités** sont présents";
-"conversation.banner.services_present" = "Des **services** sont actifs";
-"conversation.banner.externals_present" = "Des **contacts externes** sont présents";
-"conversation.banner.guests_services_present" = "Des **invités** et des **services** sont présents";
-"conversation.banner.externals_services_present" = "Des **contacts externes** et des **services** sont présents";
-"conversation.banner.externals_guests_present" = "Des **contacts externes** et des **invités** sont présents";
-"conversation.banner.externals_guests_services_present" = "Des **contacts externes** , des **invités** et des **services** sont présents";
+"conversation.banner.guests" = "**Invités**";
+"conversation.banner.services" = "**Services**";
+"conversation.banner.externals" = "**Externes**";
+"conversation.banner.remotes" = "**Utilisateurs fédérés**";
+"conversation.banner.are_present" = "%@ sont présents";
+"conversation.banner.are_active" = "%@ sont actifs";
+"conversation.banner.separator" = " et ";
 
 "conversation.action.search" = "Chercher";
 
@@ -457,7 +459,7 @@
 "content.system.conversation.guest.joined" = "%@ a rejoint la conversation";
 "content.system.conversation.guest.you_joined" = "Vous avez rejoint";
 
-"content.system.conversation.invite.title" = "Des services et contacts externes à votre équipe peuvent rejoindre la conversation.";
+"content.system.conversation.invite.title" = "Des personnes externes à votre équipe peuvent rejoindre la conversation.";
 "content.system.conversation.invite.button" = "Inviter des contacts";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ a supprimé le nom de la conversation";
@@ -621,6 +623,7 @@
 
 "connection_request_pending_title" = "Demande de Connexion";
 "connection_request.send_button_title" = "Se connecter";
+"inbox.title" = "Demandes de connexion";
 "inbox.connection_request.connect_button_title" = "Se connecter";
 "inbox.connection_request.ignore_button_title" = "Ignorer";
 "error.connection.title" = "Erreur";
@@ -919,9 +922,12 @@
 "participants.services.remove_integration.button" = "supprimer le service";
 
 // Group details
-"group_details.guest_options_cell.title" = "Contacts externes et services";
+"group_details.guest_options_cell.title" = "Invités";
 "group_details.guest_options_cell.enabled" = "Activé";
 "group_details.guest_options_cell.disabled" = "Désactivé";
+"group_details.services_options_cell.title" = "Services";
+"group_details.services_options_cell.enabled" = "Activé";
+"group_details.services_options_cell.disabled" = "Désactivé";
 "group_details.timeout_options_cell.title" = "Messages auto-supprimés";
 "group_details.notification_options_cell.title" = "Notifications";
 "group_details.notification_options_cell.description" = "Vous pouvez être notifié pour tout (y compris les appels audio et vidéo) ou seulement quand quelqu'un vous mentionne ou répond à un de vos messages.";
@@ -1014,6 +1020,9 @@
 "self.settings.account_section.add_handle.title" = "Choisir un identifiant";
 "self.settings.account_section.team.title" = "Équipe";
 "self.settings.account_section.domain.title" = "Domaine";
+"self.settings.account_section.profile_link.title" = "Lien de profil";
+"self.settings.account_section.profile_link.actions.copy_link" = "Copier le lien de profil";
+"self.settings.account_section.profile_link.actions.copied_link" = "Lien de profil copié !";
 
 "self.settings.account_details_group.info.footer" = "Vos contacts peuvent vous retrouver grâce à ces informations.";
 "self.settings.account_details_group.personal.footer" = "Cette information n’est pas visible.";
@@ -1350,9 +1359,9 @@
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "Autoriser les contacts externes et les services";
-"guest_room.allow_guests.subtitle" = "Rendre cette conversation accessible à des services et contacts externes à votre équipe.";
-"guest_room.remove_guests.message" = "Tous les contacts externes et services seront retirés de la conversation. Il ne sera plus possible d'ajouter de nouveaux contacts externes ou services.";
+"guest_room.allow_guests.title" = "Autoriser les invités";
+"guest_room.allow_guests.subtitle" = "Rendre cette conversation accessible à des personnes externes à votre équipe.";
+"guest_room.remove_guests.message" = "Tous les invités seront retirés de la conversation. Il ne sera plus possible d'ajouter de nouveaux invités.";
 "guest_room.remove_guests.action" = "Supprimer";
 "guest_room.revoke_link.message" = "De nouveaux contacts externes ne pourront plus rejoindre la conversation avec ce lien. Les contacts externes ayant déjà rejoint la conversation conserveront leurs accès.";
 "guest_room.revoke_link.action" = "Révoquer le lien";
@@ -1360,8 +1369,9 @@
 "guest_room.error.generic.title" = "Une erreur est survenue";
 "guest_room.error.generic.message" = "Vérifiez votre connexion et réessayez";
 
-"guest_room.link.header.title" = "Inviter des contacts avec un lien";
-"guest_room.link.header.subtitle" = "Tout le monde disposant du lien peut rejoindre la conversation, même s’ils n’utilisent pas Wire.";
+"guest_room.link.header.title" = "Liens d'invitation";
+"guest_room.link.header.subtitle" = "Invitez d'autres personnes avec un lien vers cette conversation. N'importe qui avec le lien peut rejoindre la conversation, même s'ils n'ont pas Wire.";
+"guest_room.link.not_allowed.explaination" = "La génération de liens d'invitation n'est pas autorisée dans votre équipe.";
 
 "guest_room.link.button.title" = "Créer le lien";
 
@@ -1374,6 +1384,14 @@
 
 "guest_room.expiration.hours_left" = "Plus que %@h";
 "guest_room.expiration.less_than_minutes_left" = "Plus que %@ minutes";
+
+// Services Options
+
+"services_options.allow_services.title" = "Autoriser les services";
+"services_options.allow_services.subtitle" = "Ouvrir cette conversation aux services.";
+"services_options.remove_services.message" = "Tous les services seront retirés de la conversation. Il ne sera plus possible d'ajouter de nouveaux services.";
+"services_options.remove_services.action" = "Supprimer";
+
 
 // Registration
 
@@ -1587,7 +1605,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Une erreur s'est produite, veuillez réessayer";
 "error.user.needs_credentials" = "Veuillez vérifier vos informations et réessayez.";
-"error.user.domain_blocked" = "Cet e-mail nécessite une invitation de la part d'une équipe existante. Contactez les administrateurs informatiques de votre organisation pour recevoir une invitation.";
+"error.user.domain_blocked" = "Vous ne pouvez pas créer ce compte car votre domaine de messagerie est intentionnellement bloqué.\nVeuillez demander à l'administrateur de votre équipe de vous inviter par e-mail.";
 "error.user.invalid_credentials" = "Veuillez vérifier vos informations et réessayez.";
 "error.user.account_pending_activation" = "Le compte auquel vous tentez d’accéder est en attente d’activation. Merci de vérifier vos informations.";
 "error.user.network_error" = "Il semble y avoir un problème avec votre réseau. Veuillez réessayer ultérieurement.";
@@ -1639,14 +1657,13 @@
 "push.notification.new_user" = "%@ a rejoint Wire";
 "push.notification.new_message" = "Nouveau message";
 
-
 // Force Update
 "force.update.title" = "Mise à jour nécessaire";
 "force.update.message" = "Il vous manque de nouvelles fonctionnalités. Téléchargez la dernière version de Wire dans l’App Store.";
 "force.update.ok_button" = "Aller sur l'App Store";
 
 // Feature configs
-"feature_config.alert.generic_title" = "Il y a eu un changement dans Wire";
+"feature_config.alert.generic_title" = "Paramètres de l'équipe modifiés";
 
 // Feature configs: file sharing
 "feature_config.update.file_sharing.alert.title" = "Il y a eu un changement dans Wire";
@@ -1677,6 +1694,10 @@
 "feature_config.alert.self_deleting_messages.message.disabled" = "Les messages éphémères sont désactivés";
 "feature_config.alert.self_deleting_messages.message.enabled" = "Les messages éphémères sont activés. Vous pouvez définir un délai avant de rédiger un message.";
 "feature_config.alert.self_deleting_messages.message.forced_on" = "Les messages éphémères sont maintenant obligatoires. Les nouveaux messages seront auto-supprimés après %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "La génération de liens d'invitation est maintenant désactivée pour tous les administrateurs de groupes.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "La génération de liens d'invitation est maintenant activée pour tous les administrateurs de groupes.";
 
 // Jailbroken alert
 "jailbrokendevice.alert.title" = "Jailbreak détecté";
@@ -1788,9 +1809,10 @@
 "url_action.join_conversation.confirmation.message" = "Vous avez été invité à une conversation :\n%@";
 "url_action.join_conversation.confirmation.confirm_button" = "Rejoindre";
 
-"url_action.join_conversation.error.title" = "Vous n'avez pas pu rejoindre la conversation";
-"url_action.join_conversation.error.converation_is_full" = "La conversation est saturée";
-"url_action.join_conversation.error.link_is_invalid" = "Le lien de la conversation est invalide.";
+"url_action.join_conversation.error.alert.title" = "Vous n'avez pas pu rejoindre la conversation";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "La conversation est pleine.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "Le lien de la conversation est invalide.";
+"url_action.join_conversation.error.alert.learn_more.action" = "En savoir plus sur les liens d'invitation";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire ne peut pas trouver cette personne.";

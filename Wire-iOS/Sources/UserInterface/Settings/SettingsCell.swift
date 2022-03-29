@@ -318,8 +318,7 @@ class SettingsTableCell: UITableViewCell, SettingsCellType {
             backgroundColor = UIColor(white: 0, alpha: 0.2)
             badge.backgroundColor = UIColor.white
             badgeLabel.textColor = UIColor.black
-        }
-        else {
+        } else {
             backgroundColor = UIColor.clear
         }
     }
@@ -456,8 +455,7 @@ final class SettingsTextCell: SettingsTableCell,
         if string.rangeOfCharacter(from: CharacterSet.newlines) != .none {
             textField.resignFirstResponder()
             return false
-        }
-        else {
+        } else {
             return true
         }
     }
@@ -479,6 +477,38 @@ final class SettingsStaticTextTableCell: SettingsTableCell {
         super.setup()
         cellNameLabel.numberOfLines = 0
         cellNameLabel.textAlignment = .justified
+    }
+
+}
+
+final class SettingsProfileLinkCell: SettingsTableCell {
+
+    // MARK: - Properties
+
+    var label = CopyableLabel()
+
+    override func setup() {
+        super.setup()
+
+        setupViews()
+        createConstraints()
+    }
+
+    // MARK: - Helpers
+
+    private func setupViews() {
+        backgroundColor = .clear
+        contentView.addSubview(label)
+
+        label.textColor = UIColor.from(scheme: .iconGuest, variant: .dark)
+        label.font = FontSpec(.normal, .light).font
+        label.lineBreakMode = .byClipping
+        label.numberOfLines = 0
+    }
+
+    private func createConstraints() {
+        [label].prepareForLayout()
+        label.fitIn(view: contentView, insets: UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16))
     }
 
 }

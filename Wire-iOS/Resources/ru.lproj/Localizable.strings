@@ -92,7 +92,7 @@
 "peoplepicker.no_matching_results.message.users" = "Найти пользователей в Wire, используя имя или @псевдоним";
 "peoplepicker.no_matching_results.message.usersAndFederation" = "Найти пользователей в Wire, используя имя или @псевдоним\n\nНайти пользователей в другом домене, используя @псевдоним@домен";
 "peoplepicker.no_matching_results.message.users_all_added" = "Все пользователи добавлены.";
-"peoplepicker.no_matching_results.message.services" = "Ничего не найдено.";
+"peoplepicker.no_matching_results.message.services" = "Нет результатов";
 "peoplepicker.no_matching_results.message.services_not_enabled_admin" = "Сервисы - это помощники, которые могут улучшить ваш рабочий процесс.";
 "peoplepicker.no_matching_results.message.services_not_enabled" = "Сервисы - это помощники, которые могут улучшить ваш рабочий процесс. Чтобы включить их, обратитесь к администратору.";
 
@@ -286,7 +286,7 @@
 
 "conversation.input_bar.verified" = "Верифицировано";
 "conversation.input_bar.placeholder" = "Введите сообщение";
-"conversation.input_bar.placeholder_ephemeral" = "Self-deleting message";
+"conversation.input_bar.placeholder_ephemeral" = "Самоудаляющееся сообщение";
 
 "conversation.input_bar.audio_message.tooltip.pull_send" = "Проведите вверх для отправки";
 "conversation.input_bar.audio_message.tooltip.tap_send" = "Нажмите для отправки";
@@ -307,7 +307,7 @@
 "conversation.connection_view.in_address_book" = "в контактах";
 
 "conversation.input_bar.shortcut.send" = "Отправить сообщение";
-"conversation.input_bar.shortcut.newline" = "Insert Line Break";
+"conversation.input_bar.shortcut.newline" = "Вставить разрыв строки";
 "conversation.input_bar.shortcut.edit_last_message" = "Изменить последнее сообщение";
 "conversation.input_bar.shortcut.cancel_editing_message" = "Отмена";
 "conversation.input_bar.shortcut.choose_previous_mention" = "Выбрать предыдущее упоминание";
@@ -321,9 +321,11 @@
 "conversation.create.guidance.empty" = "Не менее 1 символа";
 "conversation.create.guidance.toolong" = "Слишком много символов";
 "conversation.create.options.title" = "Настройки беседы";
-"conversation.create.options.subtitle" = "Гости и сервисы: %@, Отчеты о прочтении: %@";
-"conversation.create.guests.title" = "Разрешить гостей и сервисы";
-"conversation.create.guests.subtitle" = "Открыть эту беседу для сервисов и пользователей не из вашей команды.";
+"conversation.create.options.subtitle" = "Гости: %@, Сервисы: %@, Отчеты о прочтении: %@";
+"conversation.create.guests.title" = "Разрешить гостей";
+"conversation.create.guests.subtitle" = "Открыть эту беседу для пользователей не из вашей команды.";
+"conversation.create.services.title" = "Разрешить сервисы";
+"conversation.create.services.subtitle" = "Открыть эту беседу для сервисов.";
 "conversation.create.receipts.title" = "Отчеты о прочтении";
 "conversation.create.receipts.subtitle" = "При включении ваши собеседники смогут видеть когда было прочитано их сообщение.";
 
@@ -335,13 +337,13 @@
 "conversation.alert.message_deleted" = "Сообщение удалено.";
 
 // Conversation banner
-"conversation.banner.guests_present" = "Присутствуют **гости**";
-"conversation.banner.services_present" = "**Сервисы** активны";
-"conversation.banner.externals_present" = "Присутствуют **внешние участники**";
-"conversation.banner.guests_services_present" = "Присутствуют **гости** и **сервисы**";
-"conversation.banner.externals_services_present" = "Присутствуют **внешние участники** и **сервисы**";
-"conversation.banner.externals_guests_present" = "Присутствуют **внешние участники** и **гости**";
-"conversation.banner.externals_guests_services_present" = "Присутствуют **внешние участники**, **гости** и **сервисы**";
+"conversation.banner.guests" = "**Гости**";
+"conversation.banner.services" = "**Сервисы**";
+"conversation.banner.externals" = "**Внешние**";
+"conversation.banner.remotes" = "**Федеративные пользователи**";
+"conversation.banner.are_present" = "%@ присутствуют";
+"conversation.banner.are_active" = "%@ активны";
+"conversation.banner.separator" = " и ";
 
 "conversation.action.search" = "Поиск";
 
@@ -451,13 +453,13 @@
 "content.system.conversation.you.started" = "%@ начал беседу с %@";
 "content.system.conversation.you.added" = "%@ добавили %@";
 "content.system.conversation.you.removed" = "%@ удалили %@";
-"content.system.conversation.you.removed.legalhold" = "%@ были удалены из этой беседы, поскольку были активированы юридические ограничения. _Подробнее_";
+"content.system.conversation.you.removed.legalhold" = "%@ были удалены из этой беседы, поскольку были активированы юридические ограничения.";
 "content.system.conversation.you.left" = "%@ покинули беседу";
 "content.system.conversation.team.member-leave" = "%@ был удален из команды.";
 "content.system.conversation.guest.joined" = "%@ присоединился";
 "content.system.conversation.guest.you_joined" = "Вы присоединились";
 
-"content.system.conversation.invite.title" = "Сервисы и пользователи не из вашей команды могут присоединиться к этой беседе.";
+"content.system.conversation.invite.title" = "Пользователи не из вашей команды могут присоединиться к этой беседе.";
 "content.system.conversation.invite.button" = "Пригласить пользователей";
 
 "content.system.other_renamed_conv_to_nothing" = "%@ удалил(-а) название беседы";
@@ -621,6 +623,7 @@
 
 "connection_request_pending_title" = "Запрос на добавление";
 "connection_request.send_button_title" = "Связаться";
+"inbox.title" = "Запросы на добавление в контакты";
 "inbox.connection_request.connect_button_title" = "Связаться";
 "inbox.connection_request.ignore_button_title" = "Игнорировать";
 "error.connection.title" = "Ошибка";
@@ -919,10 +922,13 @@
 "participants.services.remove_integration.button" = "удалить интеграцию";
 
 // Group details
-"group_details.guest_options_cell.title" = "Гости и сервисы";
+"group_details.guest_options_cell.title" = "Гости";
 "group_details.guest_options_cell.enabled" = "Вкл.";
 "group_details.guest_options_cell.disabled" = "Выкл.";
-"group_details.timeout_options_cell.title" = "Self-deleting messages";
+"group_details.services_options_cell.title" = "Сервисы";
+"group_details.services_options_cell.enabled" = "Вкл.";
+"group_details.services_options_cell.disabled" = "Откл.";
+"group_details.timeout_options_cell.title" = "Самоудаляющиеся сообщения";
 "group_details.notification_options_cell.title" = "Уведомления";
 "group_details.notification_options_cell.description" = "Вы можете получать уведомления обо всем (включая аудио- и видеовызовы) или только когда кто-то упоминает вас или отвечает на одно из ваших сообщений.";
 "group_details.receipt_options_cell.title" = "Отчеты о прочтении";
@@ -936,8 +942,8 @@
 
 "legalhold.participants.section.title" = "Субъекты юридических ограничений";
 "legalhold.header.title" = "Юридические ограничения";
-"legalhold.header.other_description" = "Legal Hold has been activated for at least one person in this conversation.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.";
-"legalhold.header.self_description" = "Legal Hold has been activated for your account.\nAll messages will be preserved for future access, including deleted, edited, and self-deleting messages.\nYour conversation partners will be aware of the recording.";
+"legalhold.header.other_description" = "В этой беседе активированы юридические ограничения как минимум для одного участника. Все сообщения будут сохранены для последующего доступа, включая удаленные, отредактированные и самоудаляющиеся.";
+"legalhold.header.self_description" = "Для вашей учетной записи активированы юридические ограничения. Все сообщения будут сохранены для последующего доступа, включая удаленные, отредактированные и самоудаляющиеся. Ваши собеседники будут уведомлены об этом.";
 "legalhold.accessibility" = "Информация о правовой защите";
 
 
@@ -1014,6 +1020,9 @@
 "self.settings.account_section.add_handle.title" = "Добавить псевдоним";
 "self.settings.account_section.team.title" = "Команда";
 "self.settings.account_section.domain.title" = "Домен";
+"self.settings.account_section.profile_link.title" = "Ссылка на профиль";
+"self.settings.account_section.profile_link.actions.copy_link" = "Скопировать ссылку на профиль";
+"self.settings.account_section.profile_link.actions.copied_link" = "Ссылка на профиль скопирована!";
 
 "self.settings.account_details_group.info.footer" = "Пользователи могут вас найти по этим данным.";
 "self.settings.account_details_group.personal.footer" = "Эта информация не видна.";
@@ -1350,9 +1359,9 @@
 
 // Guest Room
 
-"guest_room.allow_guests.title" = "Разрешить гостей и сервисы";
-"guest_room.allow_guests.subtitle" = "Открыть эту беседу для сервисов и пользователей не из вашей команды.";
-"guest_room.remove_guests.message" = "Все гости и сервисы будут удалены из беседы. Новые гости и сервисы допущены не будут.";
+"guest_room.allow_guests.title" = "Разрешить гостей";
+"guest_room.allow_guests.subtitle" = "Открыть эту беседу для пользователей не из вашей команды.";
+"guest_room.remove_guests.message" = "Текущие гости будут удалены из беседы. Новые гости допущены не будут.";
 "guest_room.remove_guests.action" = "Удалить";
 "guest_room.revoke_link.message" = "Новые гости не смогут присоединиться по этой ссылке. На доступ текущих гостей это не повлияет.";
 "guest_room.revoke_link.action" = "Отозвать ссылку";
@@ -1360,8 +1369,9 @@
 "guest_room.error.generic.title" = "Что-то пошло не так";
 "guest_room.error.generic.message" = "Проверьте подключение и попробуйте еще раз";
 
-"guest_room.link.header.title" = "Пригласить других пользователей ссылкой";
-"guest_room.link.header.subtitle" = "Любой, у кого есть ссылка, может присоединиться к беседе, даже если у него нет Wire.";
+"guest_room.link.header.title" = "Гостевые ссылки";
+"guest_room.link.header.subtitle" = "Приглашайте ссылкой на эту беседу.  Любой, у кого есть ссылка, сможет присоединиться к беседе, даже если у него нет Wire.";
+"guest_room.link.not_allowed.explaination" = "Генерация гостевых ссылок запрещена в вашей команде.";
 
 "guest_room.link.button.title" = "Создать ссылку";
 
@@ -1374,6 +1384,14 @@
 
 "guest_room.expiration.hours_left" = "Осталось %@ час.";
 "guest_room.expiration.less_than_minutes_left" = "Осталось менее %@ мин.";
+
+// Services Options
+
+"services_options.allow_services.title" = "Разрешить сервисы";
+"services_options.allow_services.subtitle" = "Открыть эту беседу для сервисов.";
+"services_options.remove_services.message" = "Текущие сервисы будут удалены из беседы. Новые сервисы допущены не будут.";
+"services_options.remove_services.action" = "Удалить";
+
 
 // Registration
 
@@ -1587,7 +1605,7 @@
 // ZMUserSessionErrorCode mapping. Used during registration and profile edit
 "error.user.unkown_error" = "Что-то пошло не так. Пожалуйста, попробуйте еще раз";
 "error.user.needs_credentials" = "Пожалуйста, проверьте ваши данные и попробуйте еще раз.";
-"error.user.domain_blocked" = "Это письмо требует приглашения от существующей команды. По вопросам получения приглашения, свяжитесь с ИТ-администраторами вашей организации.";
+"error.user.domain_blocked" = "Вы не можете создать аккаунт, так как ваш почтовый домен намеренно заблокирован.\nПопросите администратора вашей команды пригласить вас по электронной почте.";
 "error.user.invalid_credentials" = "Пожалуйста, проверьте ваши данные и попробуйте еще раз.";
 "error.user.account_pending_activation" = "Учетная запись, к которой вы пытаетесь получить доступ, ожидает активации. Пожалуйста, проверьте ваши данные.";
 "error.user.network_error" = "Похоже, возникла проблема с вашей сетью. Пожалуйста, попробуйте позже.";
@@ -1639,14 +1657,13 @@
 "push.notification.new_user" = "%@ присоединился к Wire";
 "push.notification.new_message" = "Новое сообщение";
 
-
 // Force Update
 "force.update.title" = "Необходимо обновление";
 "force.update.message" = "Вы упускаете новые возможности.\nПолучите последнюю версию Wire в App Store.";
 "force.update.ok_button" = "Перейти в App Store";
 
 // Feature configs
-"feature_config.alert.generic_title" = "В Wire произошли изменения";
+"feature_config.alert.generic_title" = "Настройки команды изменены";
 
 // Feature configs: file sharing
 "feature_config.update.file_sharing.alert.title" = "В Wire произошли изменения";
@@ -1674,9 +1691,13 @@
 "feature_config.conference_calling_restrictions.personal.alert.message" = "Возможность инициировать конференц-связь доступна только в платной версии Wire.";
 
 // Feature configs: self-deleting messages
-"feature_config.alert.self_deleting_messages.message.disabled" = "Self-deleting messages are disabled.";
-"feature_config.alert.self_deleting_messages.message.enabled" = "Self-deleting messages are enabled. You can set a timeout before composing a message.";
-"feature_config.alert.self_deleting_messages.message.forced_on" = "Self-deleting messages are now mandatory. New messages will self-delete after %@.";
+"feature_config.alert.self_deleting_messages.message.disabled" = "Самоудаляющиеся сообщения отключены.";
+"feature_config.alert.self_deleting_messages.message.enabled" = "Самоудаляющиеся сообщения включены. Перед написанием сообщения можно установить таймер.";
+"feature_config.alert.self_deleting_messages.message.forced_on" = "Самоудаляющиеся сообщения теперь обязательны. Новые сообщения будут самоудаляться спустя %@.";
+
+// Feature configs: conversation guest links
+"feature_config.alert.conversation_guest_links.message.disabled" = "Генерация гостевых ссылок теперь отключена для всех администраторов групп.";
+"feature_config.alert.conversation_guest_links.message.enabled" = "Генерация гостевых ссылок теперь включена для всех администраторов групп.";
 
 // Jailbroken alert
 "jailbrokendevice.alert.title" = "Обнаружен Jailbreak";
@@ -1788,9 +1809,10 @@
 "url_action.join_conversation.confirmation.message" = "Вас пригласили в беседу:\n%@";
 "url_action.join_conversation.confirmation.confirm_button" = "Присоединиться";
 
-"url_action.join_conversation.error.title" = "Вы не смогли присоединиться к беседе";
-"url_action.join_conversation.error.converation_is_full" = "Беседа переполнена.";
-"url_action.join_conversation.error.link_is_invalid" = "Ссылка на беседу недействительна.";
+"url_action.join_conversation.error.alert.title" = "Вы не смогли присоединиться к беседе";
+"url_action.join_conversation.error.alert.converation_is_full.message" = "Беседа переполнена.";
+"url_action.join_conversation.error.alert.link_is_invalid.message" = "Ссылка на беседу недействительна.";
+"url_action.join_conversation.error.alert.learn_more.action" = "Узнать больше о гостевых ссылках";
 
 // Deep Link
 "url_action.invalid_user.title" = "Wire не может найти этого человека.";
@@ -1846,14 +1868,14 @@
 // Legal hold - alert
 "legalhold_request.button.accessibility" = "В ожидании принятия.";
 "legalhold_request.alert.title" = "Запрошены юридические ограничения";
-"legalhold_request.alert.detail" = "All future messages will be recorded by the device with fingerprint:\n\n%@\n\nThis includes deleted, edited, and self-deleting messages in all conversations.";
+"legalhold_request.alert.detail" = "Все будущие сообщения будут записываться устройством с отпечатком:\n\n%@\n\nСюда входят удаленные, отредактированные и самоудаляющиеся сообщения во всех беседах.";
 "legalhold_request.alert.detail.enter_password" = "Введите пароль для подтверждения.";
 "legalhold_request.alert.error_wrong_password" = "Неверный пароль";
 
 // Legal hold activated
 "legalhold_active.alert.title" = "Юридические ограничения активны";
 "legalhold_active.alert.learn_more" = "Подробнее";
-"legalhold_active.alert.message" = "Legal Hold has been activated for your account. All messages will be preserved for future access, including deleted, edited, and self-deleting messages.\n\nYour conversation partners will be aware of the recording.";
+"legalhold_active.alert.message" = "Для вашей учетной записи активированы юридические ограничения. Все сообщения будут сохранены для последующего доступа, включая удаленные, отредактированные и самоудаляющиеся.\n\nВаши собеседники будут уведомлены об этом.";
 
 // Account deleted alert
 "account_deleted_session_expired_alert.title" = "Ваша сессия истекла";
@@ -1931,7 +1953,7 @@
 "appLockModule.goToSettingsButton.title" = "Перейти в настройки";
 
 //MARK: - Keyboard shortcut
-"keyboardshortcut.scrollToBottom" = "Scroll to Bottom";
-"keyboardshortcut.conversationDetail" = "Conversation Details...";
-"keyboardshortcut.searchInConversation" = "Search in Conversation...";
+"keyboardshortcut.scrollToBottom" = "Прокрутить вниз";
+"keyboardshortcut.conversationDetail" = "Информация о беседе...";
+"keyboardshortcut.searchInConversation" = "Поиск в беседе...";
 "keyboardshortcut.openPeople" = "Контакты";

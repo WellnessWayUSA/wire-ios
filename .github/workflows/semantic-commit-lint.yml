@@ -10,16 +10,12 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CUSTOM_PR_LABEL: "Fix PR Title 🤦‍♂️"
+      HEAD: ${{github.head_ref}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          
-      - name: Set environment variables
-        run: | 
-          echo "HEAD=${{github.head_ref}}" >> $GITHUB_ENV
-          
       # Please look up the latest version from
       # https://github.com/amannn/action-semantic-pull-request/releases
       - name: Run Semantic Commint Linter
@@ -41,6 +37,19 @@ jobs:
             revert
             style
             test
+            Breaking
+            Build
+            Ci
+            Chore
+            Docs
+            Feat
+            Fix
+            Other
+            Perf
+            Refactor
+            Revert
+            Style
+            Test
           # For work-in-progress PRs you can typically use draft pull requests 
           # from Github. However, private repositories on the free plan don't have 
           # this option and therefore this action allows you to opt-in to using the 

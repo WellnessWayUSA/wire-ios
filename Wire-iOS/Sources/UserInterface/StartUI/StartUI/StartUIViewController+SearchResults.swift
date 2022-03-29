@@ -116,8 +116,7 @@ extension StartUIViewController: SearchResultsViewControllerDelegate {
             let avoiding = KeyboardAvoidingViewController(viewController: controller)
             self.navigationController?.pushViewController(avoiding, animated: true) {
             }
-        }
-        else {
+        } else {
             let embeddedNavigationController = controller.wrapInNavigationController()
             embeddedNavigationController.modalPresentationStyle = .formSheet
             self.present(embeddedNavigationController, animated: true)
@@ -159,6 +158,7 @@ extension StartUIViewController: ConversationCreationControllerDelegate {
                                         didSelectName name: String,
                                         participants: UserSet,
                                         allowGuests: Bool,
+                                        allowServices: Bool,
                                         enableReceipts: Bool) {
         dismiss(controller: controller) { [weak self] in
             guard let weakSelf = self else { return }
@@ -167,6 +167,7 @@ extension StartUIViewController: ConversationCreationControllerDelegate {
                                        createConversationWith: participants,
                                        name: name,
                                        allowGuests: allowGuests,
+                                       allowServices: allowServices,
                                        enableReceipts: enableReceipts)
         }
     }

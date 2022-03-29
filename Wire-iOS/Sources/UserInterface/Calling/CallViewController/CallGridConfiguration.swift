@@ -76,16 +76,24 @@ extension VoiceChannel {
 
     func arrangeStreams(for selfStream: Stream?, participantsStreams: [Stream]) -> StreamArrangment {
         let streamsExcludingSelf = participantsStreams.filter { $0.streamId != selfStreamId }
-
+        let sortedStreamsList = sortByVideo(streamData: streamsExcludingSelf)
         guard let selfStream = selfStream else {
-            return (nil, streamsExcludingSelf)
+            return (nil, sortedStreamsList)
         }
-
-        if callHasTwoParticipants && streamsExcludingSelf.count == 1 {
-            return (selfStream, streamsExcludingSelf)
+        if callHasTwoParticipants && sortedStreamsList.count == 1 {
+            return (selfStream, sortedStreamsList)
         } else {
-            return (nil, [selfStream] + streamsExcludingSelf)
+            return (nil, [selfStream] + sortedStreamsList)
         }
+    }
+
+    func sortByVideo(streamData: [Stream]) -> [Stream] {
+        let sortedData = streamData.sorted {
+            guard let videoStatusArgument0 = $0.videoState?.isSending else { return false }
+            guard let videoStatusArgument1 = $1.videoState?.isSending else { return false }
+            return videoStatusArgument0 && !videoStatusArgument1
+        }
+        return sortedData
     }
 
     private var streamArrangementForNonEstablishedCall: StreamArrangment {
@@ -134,7 +142,6 @@ extension VoiceChannel {
     private func createSelfStream() -> Stream? {
         guard
             let selfUser = ZMUser.selfUser(),
-            let userId = selfUser.remoteIdentifier,
             let clientId = selfUser.selfClient()?.remoteIdentifier
         else {
             return nil
@@ -151,7 +158,7 @@ extension VoiceChannel {
         }
 
         return Stream(
-            streamId: AVSClient(userId: userId, clientId: clientId),
+            streamId: AVSClient(userId: selfUser.avsIdentifier, clientId: clientId),
             user: selfUser,
             microphoneState: .unmuted,
             videoState: videoState,

@@ -143,12 +143,18 @@ final class CollectionsViewController: UIViewController {
 
         updateNoElementsState()
 
-        NotificationCenter.default.addObserver(forName: .featureConfigDidChangeNotification, object: nil, queue: .main) { [weak self] note in
-            guard let featureUpdateEvent = note.object as? FeatureUpdateEventPayload,
-                  featureUpdateEvent.name == .fileSharing else {
-                return
+        NotificationCenter.default.addObserver(forName: .featureDidChangeNotification,
+                                               object: nil,
+                                               queue: .main) { [weak self] note in
+            guard let change = note.object as? FeatureService.FeatureChange else { return }
+
+            switch change {
+            case .fileSharingEnabled, .fileSharingDisabled:
+                self?.reloadData()
+
+            default:
+                break
             }
-            self?.reloadData()
         }
     }
 
@@ -217,9 +223,9 @@ final class CollectionsViewController: UIViewController {
                         contentView.collectionView.reloadSections(IndexSet(integer: (CollectionsSectionSet.visible.firstIndex(of: section))!))
                     }
                 }
-            }) { _ in
+            }, completion: { _ in
                 self.contentView.collectionView.reloadData()
-            }
+            })
         }
     }
 
@@ -247,9 +253,9 @@ final class CollectionsViewController: UIViewController {
 
         coordinator.animate(alongsideTransition: { _ in
             self.flushLayout()
-        }) { _ in
+        }, completion: { _ in
             self.reloadData()
-        }
+        })
     }
 
     override var prefersStatusBarHidden: Bool {
@@ -697,7 +703,7 @@ extension CollectionsViewController: CollectionCellDelegate {
         case .present:
             selectedMessage = message
 
-            if message.isImage, !message.isRestricted {
+            if message.isImage, message.canBeShared {
                 let imagesController = ConversationImagesViewController(collection: collection, initialMessage: message)
 
                 let backButton = CollectionsView.backButton()
