@@ -16,8 +16,9 @@
 // along with this program. If not, see http://www.gnu.org/licenses/.
 // 
 import UIKit
+import WireCommonComponents
 
-class ButtonWithLargerHitArea: UIButton {
+class ButtonWithLargerHitArea: DynamicFontButton {
 
     // MARK: - Properties
 
@@ -25,9 +26,8 @@ class ButtonWithLargerHitArea: UIButton {
 
     // MARK: - Init / Deinit
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
+    override init(fontSpec: FontSpec = .normalRegularFont) {
+        super.init(fontSpec: fontSpec)
         setUp()
     }
 

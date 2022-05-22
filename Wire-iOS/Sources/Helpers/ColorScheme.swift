@@ -19,6 +19,7 @@
 import Foundation
 import UIKit
 import WireUtilities
+import WireCommonComponents
 
 @objc
 enum ColorSchemeVariant: UInt {
@@ -137,6 +138,9 @@ enum ColorSchemeColor: Int {
     case utilityNeutral
     case utilitySuccess
 
+    case textSecurityNotClassified
+    case backgroundSecurityNotClassified
+
     fileprivate func colorPair(accentColor: UIColor) -> ColorPair {
         switch self {
         case .textForeground:
@@ -245,6 +249,12 @@ enum ColorSchemeColor: Int {
             return ColorPair(light: UIColor(rgb: 0x0772DE), dark: UIColor(rgb: 0x26BDFF))
         case .utilitySuccess:
             return ColorPair(light: UIColor(rgb: 0x148545), dark: UIColor(rgb: 0x35C763))
+
+        case .textSecurityNotClassified:
+            return ColorPair(light: .white, dark: .graphite)
+        case .backgroundSecurityNotClassified:
+            return ColorPair(light: .graphite, dark: .white)
+
         }
     }
 }
@@ -309,14 +319,11 @@ extension UIColor {
 
     /// Creates UIColor instance with color corresponding to @p accentColor that can be used to display the name.
     class func nameColor(for accentColor: ZMAccentColor, variant: ColorSchemeVariant) -> UIColor {
-
-        assert(accentColor.rawValue <= ZMAccentColor.max.rawValue)
-
+        let accentColor = AccentColor(ZMAccentColor: accentColor) ?? .strongBlue
         let coefficientsArray = variant == .dark ? accentColorNameColorBlendingCoefficientsDark : accentColorNameColorBlendingCoefficientsLight
         let coefficient = coefficientsArray[Int(accentColor.rawValue)]
-
         let background: UIColor = variant == .dark ? .black : .white
-        return background.mix(UIColor(fromZMAccentColor: accentColor), amount: coefficient)
+        return background.mix(UIColor(for: accentColor), amount: coefficient)
     }
 }
 

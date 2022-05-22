@@ -19,7 +19,7 @@
 import XCTest
 @testable import Wire
 
-final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTestHelper {
+final class AuthenticationInterfaceBuilderTests: ZMSnapshotTestCase, CoreDataFixtureTestHelper {
     var coreDataFixture: CoreDataFixture!
     var featureProvider: MockAuthenticationFeatureProvider!
     var builder: AuthenticationInterfaceBuilder!
@@ -131,7 +131,7 @@ final class AuthenticationInterfaceBuilderTests: XCTestCase, CoreDataFixtureTest
     }
 
     func testLoginScreen_PhoneNumberVerification() {
-        runSnapshotTest(for: .enterLoginCode(phoneNumber: "+0123456789"))
+        runSnapshotTest(for: .enterPhoneVerificationCode(phoneNumber: "+0123456789"))
     }
 
     func testBackupScreen_NewDevice() {

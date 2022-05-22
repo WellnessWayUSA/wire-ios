@@ -19,6 +19,7 @@
 import UIKit
 import WireSyncEngine
 import avs
+import WireCommonComponents
 
 // MARK: - AppRootRouter
 public class AppRootRouter: NSObject {
@@ -94,6 +95,7 @@ public class AppRootRouter: NSObject {
 
     public func start(launchOptions: LaunchOptions) {
         showInitial(launchOptions: launchOptions)
+        sessionManager.resolveAPIVersion()
     }
 
     public func openDeepLinkURL(_ deepLinkURL: URL) -> Bool {
@@ -102,8 +104,7 @@ public class AppRootRouter: NSObject {
 
     public func performQuickAction(for shortcutItem: UIApplicationShortcutItem,
                                    completionHandler: ((Bool) -> Void)?) {
-        quickActionsManager.performAction(for: shortcutItem,
-                                          completionHandler: completionHandler)
+        quickActionsManager.performAction(for: shortcutItem, completionHandler: completionHandler)
     }
 
     // MARK: - Private implementation
@@ -132,10 +133,10 @@ public class AppRootRouter: NSObject {
 
     private func setCallingSettings() {
         sessionManager.updateCallNotificationStyleFromSettings()
+        sessionManager.updateMuteOtherCallsFromSettings()
         sessionManager.usePackagingFeatureConfig = true
-        sessionManager.useConstantBitRateAudio = SecurityFlags.forceConstantBitRateCalls.isEnabled
-            ? true
-            : Settings.shared[.callingConstantBitRate] ?? false
+        let useCBR = SecurityFlags.forceConstantBitRateCalls.isEnabled ? true : Settings.shared[.callingConstantBitRate] ?? false
+        sessionManager.useConstantBitRateAudio = useCBR
     }
 
     // MARK: - Transition
@@ -191,8 +192,8 @@ extension AppRootRouter: AppStateCalculatorDelegate {
         }
 
         switch appState {
-        case .blacklisted:
-            showBlacklisted(completion: completionBlock)
+        case .blacklisted(reason: let reason):
+            showBlacklisted(reason: reason, completion: completionBlock)
         case .jailbroken:
             showJailbroken(completion: completionBlock)
         case .databaseFailure:
@@ -261,8 +262,8 @@ extension AppRootRouter {
         }
     }
 
-    private func showBlacklisted(completion: @escaping () -> Void) {
-        let blockerViewController = BlockerViewController(context: .blacklist)
+    private func showBlacklisted(reason: BlacklistReason, completion: @escaping () -> Void) {
+        let blockerViewController = BlockerViewController(context: reason.blockerViewControllerContext)
         rootViewController.set(childViewController: blockerViewController,
                                completion: completion)
     }
@@ -282,9 +283,11 @@ extension AppRootRouter {
 
     private func showLaunchScreen(isLoading: Bool = false, completion: @escaping () -> Void) {
         let launchViewController = LaunchImageViewController()
-        isLoading
-            ? launchViewController.showLoadingScreen()
-            : ()
+
+        if isLoading {
+            launchViewController.showLoadingScreen()
+        }
+
         rootViewController.set(childViewController: launchViewController,
                                completion: completion)
     }
@@ -377,8 +380,7 @@ extension AppRootRouter {
 
     private func buildAuthenticatedRouter(account: Account, isComingFromRegistration: Bool) -> AuthenticatedRouter? {
 
-        let needToShowDataUsagePermissionDialog = appStateCalculator.wasUnauthenticated
-                                                    && !SelfUser.current.isTeamMember
+        let needToShowDataUsagePermissionDialog = appStateCalculator.wasUnauthenticated && !SelfUser.current.isTeamMember
 
         return AuthenticatedRouter(rootViewController: rootViewController,
                                    account: account,
@@ -518,6 +520,7 @@ extension AppRootRouter: ApplicationStateObserving {
 
     func applicationWillEnterForeground() {
         updateOverlayWindowFrame()
+        sessionManager.resolveAPIVersion()
     }
 
     func updateOverlayWindowFrame(size: CGSize? = nil) {
@@ -536,8 +539,9 @@ extension AppRootRouter: ContentSizeCategoryObserving {
         NSAttributedString.invalidateParagraphStyle()
         NSAttributedString.invalidateMarkdownStyle()
         ConversationListCell.invalidateCachedCellSize()
-        defaultFontScheme = FontScheme(contentSizeCategory: UIApplication.shared.preferredContentSizeCategory)
+        FontScheme.configure(with: UIApplication.shared.preferredContentSizeCategory)
         AppRootRouter.configureAppearance()
+        rootViewController.redrawAllFonts()
     }
 
     public static func configureAppearance() {
@@ -556,5 +560,6 @@ extension AppRootRouter: ContentSizeCategoryObserving {
 extension AppRootRouter: AudioPermissionsObserving {
     func userDidGrantAudioPermissions() {
         sessionManager.updateCallNotificationStyleFromSettings()
+        sessionManager.updateMuteOtherCallsFromSettings()
     }
 }

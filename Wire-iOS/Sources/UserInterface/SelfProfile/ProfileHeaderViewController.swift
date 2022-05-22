@@ -18,6 +18,7 @@
 
 import UIKit
 import WireSyncEngine
+import WireCommonComponents
 
 final class ProfileHeaderViewController: UIViewController, Themeable {
 
@@ -215,6 +216,7 @@ final class ProfileHeaderViewController: UIViewController, Themeable {
         stackView.wr_addCustomSpacing(24, after: imageView)
         stackView.wr_addCustomSpacing(20, after: guestIndicatorStack)
         stackView.wr_addCustomSpacing(20, after: externalIndicator)
+        stackView.wr_addCustomSpacing(20, after: federatedIndicator)
 
         view.addSubview(stackView)
         applyColorScheme(colorSchemeVariant)

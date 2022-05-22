@@ -20,19 +20,22 @@ import XCTest
 @testable import Wire
 import WireCommonComponents
 
-final class ConversationInputBarViewControllerTests: XCTestCase {
+final class ConversationInputBarViewControllerTests: ZMSnapshotTestCase {
 
-    var mockConversation: MockInputBarConversationType!
+    private var mockConversation: MockInputBarConversationType!
+    private var mockClassificationProvider: MockClassificationProvider!
 
     override func setUp() {
         super.setUp()
 
         UIColor.setAccentOverride(.vividRed)
         mockConversation = MockInputBarConversationType()
+        mockClassificationProvider = MockClassificationProvider()
     }
 
     override func tearDown() {
         mockConversation = nil
+        mockClassificationProvider = nil
 
         super.tearDown()
     }
@@ -239,4 +242,31 @@ final class ConversationInputBarViewControllerTests: XCTestCase {
 
         verify(matching: alert)
     }
+
+    // MARK: - Classification
+
+    func testClassifiedNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .classified
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
+    func testNotClassifiedNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .notClassified
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
+    func testNoClassificationNormalState() {
+        verifyInAllPhoneWidths(createSut: {
+            self.mockClassificationProvider.returnClassification = .none
+
+            return ConversationInputBarViewController(conversation: self.mockConversation, classificationProvider: self.mockClassificationProvider)
+        } as () -> UIViewController)
+    }
+
 }

@@ -14,7 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-//
+// 
 
 import Foundation
 import UserNotifications
@@ -22,7 +22,9 @@ import WireRequestStrategy
 import WireNotificationEngine
 import WireCommonComponents
 import WireDataModel
+import WireSyncEngine
 import UIKit
+import CallKit
 
 public class NotificationService: UNNotificationServiceExtension, NotificationSessionDelegate {
 
@@ -78,12 +80,37 @@ public class NotificationService: UNNotificationServiceExtension, NotificationSe
         tearDown()
     }
 
-    public func notificationSessionDidGenerateNotification(_ notification: ZMLocalNotification?) {
+    public func notificationSessionDidGenerateNotification(_ notification: ZMLocalNotification?, unreadConversationCount: Int) {
         defer { tearDown() }
         guard let contentHandler = contentHandler else { return }
-        contentHandler(notification?.content ?? .empty)
+        guard let content = notification?.content as? UNMutableNotificationContent else {
+            contentHandler(.empty)
+            return
+        }
+
+        let badgeCount = totalUnreadCount(unreadConversationCount)
+        content.badge = badgeCount
+        Logging.push.safePublic("Updated badge count to \(SanitizedString(stringLiteral: String(describing: badgeCount)))")
+
+        contentHandler(content)
     }
 
+    public func reportCallEvent(_ event: ZMUpdateEvent, currentTimestamp: TimeInterval) {
+        guard
+            #available(iOSApplicationExtension 14.5, *),
+            let accountID = session?.accountIdentifier,
+            let voipPayload = VoIPPushPayload(from: event, accountID: accountID, serverTimeDelta: currentTimestamp),
+            let payload = voipPayload.asDictionary
+        else {
+            return
+        }
+
+        CXProvider.reportNewIncomingVoIPPushPayload(payload) { error in
+            if let error = error {
+                // TODO: handle
+            }
+        }
+    }
 
     // MARK: - Helpers
 
@@ -96,15 +123,28 @@ public class NotificationService: UNNotificationServiceExtension, NotificationSe
     }
 
     private func createSession(accountID: UUID) throws -> NotificationSession {
-        return try NotificationSession(
+        let session = try NotificationSession(
             applicationGroupIdentifier: appGroupID,
             accountIdentifier: accountID,
             environment: BackendEnvironment.shared,
-            analytics: nil,
-            delegate: self,
-            useLegacyPushNotifications: false
+            analytics: nil
         )
+
+        session.delegate = self
+        return session
     }
+
+    private func totalUnreadCount(_ unreadConversationCount: Int) -> NSNumber? {
+        guard let session = session else {
+            return nil
+        }
+        let account = self.accountManager.account(with: session.accountIdentifier)
+        account?.unreadConversationCount = unreadConversationCount
+        let totalUnreadCount = self.accountManager.totalUnreadCount
+
+        return NSNumber(value: totalUnreadCount)
+    }
+
 }
 
 // MARK: - Extensions

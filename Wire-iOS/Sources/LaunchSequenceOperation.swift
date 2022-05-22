@@ -151,7 +151,7 @@ extension AppCenterOperation: DistributeDelegate {
 
         let alertController = UIAlertController(title: "Update available \(details.shortVersion ?? "") (\(details.version ?? ""))",
                                                 message: "Release Note:\n\n\(details.releaseNotes ?? "")\n\nDo you want to update?",
-            preferredStyle: .actionSheet)
+                                                preferredStyle: .actionSheet)
         alertController.configPopover(pointToView: window)
 
         alertController.addAction(UIAlertAction(title: "Update", style: .cancel) {_ in
@@ -194,3 +194,29 @@ extension AppCenterOperation: CrashesDelegate {
     }
 }
 #endif
+
+// MARK: - APIVersionOperation
+
+final class APIVersionOperation: LaunchSequenceOperation {
+
+    func execute() {
+        APIVersion.storage = .applicationGroup
+    }
+
+}
+
+final class FontSchemeOperation: LaunchSequenceOperation {
+
+    func execute() {
+        FontScheme.configure(with: UIApplication.shared.preferredContentSizeCategory)
+    }
+
+}
+
+final class VoIPPushHelperOperation: LaunchSequenceOperation {
+
+    func execute() {
+        VoIPPushHelper.storage = .applicationGroup
+    }
+
+}
