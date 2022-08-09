@@ -20,22 +20,15 @@ import Foundation
 import UIKit
 import WireCommonComponents
 
-final class SectionHeaderView: UIView, Themeable {
+final class SectionHeaderView: UIView {
 
-    let titleLabel = UILabel()
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
+    let titleLabel = DynamicFontLabel(fontSpec: .smallSemiboldFont, color: .sectionText)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
         createConstraints()
-        applyColorScheme(colorSchemeVariant)
+
     }
 
     @available(*, unavailable)
@@ -44,10 +37,10 @@ final class SectionHeaderView: UIView, Themeable {
     }
 
     private func setupViews() {
-        titleLabel.font = FontSpec(.small, .semibold).font!
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 0
         titleLabel.accessibilityTraits.insert(.header)
+        titleLabel.applyStyle(.headerLabel)
         addSubview(titleLabel)
     }
 
@@ -60,13 +53,9 @@ final class SectionHeaderView: UIView, Themeable {
         ])
     }
 
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        titleLabel.textColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-    }
-
 }
 
-class SectionHeader: UICollectionReusableView, Themeable {
+class SectionHeader: UICollectionReusableView {
 
     let headerView = SectionHeaderView()
 
@@ -78,7 +67,7 @@ class SectionHeader: UICollectionReusableView, Themeable {
         super.init(frame: frame)
         addSubview(headerView)
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.fitInSuperview()
+        headerView.fitIn(view: self)
     }
 
     @available(*, unavailable)
@@ -86,20 +75,9 @@ class SectionHeader: UICollectionReusableView, Themeable {
         fatalError("init?(coder aDecoder: NSCoder) is not implemented")
     }
 
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        headerView.applyColorScheme(colorSchemeVariant)
-    }
-
 }
 
-class SectionTableHeader: UITableViewHeaderFooterView, Themeable {
+class SectionTableHeader: UITableViewHeaderFooterView {
 
     let headerView = SectionHeaderView()
 
@@ -127,17 +105,6 @@ class SectionTableHeader: UITableViewHeaderFooterView, Themeable {
             headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             headerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
-    }
-
-    @objc dynamic var colorSchemeVariant: ColorSchemeVariant = ColorScheme.default.variant {
-        didSet {
-            guard oldValue != colorSchemeVariant else { return }
-            applyColorScheme(colorSchemeVariant)
-        }
-    }
-
-    func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        headerView.applyColorScheme(colorSchemeVariant)
     }
 
 }

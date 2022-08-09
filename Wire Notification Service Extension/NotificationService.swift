@@ -14,7 +14,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see http://www.gnu.org/licenses/.
-// 
+//
 
 import Foundation
 import UserNotifications
@@ -26,9 +26,28 @@ import WireSyncEngine
 import UIKit
 import CallKit
 
+protocol CallEventHandlerProtocol {
+    func reportIncomingVoIPCall(_ payload: [String: Any])
+}
+
+class CallEventHandler: CallEventHandlerProtocol {
+
+    func reportIncomingVoIPCall(_ payload: [String: Any]) {
+        guard #available(iOS 14.5, *) else { return }
+        CXProvider.reportNewIncomingVoIPPushPayload(payload) { error in
+            if let error = error {
+                // TODO: handle
+            }
+        }
+    }
+
+}
+
 public class NotificationService: UNNotificationServiceExtension, NotificationSessionDelegate {
 
     // MARK: - Properties
+
+    var callEventHandler: CallEventHandlerProtocol = CallEventHandler()
 
     private var session: NotificationSession?
     private var contentHandler: ((UNNotificationContent) -> Void)?
@@ -53,19 +72,26 @@ public class NotificationService: UNNotificationServiceExtension, NotificationSe
         _ request: UNNotificationRequest,
         withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
     ) {
+        if DeveloperFlag.nseDebugEntryPoint.isOn {
+            contentHandler(request.debugContent)
+            return
+        }
+
         self.contentHandler = contentHandler
 
-        guard
-            let accountID = request.content.accountID,
-            let session = try? createSession(accountID: accountID)
-        else {
-            // TODO: what happens here?
+        guard let accountID = request.content.accountID else {
+            contentHandler(.debugMessageIfNeeded(message: "Missing account id."))
+            return
+        }
+
+        guard let session = try? createSession(accountID: accountID) else {
+            contentHandler(.debugMessageIfNeeded(message: "Failed to create session."))
             return
         }
 
         session.processPushNotification(with: request.content.userInfo) { isUserAuthenticated in
             if !isUserAuthenticated {
-                contentHandler(.empty)
+                contentHandler(.debugMessageIfNeeded(message: "User is not authenticated."))
             }
         }
 
@@ -74,30 +100,42 @@ public class NotificationService: UNNotificationServiceExtension, NotificationSe
     }
 
     public override func serviceExtensionTimeWillExpire() {
-        // TODO: discuss with product/design what should we display
         guard let contentHandler = contentHandler else { return }
-        contentHandler(.empty)
+        contentHandler(.debugMessageIfNeeded(message: "Extension is expiring."))
         tearDown()
     }
 
-    public func notificationSessionDidGenerateNotification(_ notification: ZMLocalNotification?, unreadConversationCount: Int) {
+    public func notificationSessionDidGenerateNotification(
+        _ notification: ZMLocalNotification?,
+        unreadConversationCount: Int
+    ) {
         defer { tearDown() }
+
         guard let contentHandler = contentHandler else { return }
-        guard let content = notification?.content as? UNMutableNotificationContent else {
-            contentHandler(.empty)
+
+        guard let content = notification?.content else {
+            contentHandler(.debugMessageIfNeeded(message: "No notification generated."))
             return
         }
 
+        guard let mutabaleContent = content as? UNMutableNotificationContent else {
+            contentHandler(.debugMessageIfNeeded(message: "Content not mutable."))
+            return
+        }
+
+        if #available(iOS 15, *) {
+            mutabaleContent.interruptionLevel = .timeSensitive
+        }
+
         let badgeCount = totalUnreadCount(unreadConversationCount)
-        content.badge = badgeCount
+        mutabaleContent.badge = badgeCount
         Logging.push.safePublic("Updated badge count to \(SanitizedString(stringLiteral: String(describing: badgeCount)))")
 
-        contentHandler(content)
+        contentHandler(mutabaleContent)
     }
 
     public func reportCallEvent(_ event: ZMUpdateEvent, currentTimestamp: TimeInterval) {
         guard
-            #available(iOSApplicationExtension 14.5, *),
             let accountID = session?.accountIdentifier,
             let voipPayload = VoIPPushPayload(from: event, accountID: accountID, serverTimeDelta: currentTimestamp),
             let payload = voipPayload.asDictionary
@@ -105,11 +143,7 @@ public class NotificationService: UNNotificationServiceExtension, NotificationSe
             return
         }
 
-        CXProvider.reportNewIncomingVoIPPushPayload(payload) { error in
-            if let error = error {
-                // TODO: handle
-            }
-        }
+        callEventHandler.reportIncomingVoIPCall(payload)
     }
 
     // MARK: - Helpers
@@ -155,6 +189,24 @@ extension UNNotificationRequest {
         return content.mutableCopy() as? UNMutableNotificationContent
     }
 
+    var debugContent: UNNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = "DEBUG 👀"
+
+        guard
+            let notificationData = self.content.userInfo["data"] as? [String: Any],
+            let userID = notificationData["user"] as? String,
+            let data = notificationData["data"] as? [String: Any],
+            let eventID = data["id"] as? String
+        else {
+            content.body = "Received a push"
+            return content
+        }
+
+        content.body = "USER: \(userID), EVENT: \(eventID)"
+        return content
+    }
+
 }
 
 extension UNNotificationContent {
@@ -165,6 +217,18 @@ extension UNNotificationContent {
 
     static var empty: Self {
         return Self()
+    }
+
+    static func debugMessageIfNeeded(message: String) -> UNNotificationContent {
+        guard DeveloperFlag.nseDebugging.isOn else { return .empty }
+        return debug(message: message)
+    }
+
+    static func debug(message: String) -> UNNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = "DEBUG 👀"
+        content.body = message
+        return content
     }
 
     var accountID: UUID? {

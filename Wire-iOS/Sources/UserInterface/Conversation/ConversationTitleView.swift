@@ -39,7 +39,7 @@ final class ConversationTitleView: TitleView {
     func configure() {
         titleColor = UIColor.from(scheme: .textForeground)
         titleColorSelected = UIColor.from(scheme: .textDimmed)
-        titleFont = FontSpec(.medium, .semibold).font!
+        titleFont = .mediumSemiboldFont
         accessibilityHint = "conversation_details.open_button.accessibility_hint".localized
 
         var attachments: [NSTextAttachment] = []
@@ -97,7 +97,7 @@ extension NSTextAttachment {
 
     static func legalHold() -> NSTextAttachment {
         let attachment = NSTextAttachment()
-        let legalHold = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: .vividRed)
+        let legalHold = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: SemanticColors.LegacyColors.vividRed)
         attachment.image = legalHold
         let ratio = legalHold.size.width / legalHold.size.height
         let height: CGFloat = 12

@@ -19,7 +19,7 @@
 import XCTest
 @testable import Wire
 
-final class SettingsClientViewControllerTests: XCTestCase, CoreDataFixtureTestHelper {
+final class SettingsClientViewControllerTests: ZMSnapshotTestCase, CoreDataFixtureTestHelper {
     var coreDataFixture: CoreDataFixture!
 
     var sut: SettingsClientViewController!
@@ -65,6 +65,7 @@ final class SettingsClientViewControllerTests: XCTestCase, CoreDataFixtureTestHe
 
     func testForDarkTheme() {
         prepareSut(variant: .dark)
+        sut.overrideUserInterfaceStyle = .dark
 
         verify(matching: sut)
     }

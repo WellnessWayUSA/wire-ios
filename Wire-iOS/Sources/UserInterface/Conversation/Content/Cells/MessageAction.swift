@@ -109,9 +109,9 @@ enum MessageAction: CaseIterable {
         case .forward:
             return .export
         case .like:
-            return .like
-        case .unlike:
             return .liked
+        case .unlike:
+            return .like
         case .resend:
             return .redo
         case .showInConversation:
@@ -128,12 +128,10 @@ enum MessageAction: CaseIterable {
         }
     }
 
-    @available(iOS 13.0, *)
     func systemIcon() -> UIImage? {
         return imageSystemName().flatMap(UIImage.init(systemName:))
     }
 
-    @available(iOS 13.0, *)
     private func imageSystemName() -> String? {
         let imageName: String?
         switch self {

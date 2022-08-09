@@ -23,7 +23,7 @@ import WireCommonComponents
 class StartUIIconCell: UICollectionViewCell {
 
     fileprivate let iconView = UIImageView()
-    fileprivate let titleLabel = UILabel()
+    fileprivate let titleLabel = DynamicFontLabel(fontSpec: .normalLightFont, color: .textForeground)
     fileprivate let separator = UIView()
 
     fileprivate var icon: StyleKitIcon? {
@@ -57,7 +57,6 @@ class StartUIIconCell: UICollectionViewCell {
 
     fileprivate func setupViews() {
         iconView.contentMode = .center
-        titleLabel.font = FontSpec(.normal, .light).font
         titleLabel.textColor = .white
         [iconView, titleLabel, separator].forEach(contentView.addSubview)
         separator.backgroundColor = UIColor.from(scheme: .cellSeparator, variant: .dark)
@@ -68,20 +67,20 @@ class StartUIIconCell: UICollectionViewCell {
 
         [iconView, titleLabel, separator].prepareForLayout()
         NSLayoutConstraint.activate([
-          iconView.widthAnchor.constraint(equalToConstant: iconSize),
-          iconView.heightAnchor.constraint(equalToConstant: iconSize),
-          iconView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-          iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: iconSize),
+            iconView.heightAnchor.constraint(equalToConstant: iconSize),
+            iconView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
 
-          titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 64),
-          titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-          titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-          titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 64),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            titleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
 
-          separator.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-          separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-          separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-          separator.heightAnchor.constraint(equalToConstant: .hairline)
+            separator.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            separator.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: .hairline)
         ])
     }
 
@@ -158,8 +157,8 @@ final class OpenServicesAdminCell: StartUIIconCell, Themeable {
     override var isHighlighted: Bool {
         didSet {
             backgroundColor = isHighlighted
-                ? UIColor(white: 0, alpha: 0.08)
-                : contentBackgroundColor(for: colorSchemeVariant)
+            ? UIColor(white: 0, alpha: 0.08)
+            : contentBackgroundColor(for: colorSchemeVariant)
         }
     }
 

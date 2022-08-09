@@ -19,6 +19,7 @@
 import UIKit
 import WireCanvas
 import WireCommonComponents
+import WireSyncEngine
 
 protocol CanvasViewControllerDelegate: AnyObject {
     func canvasViewController(_ canvasViewController: CanvasViewController, didExportImage image: UIImage)
@@ -136,7 +137,7 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
         photoButton.addTarget(self, action: #selector(pickImage), for: .touchUpInside)
         photoButton.hitAreaPadding = hitAreaPadding
         photoButton.accessibilityIdentifier = "photoButton"
-        photoButton.isHidden = !SecurityFlags.cameraRoll.isEnabled
+        photoButton.isHidden = !MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).hasAccessToCameraRoll
 
         emojiButton.setIcon(.emoji, size: .tiny, for: .normal)
         emojiButton.addTarget(self, action: #selector(openEmojiKeyboard), for: .touchUpInside)
@@ -153,13 +154,13 @@ final class CanvasViewController: UIViewController, UINavigationControllerDelega
     func configureColorPicker() {
         colorPickerController.sketchColors = [.black,
                                               .white,
-                                              .strongBlue,
-                                              .strongLimeGreen,
-                                              .brightYellow,
-                                              .vividRed,
-                                              .brightOrange,
-                                              .softPink,
-                                              .violet,
+                                              SemanticColors.LegacyColors.strongBlue,
+                                              SemanticColors.LegacyColors.strongLimeGreen,
+                                              SemanticColors.LegacyColors.brightYellow,
+                                              SemanticColors.LegacyColors.vividRed,
+                                              SemanticColors.LegacyColors.brightOrange,
+                                              SemanticColors.LegacyColors.softPink,
+                                              SemanticColors.LegacyColors.violet,
                                               UIColor(red: 0.688, green: 0.342, blue: 0.002, alpha: 1),
                                               UIColor(red: 0.381, green: 0.192, blue: 0.006, alpha: 1),
                                               UIColor(red: 0.894, green: 0.735, blue: 0.274, alpha: 1),

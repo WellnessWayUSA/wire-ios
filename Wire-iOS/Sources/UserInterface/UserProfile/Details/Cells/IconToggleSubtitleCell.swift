@@ -24,9 +24,8 @@ final class IconToggleSubtitleCell: UITableViewCell, CellConfigurationConfigurab
     private var iconImageView = UIImageView()
     private let topContainer = UIView()
     private let titleLabel = UILabel()
-    private let toggle = UISwitch()
+    private let toggle = Switch(style: .default)
     private let subtitleLabel = UILabel()
-
     private var action: ((Bool, UIView?) -> Void)?
     private var variant: ColorSchemeVariant = .light {
         didSet {
@@ -113,6 +112,7 @@ final class IconToggleSubtitleCell: UITableViewCell, CellConfigurationConfigurab
                                    titleIdentifier,
                                    icon,
                                    color,
+                                   isEnabled,
                                    get,
                                    set) = configuration else { preconditionFailure() }
 
@@ -147,6 +147,7 @@ final class IconToggleSubtitleCell: UITableViewCell, CellConfigurationConfigurab
         toggle.accessibilityIdentifier = identifier
         titleLabel.accessibilityIdentifier = titleIdentifier
         toggle.isOn = get()
+        toggle.isEnabled = isEnabled
         self.variant = variant
     }
 }

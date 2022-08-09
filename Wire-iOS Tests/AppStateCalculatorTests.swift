@@ -139,6 +139,31 @@ final class AppStateCalculatorTests: XCTestCase {
         XCTAssertTrue(delegate.wasNotified)
     }
 
+    func testThatAppStateChanges_OnDidPerformFederationMigration() {
+        testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: false)
+        testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: true)
+    }
+
+    func testThatAppStateChanges_OnDidPerformFederationMigration(authenticated: Bool) {
+        // GIVEN
+        sut.applicationDidBecomeActive()
+
+        // WHEN
+        sut.sessionManagerDidPerformFederationMigration(authenticated: authenticated)
+
+        // THEN
+        if authenticated {
+            XCTAssertEqual(sut.appState, .authenticated(completedRegistration: false))
+        } else {
+            guard case let .unauthenticated(error: error) = sut.appState else {
+                return XCTFail("Error - unauthenticated")
+            }
+
+            XCTAssertEqual(error?.userSessionErrorCode, .needsAuthenticationAfterMigration)
+        }
+        XCTAssertTrue(delegate.wasNotified)
+    }
+
     // MARK: - Tests AppState Changes
 
     func testApplicationDontTransit_WhenAppStateDontChanges() {
@@ -205,7 +230,7 @@ final class AppStateCalculatorTests: XCTestCase {
     func testThatItDoesntTransitionAwayFromBlacklisted_IfThereIsNoCurrentAPIVersion() {
         // GIVEN
         sut.applicationDidBecomeActive()
-        APIVersion.current = nil
+        APIVersion.setVersions(production: [], development: [])
 
         let blacklistState = AppState.blacklisted(reason: .clientAPIVersionObsolete)
         sut.testHelper_setAppState(blacklistState)

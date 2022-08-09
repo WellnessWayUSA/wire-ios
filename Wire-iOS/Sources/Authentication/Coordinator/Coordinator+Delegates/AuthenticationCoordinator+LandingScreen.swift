@@ -33,12 +33,7 @@ extension AuthenticationCoordinator: LandingViewControllerDelegate {
 
     func landingViewControllerDidChooseCreateAccount() {
         let unregisteredUser = makeUnregisteredUser()
-        let usePhone = UIDevice.current.userInterfaceIdiom == .phone
-        stateController.transition(to: .createCredentials(unregisteredUser, usePhone ? .phone : .email))
-    }
-
-    func landingViewControllerDidChooseCreateTeam() {
-        stateController.transition(to: .teamCreation(.setTeamName))
+        stateController.transition(to: .createCredentials(unregisteredUser))
     }
 
     func landingViewControllerDidChooseEnterpriseLogin() {

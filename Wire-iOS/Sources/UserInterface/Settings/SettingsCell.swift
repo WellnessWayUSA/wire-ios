@@ -45,10 +45,13 @@ class SettingsTableCell: UITableViewCell, SettingsCellType {
     }()
 
     let cellNameLabel: UILabel = {
-        let label = UILabel()
-        label.font = .normalLightFont
+        let label = DynamicFontLabel(
+            fontSpec: .normalLightFont,
+            color: .textForeground)
+        label.numberOfLines = 0
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         label.setContentHuggingPriority(UILayoutPriority.required, for: .horizontal)
+        label.adjustsFontSizeToFitWidth = true
 
         return label
     }()
@@ -72,10 +75,8 @@ class SettingsTableCell: UITableViewCell, SettingsCellType {
     }()
 
     private let badgeLabel: UILabel = {
-        let badgeLabel = UILabel()
-        badgeLabel.font = FontSpec(.small, .medium).font
+        let badgeLabel = DynamicFontLabel(fontSpec: .smallMediumFont, color: .textInBadge)
         badgeLabel.textAlignment = .center
-        badgeLabel.textColor = .black
 
         return badgeLabel
     }()
@@ -324,13 +325,6 @@ class SettingsTableCell: UITableViewCell, SettingsCellType {
     }
 }
 
-final class SettingsGroupCell: SettingsTableCell {
-    override func setup() {
-        super.setup()
-        accessoryType = .disclosureIndicator
-    }
-}
-
 final class SettingsButtonCell: SettingsTableCell {
     override func setup() {
         super.setup()
@@ -343,16 +337,13 @@ final class SettingsToggleCell: SettingsTableCell {
 
     override func setup() {
         super.setup()
-
         selectionStyle = .none
         shouldGroupAccessibilityChildren = false
-        let switchView = UISwitch(frame: CGRect.zero)
+        let switchView = Switch(style: .default)
         switchView.addTarget(self, action: #selector(SettingsToggleCell.onSwitchChanged(_:)), for: .valueChanged)
         accessoryView = switchView
         switchView.isAccessibilityElement = true
-
         accessibilityElements = [cellNameLabel, switchView]
-
         self.switchView = switchView
     }
 

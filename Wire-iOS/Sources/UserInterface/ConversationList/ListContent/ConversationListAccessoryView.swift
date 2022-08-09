@@ -102,11 +102,12 @@ final class ConversationListAccessoryView: UIView {
             transparentIconViewLeading,
             transparentIconViewTrailing,
             expandTransparentIconViewWidthConstraint,
-            expandWidthConstraint
-            ] +
-            transparentIconView.topAndBottomEdgesToSuperviewEdges()
+            expandWidthConstraint,
+            transparentIconView.topAnchor.constraint(equalTo: topAnchor),
+            transparentIconView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            ]
         )
-        badgeView.fitInSuperview()
+        badgeView.fitIn(view: self)
     }
 
     @available(*, unavailable)
@@ -214,7 +215,7 @@ final class ConversationListAccessoryView: UIView {
             self.expandWidthConstraint.constant = activeCallWidth
 
         case .activeCall(true): // "Join" button
-            self.badgeView.backgroundColor = .strongLimeGreen
+            self.badgeView.backgroundColor = SemanticColors.LegacyColors.strongLimeGreen
 
         case .typing:
             self.badgeView.isHidden = true

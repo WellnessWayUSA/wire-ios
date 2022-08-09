@@ -32,8 +32,7 @@ final class FolderPickerViewController: UIViewController {
     fileprivate var items: [LabelType] = []
     fileprivate let colorSchemeVariant = ColorScheme.default.variant
     fileprivate let conversation: ZMConversation
-
-    private let hintLabel = UILabel()
+    private let hintLabel = DynamicFontLabel(fontSpec: .mediumSemiboldFont, color: .textForeground)
     private let collectionViewLayout = UICollectionViewFlowLayout()
 
     private lazy var collectionView: UICollectionView = {
@@ -94,7 +93,6 @@ final class FolderPickerViewController: UIViewController {
         hintLabel.text = "folder.picker.empty.hint".localized
         hintLabel.numberOfLines = 0
         hintLabel.textColor = UIColor.from(scheme: .textForeground)
-        hintLabel.font = FontSpec(.medium, .semibold).font!
         hintLabel.textAlignment = .center
 
         collectionView.dataSource = self
@@ -115,7 +113,7 @@ final class FolderPickerViewController: UIViewController {
 
         hintLabel.translatesAutoresizingMaskIntoConstraints = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.fitInSuperview()
+        collectionView.fitIn(view: view)
 
         NSLayoutConstraint.activate([hintLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
                                      hintLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),

@@ -149,12 +149,22 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
          overlay,
          separator].prepareForLayout()
 
-        pageViewController.view.fitInSuperview()
-        buttonsBar.fitInSuperview(exclude: [.top])
-        overlay.pin(to: buttonsBar)
+        pageViewController.view.fitIn(view: view)
+        NSLayoutConstraint.activate([
+            buttonsBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            buttonsBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            buttonsBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            overlay.topAnchor.constraint(equalTo: buttonsBar.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: buttonsBar.bottomAnchor),
+            overlay.trailingAnchor.constraint(equalTo: buttonsBar.trailingAnchor),
+            overlay.leadingAnchor.constraint(equalTo: buttonsBar.leadingAnchor),
 
-        separator.heightAnchor.constraint(equalToConstant: .hairline).isActive = true
-        separator.pin(to: buttonsBar, exclude: [.bottom])
+            separator.heightAnchor.constraint(equalToConstant: .hairline),
+            separator.topAnchor.constraint(equalTo: buttonsBar.topAnchor),
+            separator.trailingAnchor.constraint(equalTo: buttonsBar.trailingAnchor),
+            separator.leadingAnchor.constraint(equalTo: buttonsBar.leadingAnchor)
+        ])
+
     }
 
     private func createPageController() {
@@ -262,10 +272,12 @@ final class ConversationImagesViewController: TintColorCorrectedViewController {
             let emojiSketchButton = iconButton(messageAction:
             .sketchEmoji)
 
-            let revealButton = iconButton(messageAction:
-            .showInConversation)
-
-            buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, copyButton, saveButton, revealButton]
+            let revealButton = iconButton(messageAction: .showInConversation)
+            if !MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared()).canDownloadMedia {
+                buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, revealButton]
+            } else {
+                buttons = [likeButton, shareButton, sketchButton, emojiSketchButton, copyButton, saveButton, revealButton]
+            }
         }
 
         buttons.append(deleteButton)
@@ -488,21 +500,22 @@ extension ConversationImagesViewController: MenuVisibilityController {
     }
 
     func fadeAndHideMenu(_ hidden: Bool) {
-        let duration = UIApplication.shared.statusBarOrientationAnimationDuration
+        let duration = 0.3
 
-        showNavigationBarVisible(hidden: hidden)
+        showNavigationBarVisible(hidden: hidden, duration: duration)
 
         buttonsBar.fadeAndHide(hidden, duration: duration)
         separator.fadeAndHide(hidden, duration: duration)
     }
 
-    private func showNavigationBarVisible(hidden: Bool) {
+    private func showNavigationBarVisible(hidden: Bool, duration: TimeInterval) {
         guard let view = navigationController?.view else { return }
 
-        UIView.transition(with: view, duration: UIApplication.shared.statusBarOrientationAnimationDuration, animations: {
+        UIView.transition(with: view, duration: duration, animations: {
             self.navigationController?.setNavigationBarHidden(hidden, animated: false)
         })
     }
+
 }
 
 extension ConversationImagesViewController {

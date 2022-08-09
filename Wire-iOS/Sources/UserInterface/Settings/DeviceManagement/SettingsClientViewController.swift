@@ -79,7 +79,6 @@ final class SettingsClientViewController: UIViewController,
 
         super.init(nibName: nil, bundle: nil)
         self.edgesForExtendedLayout = []
-
         self.userClientToken = UserClientChangeInfo.add(observer: self, for: userClient)
         if userClient.fingerprint == .none {
             ZMUserSession.shared()?.enqueue({ () -> Void in
@@ -407,7 +406,7 @@ extension UserClient {
         if let remoteIdentifier = remoteIdentifier {
             lines.append("ID: \(remoteIdentifier)")
         }
-        if let pushToken = pushToken {
+        if let pushToken = PushTokenStorage.pushToken {
             lines.append("Push Token: \(pushToken.deviceTokenString)")
         }
         return lines.joined(separator: "\n")
