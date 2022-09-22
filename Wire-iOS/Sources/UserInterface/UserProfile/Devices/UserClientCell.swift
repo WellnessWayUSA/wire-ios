@@ -39,13 +39,23 @@ final class UserClientCell: SeparatorCollectionViewCell {
 
     private weak var client: UserClientType?
 
+    override var isHighlighted: Bool {
+        didSet {
+            backgroundColor = isHighlighted
+            ? SemanticColors.View.backgroundUserCellHightLighted
+            : SemanticColors.View.backgroundUserCell
+        }
+    }
+
     override func setUp() {
         super.setUp()
 
         accessibilityIdentifier = "device_cell"
         shouldGroupAccessibilityChildren = true
+        backgroundColor = SemanticColors.View.backgroundUserCell
 
-        deviceTypeIconView.image = StyleKitIcon.devices.makeImage(size: .tiny, color: .white)
+        setUpDeviceIconView()
+
         deviceTypeIconView.translatesAutoresizingMaskIntoConstraints = false
         deviceTypeIconView.contentMode = .center
 
@@ -57,13 +67,17 @@ final class UserClientCell: SeparatorCollectionViewCell {
 
         accessoryIconView.translatesAutoresizingMaskIntoConstraints = false
         accessoryIconView.contentMode = .center
+        accessoryIconView.setTemplateIcon(.disclosureIndicator, size: 12)
+        accessoryIconView.tintColor = SemanticColors.Icon.foregroundDefault
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .smallSemiboldFont
+        titleLabel.textColor = SemanticColors.Label.textCellTitle
         titleLabel.accessibilityIdentifier = "device_cell.name"
 
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.font = .smallRegularFont
+        subtitleLabel.textColor = SemanticColors.Label.textCellSubtitle
         subtitleLabel.accessibilityIdentifier = "device_cell.identifier"
 
         iconStackView = UIStackView(arrangedSubviews: [verifiedIconView, accessoryIconView])
@@ -92,6 +106,11 @@ final class UserClientCell: SeparatorCollectionViewCell {
         createConstraints()
     }
 
+    private func setUpDeviceIconView() {
+        deviceTypeIconView.setTemplateIcon(.devices, size: .tiny)
+        deviceTypeIconView.tintColor = SemanticColors.Icon.foregroundDefault
+    }
+
     private func createConstraints() {
         NSLayoutConstraint.activate([
             deviceTypeIconView.widthAnchor.constraint(equalToConstant: 64),
@@ -101,19 +120,6 @@ final class UserClientCell: SeparatorCollectionViewCell {
             contentStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             contentStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16)
         ])
-    }
-
-    override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
-        super.applyColorScheme(colorSchemeVariant)
-
-        let sectionTextColor = UIColor.from(scheme: .sectionText, variant: colorSchemeVariant)
-        let textForegroundColor = UIColor.from(scheme: .textForeground, variant: colorSchemeVariant)
-        backgroundColor = contentBackgroundColor(for: colorSchemeVariant)
-        accessoryIconView.setIcon(.disclosureIndicator, size: 12, color: sectionTextColor)
-        titleLabel.textColor = textForegroundColor
-        subtitleLabel.textColor = textForegroundColor
-
-        updateDeviceIcon()
     }
 
     func configure(with client: UserClientType) {
@@ -134,10 +140,11 @@ final class UserClientCell: SeparatorCollectionViewCell {
     private func updateDeviceIcon() {
         switch client?.deviceClass {
         case .legalHold?:
-            deviceTypeIconView.image = StyleKitIcon.legalholdactive.makeImage(size: .tiny, color: SemanticColors.LegacyColors.vividRed)
+            deviceTypeIconView.setTemplateIcon(.legalholdactive, size: .tiny)
+            deviceTypeIconView.tintColor = SemanticColors.LegacyColors.vividRed
             deviceTypeIconView.accessibilityIdentifier = "img.device_class.legalhold"
         default:
-            deviceTypeIconView.setIcon(.devices, size: .tiny, color: UIColor.from(scheme: .textForeground, variant: colorSchemeVariant))
+            setUpDeviceIconView()
             deviceTypeIconView.accessibilityIdentifier = client?.deviceClass == .desktop ? "img.device_class.desktop" : "img.device_class.phone"
         }
     }

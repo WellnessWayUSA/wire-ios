@@ -84,7 +84,8 @@ extension ShareViewController {
         self.sendButton.addTarget(self, action: #selector(ShareViewController.onSendButtonPressed(sender:)), for: .touchUpInside)
 
         if self.allowsMultipleSelection {
-            self.searchIcon.setIcon(.search, size: .tiny, color: SemanticColors.SearchBar.backgroundButton)
+            searchIcon.setTemplateIcon(.search, size: .tiny)
+            searchIcon.tintColor = SemanticColors.SearchBar.backgroundButton
         } else {
             self.clearButton.isHidden = true
             self.tokenField.isHidden = true
@@ -95,6 +96,7 @@ extension ShareViewController {
         }
 
         [self.blurView, self.containerView].forEach(self.view.addSubview)
+
         [self.tokenField, self.destinationsTableView, self.closeButton, self.sendButton, self.bottomSeparatorLine, self.topSeparatorView, self.searchIcon, self.clearButton].forEach(self.containerView.addSubview)
 
         if let shareablePreviewWrapper = self.shareablePreviewWrapper {
@@ -188,6 +190,7 @@ extension ShareViewController {
 
             searchIcon.centerYAnchor.constraint(equalTo: tokenField.centerYAnchor),
             searchIcon.leadingAnchor.constraint(equalTo: tokenField.leadingAnchor, constant: 16),
+
             clearButton.centerYAnchor.constraint(equalTo: tokenField.centerYAnchor),
             clearButton.leadingAnchor.constraint(equalTo: tokenField.trailingAnchor, constant: -32),
 

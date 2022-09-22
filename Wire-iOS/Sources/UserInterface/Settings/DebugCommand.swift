@@ -1,6 +1,6 @@
 //
 // Wire
-// Copyright (C) 2021 Wire Swiss GmbH
+// Copyright (C) 2022 Wire Swiss GmbH
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,16 +18,20 @@
 
 import Foundation
 
-protocol PerformClipboardAction: AnyObject {
-    func shouldAllowPerformAction(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> Bool
-}
+enum DebugCommand {
 
-extension PerformClipboardAction {
-    func shouldAllowPerformAction(isText: Bool, isClipboardEnabled: Bool, canFilesBeShared: Bool) -> Bool {
-        if isText {
-            return isClipboardEnabled
-        } else {
-            return isClipboardEnabled && canFilesBeShared
+    /// Update accessRoles for existing conversations where the team is nil and accessRoles == [.teamMember]
+    case repairInvalidAccessRoles
+
+    init?(string: String) {
+        // We may want to have commands that accept arguments, which means
+        // we'd have to do the parsing of the command here.
+        switch string {
+        case "repairInvalidAccessRoles":
+            self = .repairInvalidAccessRoles
+        default:
+            return nil
         }
     }
+
 }

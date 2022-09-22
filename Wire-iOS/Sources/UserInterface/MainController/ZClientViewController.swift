@@ -199,7 +199,7 @@ final class ZClientViewController: UIViewController {
 
     @objc
     private func openStartUI(_ sender: Any?) {
-        conversationListViewController.bottomBarController.startUIButtonTapped(sender)
+        conversationListViewController.bottomBarController.startUIViewTapped()
     }
 
     private func createBackgroundViewController() {
@@ -484,14 +484,6 @@ final class ZClientViewController: UIViewController {
     }
 
     private func setupAppearance() {
-        GuestIndicator.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        UserCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        UserCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).overrideUserInterfaceStyle = .dark
-        UserCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
-        GroupConversationCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        GroupConversationCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
-        OpenServicesAdminCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).colorSchemeVariant = .dark
-        OpenServicesAdminCell.appearance(whenContainedInInstancesOf: [StartUIView.self]).contentBackgroundColor = .clear
 
         let labelColor: UIColor
         labelColor = .label

@@ -532,10 +532,17 @@ final class TokenField: UIView {
         textView.autocorrectionType = .no
         textView.returnKeyType = .go
         textView.placeholderFont = .smallRegularFont
+
         textView.placeholderTextColor = SemanticColors.SearchBar.textInputViewPlaceholder
         textView.placeholderTextContainerInset = UIEdgeInsets(top: 0, left: 48, bottom: 0, right: 0)
         textView.placeholderTextTransform = .upper
         textView.lineFragmentPadding = 0
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle else { return }
+        updateTokenAttachments()
     }
 
     // MARK: - Utility
