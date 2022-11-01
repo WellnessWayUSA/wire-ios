@@ -107,17 +107,22 @@ final class ConversationListHeaderView: UICollectionReusableView {
         }
 
         set {
-            // no op
+            super.accessibilityLabel = newValue
         }
     }
 
     override var accessibilityValue: String? {
         get {
-            return (collapsed ? "collapsed" : "expanded") + " \(folderBadge)"
+            typealias ConversationListHeader = L10n.Accessibility.ConversationsListHeader
+
+            let state = collapsed
+                        ? ConversationListHeader.CollapsedButton.description
+                        : ConversationListHeader.ExpandedButton.description
+            return state + " \(folderBadge)"
         }
 
         set {
-            // no op
+            super.accessibilityValue = newValue
         }
     }
 
@@ -140,7 +145,7 @@ final class ConversationListHeaderView: UICollectionReusableView {
         isAccessibilityElement = true
         shouldGroupAccessibilityChildren = true
         backgroundColor = SemanticColors.View.backgroundConversationList
-        addBottomBorderWithInset(color: SemanticColors.View.borderConversationListTableViewCell)
+        addBorder(for: .bottom)
     }
 
     @objc

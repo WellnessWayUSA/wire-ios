@@ -76,6 +76,7 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
             checkmarkIconView.image = isSelected ? StyleKitIcon.checkmark.makeImage(size: 12, color: IconColors.foregroundCheckMarkSelected) : nil
             checkmarkIconView.backgroundColor = isSelected ? IconColors.backgroundCheckMarkSelected : IconColors.backgroundCheckMark
             checkmarkIconView.layer.borderColor = isSelected ? UIColor.clear.cgColor : IconColors.borderCheckMark.cgColor
+            setupAccessibility()
         }
     }
 
@@ -201,6 +202,43 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
         ])
     }
 
+    private func setupAccessibility() {
+        typealias ContactsList = L10n.Accessibility.ContactsList
+        typealias ServicesList = L10n.Accessibility.ServicesList
+        typealias ClientsList = L10n.Accessibility.ClientsList
+        typealias CreateConversation = L10n.Accessibility.CreateConversation
+
+        guard let title = titleLabel.text,
+              let subtitle = subtitleLabel.text else {
+                  isAccessibilityElement = false
+                  return
+              }
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        var content = "\(title), \(subtitle)"
+        if let userType = userTypeIconView.accessibilityLabel,
+           !userTypeIconView.isHidden {
+            content += ", \(userType)"
+        }
+
+        if !verifiedIconView.isHidden {
+            content += ", " + ClientsList.DeviceVerified.description
+        }
+
+        accessibilityLabel = content
+
+        if !checkmarkIconView.isHidden {
+            accessibilityHint = isSelected
+                                ? CreateConversation.SelectedUser.hint
+                                : CreateConversation.UnselectedUser.hint
+        } else if let user = user, user.isServiceUser {
+            accessibilityHint = ServicesList.ServiceCell.hint
+        } else {
+            accessibilityHint = ContactsList.UserCell.hint
+        }
+    }
+
     override func applyColorScheme(_ colorSchemeVariant: ColorSchemeVariant) {
         super.applyColorScheme(colorSchemeVariant)
 
@@ -254,6 +292,7 @@ class UserCell: SeparatorCollectionViewCell, SectionListCellType {
         } else {
             subtitleLabel.isHidden = true
         }
+        setupAccessibility()
     }
 
 }

@@ -37,8 +37,8 @@ final class ConversationTitleView: TitleView {
     }
 
     func configure() {
-        titleColor = UIColor.from(scheme: .textForeground)
-        titleFont = .mediumSemiboldFont
+        titleColor = SemanticColors.Label.textDefault
+        titleFont = .normalSemiboldFont
         accessibilityHint = "conversation_details.open_button.accessibility_hint".localized
 
         var attachments: [NSTextAttachment] = []
@@ -59,26 +59,39 @@ final class ConversationTitleView: TitleView {
         }
 
         super.configure(icons: attachments,
-                        title: conversation.displayName.localizedUppercase,
+                        title: conversation.displayName.capitalized,
                         subtitle: subtitle,
                         interactive: self.interactive && conversation.relatedConnectionState != .sent)
 
+        setupAccessibility()
+    }
+
+    private func setupAccessibility() {
+        typealias Conversation = L10n.Accessibility.Conversation
+
+        accessibilityTraits = .button
+
         var components: [String] = []
-        components.append(conversation.displayName.localizedUppercase)
+        components.append(conversation.displayName.capitalized)
 
         if conversation.securityLevel == .secure {
-            components.append("conversation.voiceover.verified".localized)
+            components.append(Conversation.VerifiedIcon.description)
         }
 
         if conversation.isUnderLegalHold {
-            components.append("conversation.voiceover.legalhold".localized)
+            components.append(Conversation.LegalHoldIcon.description)
         }
 
         if !UIApplication.isLeftToRightLayout {
             components.reverse()
         }
 
-        self.accessibilityLabel = components.joined(separator: ", ")
+        accessibilityLabel = components.joined(separator: ", ")
+
+        accessibilityHint = conversation.conversationType == .oneOnOne
+                            ? Conversation.TitleViewForOneToOne.hint
+                            : Conversation.TitleViewForGroup.hint
+
     }
 
 }

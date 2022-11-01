@@ -35,9 +35,11 @@ final class ConversationInputBarViewController: UIViewController,
 
     let mediaShareRestrictionManager = MediaShareRestrictionManager(sessionRestriction: ZMUserSession.shared())
 
-    // MARK: PopoverPresenter    
+    // MARK: PopoverPresenter
     var presentedPopover: UIPopoverPresentationController?
     var popoverPointToView: UIView?
+
+    typealias ButtonColors = SemanticColors.Button
 
     let conversation: InputBarConversationType
     weak var delegate: ConversationInputBarViewControllerDelegate?
@@ -119,7 +121,12 @@ final class ConversationInputBarViewController: UIViewController,
     }()
 
     let markdownButton: IconButton = {
-        let button = IconButton(style: .circular)
+        let button = IconButton()
+        button.layer.borderWidth = 1
+        button.layer.cornerRadius = 12
+        button.layer.masksToBounds = true
+
+        button.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
         return button
     }()
     let mentionButton: IconButton = IconButton()
@@ -209,12 +216,12 @@ final class ConversationInputBarViewController: UIViewController,
     private var typingObserverToken: Any?
 
     private var inputBarButtons: [IconButton] {
+        var buttonsArray: [IconButton] = []
         switch mediaShareRestrictionManager.level {
-
         case .none:
-            return [
-                photoButton,
+            buttonsArray = [
                 mentionButton,
+                photoButton,
                 sketchButton,
                 gifButton,
                 audioButton,
@@ -224,7 +231,7 @@ final class ConversationInputBarViewController: UIViewController,
                 videoButton
             ]
         case .securityFlag:
-            return [
+            buttonsArray = [
                 photoButton,
                 mentionButton,
                 sketchButton,
@@ -234,12 +241,17 @@ final class ConversationInputBarViewController: UIViewController,
                 videoButton
             ]
         case .APIFlag:
-            return [
+            buttonsArray = [
                 mentionButton,
                 pingButton,
                 locationButton
             ]
         }
+        if !conversation.isSelfDeletingMessageSendingDisabled {
+            buttonsArray.insert(hourglassButton, at: buttonsArray.startIndex)
+        }
+
+        return buttonsArray
     }
 
     var mode: ConversationInputBarViewControllerMode = .textInput {
@@ -309,7 +321,7 @@ final class ConversationInputBarViewController: UIViewController,
 
     // MARK: - Input views handling
 
-    /// init with a InputBarConversationType objcet
+    /// init with a InputBarConversationType object
     /// - Parameter conversation: provide nil only for tests
     init(
         conversation: InputBarConversationType,
@@ -458,11 +470,11 @@ final class ConversationInputBarViewController: UIViewController,
     // MARK: - setup
     private func setupStyle() {
         ephemeralIndicatorButton.borderWidth = 0
-        hourglassButton.setIconColor(.from(scheme: .iconNormal), for: .normal)
-        hourglassButton.setIconColor(.from(scheme: .iconHighlighted), for: .highlighted)
-        hourglassButton.setIconColor(.from(scheme: .iconNormal), for: .selected)
+        hourglassButton.layer.borderWidth = 1
+        hourglassButton.setIconColor(SemanticColors.Button.textInputBarItemEnabled, for: .normal)
+        hourglassButton.setBackgroundImageColor(SemanticColors.Button.backgroundInputBarItemEnabled, for: .normal)
+        hourglassButton.setBorderColor(SemanticColors.Button.borderInputBarItemEnabled, for: .normal)
 
-        hourglassButton.setBackgroundImageColor(.clear, for: .selected)
     }
 
     private func setupSingleTapGestureRecognizer() {
@@ -487,8 +499,7 @@ final class ConversationInputBarViewController: UIViewController,
                                isEphemeralSendingDisabled: conversation.isSelfDeletingMessageSendingDisabled,
                                isEphemeralTimeoutForced: conversation.isSelfDeletingMessageTimeoutForced)
 
-        sendButton.isHidden = sendButtonState.sendButtonHidden
-        hourglassButton.isHidden = sendButtonState.hourglassButtonHidden
+        sendButton.isEnabled = sendButtonState.sendButtonEnabled
         ephemeralIndicatorButton.isHidden = sendButtonState.ephemeralIndicatorButtonHidden
         ephemeralIndicatorButton.isEnabled = sendButtonState.ephemeralIndicatorButtonEnabled
 
@@ -521,10 +532,10 @@ final class ConversationInputBarViewController: UIViewController,
 
     func updateAvailabilityPlaceholder() {
         guard ZMUser.selfUser().hasTeam,
-            conversation.conversationType == .oneOnOne,
-            let connectedUser = conversation.connectedUserType else {
-                return
-        }
+              conversation.conversationType == .oneOnOne,
+              let connectedUser = conversation.connectedUserType else {
+                  return
+              }
 
         inputBar.availabilityPlaceholder = AvailabilityStringBuilder.string(for: connectedUser, with: .placeholder, color: inputBar.placeholderColor)
     }
@@ -536,7 +547,7 @@ final class ConversationInputBarViewController: UIViewController,
     @objc func updateInputBarButtons() {
         inputBar.buttonsView.buttons = inputBarButtons
         inputBarButtons.forEach {
-            $0.setIconColor(.from(scheme: .iconNormal), for: .normal)
+            $0.setIconColor(SemanticColors.Icon.foregroundDefaultBlack, for: .normal)
         }
         inputBar.buttonsView.setNeedsLayout()
     }
@@ -574,6 +585,7 @@ final class ConversationInputBarViewController: UIViewController,
         gifButton.setIcon(.gif, size: .tiny, for: .normal)
         mentionButton.setIcon(.mention, size: .tiny, for: .normal)
         sendButton.setIcon(.send, size: .tiny, for: .normal)
+        sendButton.setIcon(.send, size: .tiny, for: .disabled)
     }
 
     func selectInputControllerButton(_ button: IconButton?) {
@@ -850,7 +862,7 @@ extension ConversationInputBarViewController: ZMConversationObserver {
         if change.participantsChanged ||
             change.connectionStateChanged ||
             change.allowGuestsChanged {
-            // Sometime participantsChanged is not observed after allowGuestsChanged 
+            // Sometime participantsChanged is not observed after allowGuestsChanged
             updateInputBarVisibility()
             updateClassificationBanner()
         }
@@ -898,9 +910,8 @@ extension ConversationInputBarViewController: UIGestureRecognizerDelegate {
         setupInputBar()
 
         inputBar.rightAccessoryStackView.addArrangedSubview(sendButton)
-        inputBar.rightAccessoryStackView.insertArrangedSubview(ephemeralIndicatorButton, at: 0)
         inputBar.leftAccessoryView.addSubview(markdownButton)
-        inputBar.rightAccessoryStackView.addArrangedSubview(hourglassButton)
+        inputBar.rightAccessoryStackView.insertArrangedSubview(ephemeralIndicatorButton, at: 0)
         inputBar.addSubview(typingIndicatorView)
 
         view.addSubview(securityLevelView)
@@ -934,14 +945,14 @@ extension ConversationInputBarViewController: UIGestureRecognizerDelegate {
     }
 
     private func createConstraints() {
-        [securityLevelView, inputBar, markdownButton, hourglassButton, typingIndicatorView].prepareForLayout()
+        [securityLevelView, inputBar, markdownButton, typingIndicatorView].prepareForLayout()
 
         let bottomConstraint = inputBar.bottomAnchor.constraint(equalTo: inputBar.superview!.bottomAnchor)
         bottomConstraint.priority = .defaultLow
 
-        let senderDiameter: CGFloat = 28
-
         let securityBannerHeight: CGFloat = securityLevelView.isHidden ? 0 : 24
+        let widthOfSendButton: CGFloat = 42
+        let heightOfSendButton: CGFloat = 32
 
         NSLayoutConstraint.activate([
             securityLevelView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -962,11 +973,9 @@ extension ConversationInputBarViewController: UIGestureRecognizerDelegate {
 
             markdownButton.centerXAnchor.constraint(equalTo: markdownButton.superview!.centerXAnchor),
             markdownButton.bottomAnchor.constraint(equalTo: markdownButton.superview!.bottomAnchor, constant: -14),
-            markdownButton.widthAnchor.constraint(equalToConstant: senderDiameter),
-            markdownButton.heightAnchor.constraint(equalToConstant: senderDiameter),
 
-            hourglassButton.widthAnchor.constraint(equalToConstant: InputBar.rightIconSize),
-            hourglassButton.heightAnchor.constraint(equalToConstant: InputBar.rightIconSize),
+            markdownButton.widthAnchor.constraint(equalToConstant: widthOfSendButton),
+            markdownButton.heightAnchor.constraint(equalToConstant: heightOfSendButton),
 
             typingIndicatorView.centerYAnchor.constraint(equalTo: inputBar.topAnchor),
             typingIndicatorView.centerXAnchor.constraint(equalTo: typingIndicatorView.superview!.centerXAnchor),
