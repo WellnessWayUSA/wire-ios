@@ -220,7 +220,7 @@ final class ChangeHandleViewController: SettingsBaseTableViewController {
     }
 
     /// Used to inject a specific `HandleChangeState` in tests. See `ChangeHandleViewControllerTests`.
-    init(state: HandleChangeState, federationEnabled: Bool = APIVersion.isFederationEnabled) {
+    init(state: HandleChangeState, federationEnabled: Bool = BackendInfo.isFederationEnabled) {
         self.state = state
         self.federationEnabled = federationEnabled
         super.init(style: .grouped)
@@ -322,8 +322,8 @@ extension ChangeHandleViewController: ChangeHandleTableViewCellDelegate {
 
     func tableViewCell(cell: ChangeHandleTableViewCell, shouldAllowEditingText text: String) -> Bool {
         do {
-            /// We validate the new handle and only allow the edit if
-            /// the new handle neither contains invalid characters nor is too long.
+            // We validate the new handle and only allow the edit if
+            // the new handle neither contains invalid characters nor is too long.
             try state.validate(text)
             return true
         } catch HandleChangeState.ValidationError.invalidCharacter {

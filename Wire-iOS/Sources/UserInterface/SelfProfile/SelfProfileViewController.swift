@@ -99,7 +99,6 @@ final class SelfProfileViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        profileHeaderViewController.colorSchemeVariant = .dark
         profileHeaderViewController.imageView.addTarget(self, action: #selector(userDidTapProfileImage), for: .touchUpInside)
 
         addChild(profileHeaderViewController)
@@ -182,8 +181,10 @@ final class SelfProfileViewController: UIViewController {
     @objc func userDidTapProfileImage(sender: UserImageView) {
         guard userCanSetProfilePicture else { return }
 
-        let alert = profileImagePicker.selectProfileImage()
-        present(alert, animated: true)
+        let alertViewController = profileImagePicker.selectProfileImage()
+        alertViewController.configPopover(pointToView: profileHeaderViewController.imageView)
+
+        present(alertViewController, animated: true)
     }
 
     override func accessibilityPerformEscape() -> Bool {
@@ -232,14 +233,13 @@ extension SelfProfileViewController: SettingsPropertyFactoryDelegate {
         }
 
         self.callback = callback
-        let passcodeSetupViewController = PasscodeSetupViewController(variant: .dark,
-                                                                      context: .createPasscode,
+        let passcodeSetupViewController = PasscodeSetupViewController(context: .createPasscode,
                                                                       callback: callback)
         passcodeSetupViewController.passcodeSetupViewControllerDelegate = self
 
         let keyboardAvoidingViewController = KeyboardAvoidingViewController(viewController: passcodeSetupViewController)
 
-        let wrappedViewController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: DarkBarItemTransparentNavigationBar.self)
+        let wrappedViewController = keyboardAvoidingViewController.wrapInNavigationController(navigationBarClass: TransparentNavigationBar.self)
 
         let closeItem = passcodeSetupViewController.closeItem
 
