@@ -107,8 +107,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      willFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         zmLog.info("application:willFinishLaunchingWithOptions \(String(describing: launchOptions)) (applicationState = \(application.applicationState.rawValue))")
-        DatadogWrapper.shared()?.startMonitoring()
-        DatadogWrapper.shared()?.log(level: .info, message: "start app")
+        DatadogWrapper.shared?.startMonitoring()
+        DatadogWrapper.shared?.log(level: .info, message: "start app")
         // Initial log line to indicate the client version and build
         zmLog.info("Wire-ios version \(String(describing: Bundle.main.shortVersionString)) (\(String(describing: Bundle.main.infoDictionary?[kCFBundleVersionKey as String])))")
 
@@ -140,7 +140,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         zmLog.info("application:didFinishLaunchingWithOptions END \(String(describing: launchOptions))")
         zmLog.info("Application was launched with arguments: \(ProcessInfo.processInfo.arguments)")
-
         return true
     }
 

@@ -165,11 +165,12 @@ final class DeveloperToolsViewModel: ObservableObject {
             ))
         }
 
-        if let dataDogUserId = DatadogWrapper.shared()?.datadogUserId {
+        if let dataDogUserId = DatadogWrapper.shared?.datadogUserId {
             sections.append(Section(
                 header: "Datadog",
                 items: [
                     .text(TextItem(title: "User ID", value: String(describing: dataDogUserId))),
+                    .button(.init(title: "Crash Report Test", action: { fatalError("crash app") }))
                 ]
             ))
         }

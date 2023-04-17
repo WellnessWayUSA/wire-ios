@@ -35,6 +35,7 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
                                                      UITextFieldDelegate {
 
     typealias Registration = L10n.Localizable.Registration
+    typealias TabBarStrings = L10n.Accessibility.TabBar
     weak var actioner: AuthenticationActioner?
 
     /// Types of flow provided by the view controller.
@@ -84,26 +85,42 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
         }
     }
 
-    private var emailFieldValidationError: TextFieldValidator.ValidationError? = .tooShort(kind: .email)
+    var backendEnvironmentProvider: (() -> BackendEnvironmentProvider)!
 
-    convenience init(flowType: FlowType) {
+    var backendEnvironment: BackendEnvironmentProvider {
+        return backendEnvironmentProvider()
+    }
+
+    var isProxyCredentialsRequired: Bool {
+        backendEnvironment.proxy?.needsAuthentication == true
+    }
+
+    private var emailFieldValidationError: TextFieldValidator.ValidationError? = .tooShort(kind: .email)
+    private var shouldUseScrollView = false
+    private var loginActiveField: UIResponder? // used for login proxy case
+
+    convenience init(flowType: FlowType, backendEnvironmentProvider: @escaping () -> BackendEnvironmentProvider = { BackendEnvironment.shared }) {
         switch flowType {
         case .login(let credentialsType, let credentials):
             let description = LogInStepDescription()
-            self.init(description: description)
+            self.init(description: description, contentCenterConstraintActivation: false)
             self.credentialsType = credentials?.primaryCredentialsType ?? credentialsType
             self.prefilledCredentials = credentials
+            self.shouldUseScrollView = true
         case .reauthentication(let credentials):
             let description = ReauthenticateStepDescription(prefilledCredentials: credentials)
-            self.init(description: description)
+            self.init(description: description, contentCenterConstraintActivation: false)
             self.credentialsType = credentials?.primaryCredentialsType ?? .email
             self.prefilledCredentials = credentials
+            self.shouldUseScrollView = true
         case .registration:
             let description = PersonalRegistrationStepDescription()
-            self.init(description: description)
+            self.init(description: description, contentCenterConstraintActivation: true)
             self.credentialsType = .email
+            self.shouldUseScrollView = false
         }
 
+        self.backendEnvironmentProvider = backendEnvironmentProvider
         self.flowType = flowType
     }
 
@@ -116,18 +133,30 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
     let phoneInputView = PhoneNumberInputView()
     let loginButton = Button(style: .accentColorTextButtonStyle,
                              cornerRadius: 16,
-                             fontSpec: .normalSemiboldFont)
+                             fontSpec: .buttonBigSemibold)
+
+    lazy var proxyCredentialsViewController = {
+        ProxyCredentialsViewController(backendURL: backendEnvironment.backendURL,
+                                       textFieldDidUpdateText: { [weak self] _ in
+            self?.updateLoginButtonState()
+        },
+                                       activeFieldChange: { [weak self] textField in
+            self?.loginActiveField = textField
+        })
+    }()
 
     let tabBar: TabBar = {
         let emailTab = UITabBarItem(title: Registration.registerByEmail.capitalized,
                                     image: nil,
                                     selectedImage: nil)
         emailTab.accessibilityIdentifier = "UseEmail"
+        emailTab.accessibilityLabel = TabBarStrings.Email.description
 
         let passwordTab = UITabBarItem(title: Registration.registerByPhone.capitalized,
                                        image: nil,
                                        selectedImage: nil)
         passwordTab.accessibilityIdentifier = "UsePhone"
+        passwordTab.accessibilityLabel = TabBarStrings.Phone.description
 
         return TabBar(items: [emailTab, passwordTab])
     }()
@@ -147,6 +176,7 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
 
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setAttributedTitle(attributeString, for: .normal)
+        button.accessibilityLabel = L10n.Accessibility.Authentication.ForgotPasswordButton.description
         button.addTarget(self, action: #selector(forgotPasswordTapped), for: .touchUpInside)
 
         return button
@@ -154,21 +184,85 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
 
     // MARK: - Lifecycle
 
+    override func loadView() {
+        if shouldUseScrollView {
+            view = UIScrollView()
+        } else {
+            view = UIView()
+        }
+        // avoid constraint breaking on layout pass
+        view.frame = UIScreen.main.bounds
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         tabBar.delegate = self
         updateCredentialsType()
         updatePrefilledCredentials()
+
+        if case .login = flowType {
+            updateViewsForProxy()
+        }
+
+        (view as? UIScrollView)?.keyboardDismissMode = .onDrag
     }
 
-    override var contentCenterXAnchor: NSLayoutYAxisAnchor {
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        loginActiveField = contextualFirstResponder
+    }
+
+    override var contentCenterYAnchor: NSLayoutYAxisAnchor {
         return tabBar.bottomAnchor
     }
 
-    override func createMainView() -> UIView {
-        contentStack.axis = .vertical
+    private func setupProxyView() {
+        let verticalSpacing: CGFloat = 24
+        let horizontalMargin: CGFloat = 31
+
+        let innerTopStackView = UIStackView()
+        innerTopStackView.axis = .vertical
+        innerTopStackView.spacing = verticalSpacing
+
+        addCustomBackendViewIfNeeded(to: innerTopStackView, space: 66)
+
+        innerTopStackView.addArrangedSubview(tabBar)
+        innerTopStackView.addArrangedSubview(emailInputField)
+        innerTopStackView.addArrangedSubview(emailPasswordInputField)
+        innerTopStackView.addArrangedSubview(phoneInputView)
+        innerTopStackView.addArrangedSubview(forgotPasswordButton)
+        innerTopStackView.setCustomSpacing(40, after: forgotPasswordButton)
+
+        let innerBottomStackView = UIStackView()
+        innerBottomStackView.axis = .vertical
+        innerBottomStackView.addArrangedSubview(loginButton)
+
+        innerTopStackView.isLayoutMarginsRelativeArrangement = true
+        innerTopStackView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: horizontalMargin, bottom: 0, trailing: horizontalMargin)
+
+        innerBottomStackView.isLayoutMarginsRelativeArrangement = true
+        innerBottomStackView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: isProxyCredentialsRequired ? 40 : 0, leading: horizontalMargin, bottom: 32, trailing: horizontalMargin)
+
+        contentStack.addArrangedSubview(innerTopStackView)
+        if isProxyCredentialsRequired {
+            addProxyCredentialsSection()
+        }
+        contentStack.addArrangedSubview(innerBottomStackView)
+
+        contentStack.setCustomSpacing(40, after: innerTopStackView)
+    }
+
+    private func setupDefaultView() {
+        let horizontalMargin: CGFloat = 31
+        let emptyView = UIView()
         contentStack.spacing = 24
 
+        addCustomBackendViewIfNeeded(to: contentStack, space: 0)
+
+        if stepDescription.subtext == nil && shouldUseScrollView {
+            contentStack.addArrangedSubview(emptyView)
+            contentStack.setCustomSpacing(56, after: emptyView)
+        }
         contentStack.addArrangedSubview(tabBar)
         contentStack.addArrangedSubview(emailInputField)
         contentStack.addArrangedSubview(emailPasswordInputField)
@@ -176,11 +270,27 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
         contentStack.addArrangedSubview(forgotPasswordButton)
         contentStack.addArrangedSubview(loginButton)
 
+        contentStack.isLayoutMarginsRelativeArrangement = true
+        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0,
+                                                                        leading: horizontalMargin,
+                                                                        bottom: 0,
+                                                                        trailing: horizontalMargin)
+    }
+
+    private func addCustomBackendViewIfNeeded(to uiStackView: UIStackView, space: CGFloat) {
+        guard let infoView = customBackendInfo() else { return }
+        uiStackView.addArrangedSubview(infoView)
+        uiStackView.setCustomSpacing(space, after: infoView)
+    }
+
+    override func createMainView() -> UIView {
+        contentStack.axis = .vertical
+        contentStack.distribution = .fill
+
         // log in button
         loginButton.setTitle(L10n.Localizable.Landing.Login.Button.title.capitalized, for: .normal)
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         updateLoginButtonState()
-        createConstraints()
 
         // Phone Number View
         phoneInputView.delegate = self
@@ -189,8 +299,8 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
 
         // Email Password Input View
         emailPasswordInputField.allowEditingPrefilledValue = !isReauthenticating
-        emailPasswordInputField.passwordField.showConfirmButton = false
         emailPasswordInputField.delegate = self
+        emailPasswordInputField.passwordField.addRevealButton(delegate: self)
 
         // Email input view
         emailInputField.delegate = self
@@ -198,32 +308,32 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
         emailInputField.placeholder = L10n.Localizable.Email.placeholder.capitalized
         emailInputField.addTarget(self, action: #selector(emailTextInputDidChange), for: .editingChanged)
         emailInputField.confirmButton.addTarget(self, action: #selector(emailConfirmButtonTapped), for: .touchUpInside)
-
         emailInputField.enableConfirmButton = { [weak self] in
             self?.emailFieldValidationError == nil
         }
 
-        contentStack.isLayoutMarginsRelativeArrangement = true
-        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 31, bottom: 0, trailing: 31)
-
-        if isRegistering {
-            contentStack.isLayoutMarginsRelativeArrangement = true
-            contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 31, bottom: 0, trailing: 31)
+        if isProxyCredentialsRequired {
+            setupProxyView()
+        } else {
+            setupDefaultView()
         }
         return contentStack
     }
 
-    func createConstraints() {
-        loginButton.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            loginButton.heightAnchor.constraint(equalToConstant: 48)
-        ])
-    }
-
     @objc
     func loginButtonTapped(sender: UIButton) {
-        emailPasswordInputField.confirmButtonTapped()
+        guard isProxyCredentialsRequired else {
+            emailPasswordInputField.confirmButtonTapped()
+            return
+        }
+
+        let input: (EmailPasswordInput, AuthenticationProxyCredentialsInput?) = (
+            .init(email: emailPasswordInputField.emailField.input,
+                  password: emailPasswordInputField.passwordField.input),
+            .init(username: proxyCredentialsViewController.usernameInput.input,
+                  password: proxyCredentialsViewController.passwordInput.input)
+        )
+        valueSubmitted(input)
     }
 
     @objc
@@ -231,8 +341,50 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
         actioner?.executeAction(.openURL(.wr_passwordReset))
     }
 
+    override func createConstraints() {
+        super.createConstraints()
+        loginButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            loginButton.heightAnchor.constraint(equalToConstant: 48)
+        ])
+
+        if shouldUseScrollView {
+            NSLayoutConstraint.activate([
+                contentStack.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor),
+                contentStack.trailingAnchor.constraint(greaterThanOrEqualTo: view.trailingAnchor),
+                contentStack.widthAnchor.constraint(equalToConstant: 375),
+                contentStack.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                contentStack.topAnchor.constraint(greaterThanOrEqualTo: view.topAnchor, constant: 86)
+            ])
+        }
+    }
+
+    override func updateKeyboard(with keyboardFrame: CGRect) {
+        guard let scrollView = view as? UIScrollView else {
+            return super.updateKeyboard(with: keyboardFrame)
+        }
+
+        guard let activeField = loginActiveField as? UIView else {
+            scrollView.contentInset.bottom = 0
+            scrollView.verticalScrollIndicatorInsets.bottom = 0
+            return
+        }
+        let contentInsets = UIEdgeInsets(top: 0.0, left: 0.0, bottom: keyboardFrame.height, right: 0.0)
+        scrollView.contentInset = contentInsets
+        scrollView.verticalScrollIndicatorInsets = contentInsets
+
+        let activeRect = activeField.convert(activeField.bounds, to: scrollView)
+        scrollView.scrollRectToVisible(activeRect, animated: true)
+    }
+
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return wr_supportedInterfaceOrientations
+    }
+
+    func updateViewsForProxy() {
+        if case .custom = backendEnvironment.environmentType.value {
+            tabBar.isHidden = true
+        }
     }
 
     func configure(with featureProvider: AuthenticationFeatureProvider) {
@@ -241,11 +393,17 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
             tabBar.isHidden = true
         } else if case .reauthentication? = flowType {
             tabBar.isHidden = prefilledCredentials != nil
-        } else if case .custom = BackendEnvironment.shared.environmentType.value {
+        } else if case .custom = backendEnvironment.environmentType.value {
             tabBar.isHidden = true
         } else {
             tabBar.isHidden = featureProvider.allowOnlyEmailLogin
         }
+    }
+
+    @objc
+    func customBackendInfoViewTapped(sender: UITapGestureRecognizer) {
+        let intent = AuthenticationShowCustomBackendInfoHandler.Intent.showCustomBackendInfo
+        authenticationCoordinator?.eventResponderChain.handleEvent(ofType: .userInput(intent))
     }
 
     private var contextualFirstResponder: UIResponder? {
@@ -371,15 +529,60 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
     }
 
     func textField(_ textField: EmailPasswordTextField, didConfirmCredentials credentials: (String, String)) {
-        valueSubmitted(credentials)
+        guard !isProxyCredentialsRequired else {
+            proxyCredentialsViewController.usernameInput.becomeFirstResponder()
+            return
+        }
+        let input: (EmailPasswordInput, AuthenticationProxyCredentialsInput?) = (EmailPasswordInput(email: credentials.0, password: credentials.1), nil)
+        valueSubmitted(input)
     }
 
     func textFieldDidSubmitWithValidationError(_ textField: EmailPasswordTextField) {
-
+        guard !isProxyCredentialsRequired, !textField.isPasswordEmpty else {
+            proxyCredentialsViewController.usernameInput.becomeFirstResponder()
+            return
+        }
+        // no-op: we do not update the UI depending on the validity of the input
     }
 
     private func updateLoginButtonState() {
-        loginButton.isEnabled = emailPasswordInputField.hasValidInput
+        guard isProxyCredentialsRequired else {
+            loginButton.isEnabled = emailPasswordInputField.hasValidInput
+            return
+        }
+        let validEmailPassword = emailPasswordInputField.emailValidationError == nil && emailPasswordInputField.passwordValidationError == nil
+        let validProxyCredentials = proxyCredentialsViewController.usernameInput.isInputValid && proxyCredentialsViewController.passwordInput.isInputValid
+        loginButton.isEnabled = validEmailPassword &&
+        ((isProxyCredentialsRequired && validProxyCredentials) || !isProxyCredentialsRequired)
+    }
+
+    // MARK: - Proxy Credentials
+
+    private func customBackendInfo() -> CustomBackendView? {
+        guard let url = backendEnvironment.environmentType.customUrl else {
+            return nil
+        }
+        let info = CustomBackendView()
+        info.setBackendUrl(url)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(customBackendInfoViewTapped(sender:)))
+        info.addGestureRecognizer(tapGesture)
+        info.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        return info
+    }
+
+    private func addProxyCredentialsSection() {
+        guard proxyCredentialsViewController.parent == nil else { return }
+        addChild(proxyCredentialsViewController)
+        contentStack.addArrangedSubview(proxyCredentialsViewController.view)
+        proxyCredentialsViewController.didMove(toParent: self)
+    }
+
+    func textFieldDidUpdateText(_ textField: ValidatedTextField) {
+        updateLoginButtonState()
+    }
+
+    func textField(_ textField: UITextField, editing: Bool) {
+        loginActiveField = editing ? textField : nil
     }
 
     // MARK: - Phone Number Input
@@ -405,5 +608,19 @@ final class AuthenticationCredentialsViewController: AuthenticationStepControlle
         phoneInputView.selectCountry(country)
         viewController.dismiss(animated: true)
     }
+}
 
+extension AuthenticationCredentialsViewController: ValidatedTextFieldDelegate {
+    func buttonPressed(_ sender: UIButton) {
+        emailPasswordInputField.passwordField.isSecureTextEntry.toggle()
+        emailPasswordInputField.passwordField.updatePasscodeIcon()
+    }
+}
+
+extension ValidatedTextField {
+    func addRevealButton(delegate: ValidatedTextFieldDelegate) {
+        showConfirmButton = true
+        validatedTextFieldDelegate = delegate
+        overrideButtonIcon = StyleKitIcon.AppLock.reveal
+    }
 }
